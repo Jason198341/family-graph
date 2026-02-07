@@ -610,18 +610,22 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
 
   getAllGraphEdges: () => {
     const s = get()
-    return s.relations.map((rel): Edge => ({
-      id: rel.id,
-      source: rel.sourceId,
-      target: rel.targetId,
-      label: rel.label,
-      type: 'default',
-      animated: rel.strength >= 7,
-      style: {
-        strokeWidth: Math.max(1, Math.round(rel.strength / 3)),
-        stroke: CATEGORY_COLORS[rel.sourceType] ?? '#64748b',
-      },
-    }))
+    return s.relations.map((rel): Edge => {
+      const isFamily = rel.relationType === 'family'
+      return {
+        id: rel.id,
+        source: rel.sourceId,
+        target: rel.targetId,
+        label: rel.label,
+        type: 'default',
+        animated: isFamily ? false : rel.strength >= 7,
+        style: {
+          strokeWidth: isFamily ? 1.5 : Math.max(1, Math.round(rel.strength / 3)),
+          stroke: isFamily ? '#475569' : (CATEGORY_COLORS[rel.sourceType] ?? '#64748b'),
+          strokeDasharray: isFamily ? '6 3' : undefined,
+        },
+      }
+    })
   },
 
   // ── AI extraction import ──

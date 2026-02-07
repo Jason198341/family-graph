@@ -92,7 +92,7 @@ function autoLayout(rawNodes: Node[]): Node[] {
       // Person nodes in center cluster
       if (cat === 'person') {
         const pAngle = (2 * Math.PI * idx) / Math.max(nodesInGroup.length, 1) - Math.PI / 2
-        const pRadius = nodesInGroup.length > 1 ? 120 : 0
+        const pRadius = nodesInGroup.length > 1 ? 160 : 0
         result.push({
           ...node,
           type: categoryToNodeType[cat] ?? 'custom',
@@ -121,7 +121,7 @@ function buildEdges(rawEdges: Edge[]): Edge[] {
   return rawEdges.map((edge) => ({
     ...edge,
     type: 'default',
-    animated: (edge.style?.strokeWidth as number ?? 1) >= 2,
+    animated: edge.animated ?? false,
     style: {
       ...(edge.style ?? {}),
       stroke: (edge.style?.stroke as string) ?? '#64748b',
