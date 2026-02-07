@@ -9,6 +9,7 @@ import Toast from '@/components/common/Toast'
 const KnowledgeGraph = lazy(() => import('@/components/graph/KnowledgeGraph'))
 const GrowthChat = lazy(() => import('@/components/chat/GrowthChat'))
 const ExtractPanel = lazy(() => import('@/components/chat/ExtractPanel'))
+const ReadingTracker = lazy(() => import('@/components/reading/ReadingTracker'))
 
 function ViewLoader() {
   return (
@@ -124,6 +125,7 @@ export default function App() {
           {activeView === 'graph' && <KnowledgeGraph />}
           {activeView === 'chat' && <GrowthChat />}
           {activeView === 'extract' && <ExtractPanel />}
+          {activeView === 'reading' && <ReadingTracker />}
         </Suspense>
       </main>
 

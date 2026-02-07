@@ -13,6 +13,9 @@ import type {
   NodeCategory,
   GraphNodeData,
   ExtractionResult,
+  Book,
+  ReadingLog,
+  ReadingGoal,
 } from '@/types'
 import {
   seedPersons,
@@ -21,6 +24,9 @@ import {
   seedEvents,
   seedGoals,
   seedRelations,
+  seedBooks,
+  seedReadingLogs,
+  seedReadingGoals,
 } from '@/data/seed'
 
 // ─── Persistence helpers ─────────────────────
@@ -44,11 +50,11 @@ function persistState(state: GraphState) {
   saveTimer = setTimeout(() => {
     const {
       persons, interests, values, events, goals, relations,
-      insights, chatMessages,
+      insights, chatMessages, books, readingLogs, readingGoals,
     } = state
     localStorage.setItem(
       FG_KEY,
-      JSON.stringify({ persons, interests, values, events, goals, relations, insights, chatMessages }),
+      JSON.stringify({ persons, interests, values, events, goals, relations, insights, chatMessages, books, readingLogs, readingGoals }),
     )
   }, 1_000)
 }
@@ -68,6 +74,7 @@ const CATEGORY_COLORS: Record<NodeCategory, string> = {
   value: '#10b981',
   event: '#8b5cf6',
   goal: '#ef4444',
+  book: '#a855f7',
 }
 
 // ─── Toast counter ───────────────────────────
@@ -92,6 +99,9 @@ interface GraphState {
   relations: GraphRelation[]
   insights: GrowthInsight[]
   chatMessages: ChatMessage[]
+  books: Book[]
+  readingLogs: ReadingLog[]
+  readingGoals: ReadingGoal[]
 
   // ui
   activeView: AppView
@@ -119,6 +129,19 @@ interface GraphState {
   removeRelation: (id: string) => void
 
   updateGoalProgress: (id: string, progress: number) => void
+
+  // book / reading mutations
+  addBook: (data: Omit<Book, 'id'>) => Book
+  removeBook: (id: string) => void
+  addReadingLog: (data: Omit<ReadingLog, 'id'>) => ReadingLog
+  addReadingGoal: (data: Omit<ReadingGoal, 'id'>) => ReadingGoal
+  updateReadingGoal: (id: string, targetLines: number) => void
+
+  // reading queries
+  getReadingLogsForMonth: (personId: string, month: string) => ReadingLog[]
+  getReadingGoalForMonth: (personId: string, month: string) => ReadingGoal | undefined
+  getTotalLinesForMonth: (personId: string, month: string) => number
+  getStreakDays: (personId: string) => number
 
   // AI helpers
   addInsight: (insight: Omit<GrowthInsight, 'id' | 'createdAt'>) => void
@@ -157,6 +180,9 @@ function getInitialData() {
       relations: persisted.relations ?? seedRelations,
       insights: persisted.insights ?? [],
       chatMessages: persisted.chatMessages ?? [],
+      books: persisted.books ?? seedBooks,
+      readingLogs: persisted.readingLogs ?? seedReadingLogs,
+      readingGoals: persisted.readingGoals ?? seedReadingGoals,
     }
   }
   return {
@@ -168,6 +194,9 @@ function getInitialData() {
     relations: seedRelations,
     insights: [] as GrowthInsight[],
     chatMessages: [] as ChatMessage[],
+    books: seedBooks,
+    readingLogs: seedReadingLogs,
+    readingGoals: seedReadingGoals,
   }
 }
 
@@ -179,6 +208,7 @@ function findCategory(state: GraphState, id: string): NodeCategory | null {
   if (state.values.some((v) => v.id === id)) return 'value'
   if (state.events.some((e) => e.id === id)) return 'event'
   if (state.goals.some((g) => g.id === id)) return 'goal'
+  if (state.books.some((b) => b.id === id)) return 'book'
   return null
 }
 
@@ -193,6 +223,8 @@ function findEntity(state: GraphState, id: string): Record<string, unknown> | nu
   if (e) return e as unknown as Record<string, unknown>
   const g = state.goals.find((x) => x.id === id)
   if (g) return g as unknown as Record<string, unknown>
+  const b = state.books.find((x) => x.id === id)
+  if (b) return b as unknown as Record<string, unknown>
   return null
 }
 
@@ -399,6 +431,99 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     }),
 
+  // ── book / reading actions ──
+  addBook: (data) => {
+    const book: Book = { ...data, id: genId('book') }
+    set((s) => {
+      const next = { books: [...s.books, book] }
+      persistState({ ...s, ...next })
+      return next
+    })
+    return book
+  },
+
+  removeBook: (id) =>
+    set((s) => {
+      const next = {
+        books: s.books.filter((b) => b.id !== id),
+        relations: s.relations.filter((r) => r.sourceId !== id && r.targetId !== id),
+        readingLogs: s.readingLogs.filter((l) => l.bookId !== id),
+        selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
+      }
+      persistState({ ...s, ...next })
+      return next
+    }),
+
+  addReadingLog: (data) => {
+    const log: ReadingLog = { ...data, id: genId('rlog') }
+    set((s) => {
+      const next = { readingLogs: [...s.readingLogs, log] }
+      persistState({ ...s, ...next })
+      return next
+    })
+    return log
+  },
+
+  addReadingGoal: (data) => {
+    const goal: ReadingGoal = { ...data, id: genId('rgoal') }
+    set((s) => {
+      const next = { readingGoals: [...s.readingGoals, goal] }
+      persistState({ ...s, ...next })
+      return next
+    })
+    return goal
+  },
+
+  updateReadingGoal: (id, targetLines) =>
+    set((s) => {
+      const next = {
+        readingGoals: s.readingGoals.map((g) =>
+          g.id === id ? { ...g, targetLines } : g,
+        ),
+      }
+      persistState({ ...s, ...next })
+      return next
+    }),
+
+  // ── reading queries ──
+  getReadingLogsForMonth: (personId, month) => {
+    const s = get()
+    return s.readingLogs.filter((l) => l.personId === personId && l.date.startsWith(month))
+  },
+
+  getReadingGoalForMonth: (personId, month) => {
+    const s = get()
+    return s.readingGoals.find((g) => g.personId === personId && g.month === month)
+  },
+
+  getTotalLinesForMonth: (personId, month) => {
+    const s = get()
+    return s.readingLogs
+      .filter((l) => l.personId === personId && l.date.startsWith(month))
+      .reduce((sum, l) => sum + l.linesRead, 0)
+  },
+
+  getStreakDays: (personId) => {
+    const s = get()
+    const logs = s.readingLogs.filter((l) => l.personId === personId)
+    const uniqueDates = [...new Set(logs.map((l) => l.date))].sort().reverse()
+    if (uniqueDates.length === 0) return 0
+
+    let streak = 0
+    const today = new Date()
+    for (let i = 0; i < uniqueDates.length; i++) {
+      const checkDate = new Date(today)
+      checkDate.setDate(checkDate.getDate() - i)
+      const dateStr = checkDate.toISOString().slice(0, 10)
+      if (uniqueDates.includes(dateStr)) {
+        streak++
+      } else {
+        break
+      }
+    }
+    return streak
+  },
+
   // ── AI state ──
   setAiLoading: (v) => set({ isAiLoading: v }),
   setAiError: (err) => set({ aiError: err }),
@@ -475,6 +600,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     for (const v of s.values) allEntities.push({ category: 'value', entity: v as unknown as Record<string, unknown> })
     for (const e of s.events) allEntities.push({ category: 'event', entity: e as unknown as Record<string, unknown> })
     for (const g of s.goals) allEntities.push({ category: 'goal', entity: g as unknown as Record<string, unknown> })
+    for (const b of s.books) allEntities.push({ category: 'book', entity: b as unknown as Record<string, unknown> })
 
     const total = allEntities.length
     return allEntities.map(({ category, entity }, idx) =>
@@ -509,6 +635,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     for (const v of s.values) nameToId.set(v.name.toLowerCase(), v.id)
     for (const e of s.events) nameToId.set(e.title.toLowerCase(), e.id)
     for (const g of s.goals) nameToId.set(g.title.toLowerCase(), g.id)
+    for (const b of s.books) nameToId.set(b.title.toLowerCase(), b.id)
 
     const newPersons: FamilyPerson[] = []
     const newInterests: Interest[] = []
@@ -592,9 +719,12 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         values: [...s.values, ...newValues],
         events: [...s.events, ...newEvents],
         goals: [...s.goals, ...newGoals],
+        books: s.books,
         relations: s.relations,
         insights: s.insights,
         chatMessages: s.chatMessages,
+        readingLogs: s.readingLogs,
+        readingGoals: s.readingGoals,
         activeView: s.activeView,
         selectedNodeId: s.selectedNodeId,
         isAiLoading: s.isAiLoading,
@@ -661,6 +791,11 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     lines.push('', '-- Goals --')
     for (const g of s.goals) {
       lines.push(`${g.emoji} ${g.title} [${g.progress}%]: ${g.description} (target: ${g.targetDate})`)
+    }
+
+    lines.push('', '-- Books --')
+    for (const b of s.books) {
+      lines.push(`${b.emoji} ${b.title} by ${b.author} (${b.totalPages}p, ${b.linesPerPage}줄/p)`)
     }
 
     lines.push('', '-- Relationships --')

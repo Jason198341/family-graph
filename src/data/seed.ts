@@ -1,4 +1,4 @@
-import type { FamilyPerson, Interest, FamilyValue, LifeEvent, GrowthGoal, GraphRelation } from '@/types'
+import type { FamilyPerson, Interest, FamilyValue, LifeEvent, GrowthGoal, GraphRelation, Book, ReadingLog, ReadingGoal } from '@/types'
 
 // ─── 가족 구성원 ────────────────────────────
 
@@ -158,6 +158,58 @@ export const seedGoals: GrowthGoal[] = [
   },
 ]
 
+// ─── 책 ─────────────────────────────────────
+
+export const seedBooks: Book[] = [
+  {
+    id: 'book-1',
+    title: '자존감 수업',
+    author: '윤홍균',
+    totalPages: 320,
+    linesPerPage: 25,
+    emoji: '📖',
+    color: '#f59e0b',
+  },
+  {
+    id: 'book-2',
+    title: '아몬드',
+    author: '손원평',
+    totalPages: 264,
+    linesPerPage: 28,
+    emoji: '🌰',
+    color: '#10b981',
+  },
+  {
+    id: 'book-3',
+    title: '해리포터와 마법사의 돌',
+    author: 'J.K. 롤링',
+    totalPages: 340,
+    linesPerPage: 30,
+    emoji: '⚡',
+    color: '#8b5cf6',
+  },
+]
+
+// ─── 독서 목표 ──────────────────────────────
+
+export const seedReadingGoals: ReadingGoal[] = [
+  { id: 'rg-1', personId: 'person-dad', month: '2026-02', targetLines: 20000 },
+  { id: 'rg-2', personId: 'person-mom', month: '2026-02', targetLines: 15000 },
+  { id: 'rg-3', personId: 'person-child1', month: '2026-02', targetLines: 10000 },
+  { id: 'rg-4', personId: 'person-child2', month: '2026-02', targetLines: 5000 },
+]
+
+// ─── 독서 기록 ──────────────────────────────
+
+export const seedReadingLogs: ReadingLog[] = [
+  { id: 'rl-1', personId: 'person-dad', bookId: 'book-1', date: '2026-02-01', linesRead: 750 },
+  { id: 'rl-2', personId: 'person-dad', bookId: 'book-1', date: '2026-02-02', linesRead: 500 },
+  { id: 'rl-3', personId: 'person-mom', bookId: 'book-2', date: '2026-02-01', linesRead: 420 },
+  { id: 'rl-4', personId: 'person-child1', bookId: 'book-3', date: '2026-02-01', linesRead: 300 },
+  { id: 'rl-5', personId: 'person-child1', bookId: 'book-3', date: '2026-02-02', linesRead: 350 },
+  { id: 'rl-6', personId: 'person-child2', bookId: 'book-3', date: '2026-02-03', linesRead: 200 },
+]
+
 // ─── 관계 (Edges) ────────────────────────────
 
 export const seedRelations: GraphRelation[] = [
@@ -220,5 +272,52 @@ export const seedRelations: GraphRelation[] = [
     id: 'rel-12', sourceId: 'person-child2', targetId: 'value-support',
     sourceType: 'person', targetType: 'value',
     relationType: 'practices', label: '응원 받는 중', strength: 7, createdAt: Date.now(),
+  },
+  // ── 가족 관계 ──
+  {
+    id: 'rel-fam-1', sourceId: 'person-dad', targetId: 'person-mom',
+    sourceType: 'person', targetType: 'person',
+    relationType: 'family', label: '부부', strength: 10, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-fam-2', sourceId: 'person-dad', targetId: 'person-child1',
+    sourceType: 'person', targetType: 'person',
+    relationType: 'family', label: '부녀', strength: 10, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-fam-3', sourceId: 'person-dad', targetId: 'person-child2',
+    sourceType: 'person', targetType: 'person',
+    relationType: 'family', label: '부자', strength: 10, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-fam-4', sourceId: 'person-mom', targetId: 'person-child1',
+    sourceType: 'person', targetType: 'person',
+    relationType: 'family', label: '모녀', strength: 10, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-fam-5', sourceId: 'person-mom', targetId: 'person-child2',
+    sourceType: 'person', targetType: 'person',
+    relationType: 'family', label: '모자', strength: 10, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-fam-6', sourceId: 'person-child1', targetId: 'person-child2',
+    sourceType: 'person', targetType: 'person',
+    relationType: 'family', label: '남매', strength: 9, createdAt: Date.now(),
+  },
+  // ── 독서 관계 (사람↔책) ──
+  {
+    id: 'rel-reads-1', sourceId: 'person-dad', targetId: 'book-1',
+    sourceType: 'person', targetType: 'book',
+    relationType: 'reads', label: '읽는 중', strength: 8, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-reads-2', sourceId: 'person-mom', targetId: 'book-2',
+    sourceType: 'person', targetType: 'book',
+    relationType: 'reads', label: '읽는 중', strength: 7, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-reads-3', sourceId: 'person-child1', targetId: 'book-3',
+    sourceType: 'person', targetType: 'book',
+    relationType: 'reads', label: '읽는 중', strength: 6, createdAt: Date.now(),
   },
 ]

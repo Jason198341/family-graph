@@ -1,6 +1,6 @@
 // ─── Core Entity Types ──────────────────────
 
-export type NodeCategory = 'person' | 'interest' | 'value' | 'event' | 'goal'
+export type NodeCategory = 'person' | 'interest' | 'value' | 'event' | 'goal' | 'book'
 
 export interface FamilyPerson {
   id: string
@@ -58,6 +58,8 @@ export type RelationType =
   | 'supports'        // 지원한다
   | 'learns'          // 학습한다
   | 'achieves'        // 달성한다
+  | 'family'          // 가족이다
+  | 'reads'           // 읽는다
 
 export interface GraphRelation {
   id: string
@@ -127,4 +129,31 @@ export interface ChatMessage {
 
 // ─── View State ────────────────────────────
 
-export type AppView = 'dashboard' | 'graph' | 'chat' | 'extract' | 'timeline'
+export type AppView = 'dashboard' | 'graph' | 'chat' | 'extract' | 'timeline' | 'reading'
+
+// ─── Book / Reading Types ─────────────────────
+
+export interface Book {
+  id: string
+  title: string
+  author: string
+  totalPages: number
+  linesPerPage: number
+  emoji: string
+  color: string
+}
+
+export interface ReadingLog {
+  id: string
+  personId: string
+  bookId: string
+  date: string            // YYYY-MM-DD
+  linesRead: number
+}
+
+export interface ReadingGoal {
+  id: string
+  personId: string
+  month: string           // YYYY-MM
+  targetLines: number
+}

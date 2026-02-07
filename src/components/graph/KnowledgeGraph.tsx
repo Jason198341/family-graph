@@ -17,6 +17,7 @@ import InterestNode from '@/components/graph/nodes/InterestNode'
 import ValueNode from '@/components/graph/nodes/ValueNode'
 import EventNode from '@/components/graph/nodes/EventNode'
 import GoalNode from '@/components/graph/nodes/GoalNode'
+import BookNode from '@/components/graph/nodes/BookNode'
 
 const nodeTypes = {
   custom: PersonNode, // fallback
@@ -25,6 +26,7 @@ const nodeTypes = {
   valueNode: ValueNode,
   eventNode: EventNode,
   goalNode: GoalNode,
+  bookNode: BookNode,
 }
 
 const categoryToNodeType: Record<string, string> = {
@@ -33,6 +35,7 @@ const categoryToNodeType: Record<string, string> = {
   value: 'valueNode',
   event: 'eventNode',
   goal: 'goalNode',
+  book: 'bookNode',
 }
 
 const minimapColors: Record<string, string> = {
@@ -41,6 +44,7 @@ const minimapColors: Record<string, string> = {
   valueNode: '#f97316',
   eventNode: '#22c55e',
   goalNode: '#60a5fa',
+  bookNode: '#a855f7',
   custom: '#64748b',
 }
 
@@ -53,7 +57,7 @@ function autoLayout(rawNodes: Node[]): Node[] {
     groups[cat].push(node)
   }
 
-  const categoryOrder = ['person', 'interest', 'value', 'event', 'goal']
+  const categoryOrder = ['person', 'interest', 'value', 'event', 'goal', 'book']
   const centerX = 500
   const centerY = 400
   const ringRadius: Record<string, number> = {
@@ -62,6 +66,7 @@ function autoLayout(rawNodes: Node[]): Node[] {
     value: 280,
     event: 450,
     goal: 450,
+    book: 380,
   }
   const ringAngleStart: Record<string, number> = {
     person: 0,
@@ -69,6 +74,7 @@ function autoLayout(rawNodes: Node[]): Node[] {
     value: Math.PI / 3,
     event: -Math.PI / 2,
     goal: Math.PI / 2,
+    book: Math.PI,
   }
 
   const result: Node[] = []
@@ -142,13 +148,14 @@ export default function KnowledgeGraph() {
   const values = useGraphStore((s) => s.values)
   const events = useGraphStore((s) => s.events)
   const goals = useGraphStore((s) => s.goals)
+  const books = useGraphStore((s) => s.books)
   const relations = useGraphStore((s) => s.relations)
   const getAllGraphNodes = useGraphStore((s) => s.getAllGraphNodes)
   const getAllGraphEdges = useGraphStore((s) => s.getAllGraphEdges)
   const selectNode = useGraphStore((s) => s.selectNode)
   const selectedNodeId = useGraphStore((s) => s.selectedNodeId)
 
-  const rawNodes = useMemo(() => getAllGraphNodes(), [persons, interests, values, events, goals, getAllGraphNodes])
+  const rawNodes = useMemo(() => getAllGraphNodes(), [persons, interests, values, events, goals, books, getAllGraphNodes])
   const rawEdges = useMemo(() => getAllGraphEdges(), [relations, getAllGraphEdges])
 
   const layoutedNodes = useMemo(() => autoLayout(rawNodes), [rawNodes])
@@ -206,6 +213,7 @@ export default function KnowledgeGraph() {
             { label: '가치', color: '#f97316' },
             { label: '이벤트', color: '#22c55e' },
             { label: '목표', color: '#60a5fa' },
+            { label: '책', color: '#a855f7' },
           ].map(({ label, color }) => (
             <div key={label} className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />

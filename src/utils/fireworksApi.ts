@@ -100,6 +100,7 @@ const EXTRACTION_SYSTEM_PROMPT = `You are a Family Knowledge Graph entity extrac
 - **value**: Family principles, shared beliefs, daily habits that reflect values. Fields: name, description.
 - **event**: Milestones, trips, achievements, important dates. Fields: name, description.
 - **goal**: Personal or family targets, things to achieve. Fields: name, description.
+- **book**: Books being read by the family. Fields: name, description.
 
 ## Relation Types
 - **participates**: Someone participates in an interest/activity.
@@ -110,6 +111,8 @@ const EXTRACTION_SYSTEM_PROMPT = `You are a Family Knowledge Graph entity extrac
 - **supports**: One entity supports another.
 - **learns**: Someone learns something.
 - **achieves**: Someone achieves a goal/event.
+- **family**: A family relationship between two people (e.g., parent-child, siblings, spouse).
+- **reads**: Someone reads a book.
 
 ## Output Format
 Return ONLY valid JSON matching this exact structure (no markdown, no explanation):
@@ -118,7 +121,7 @@ Return ONLY valid JSON matching this exact structure (no markdown, no explanatio
     { "name": "...", "category": "person|interest|value|event|goal", "emoji": "...", "description": "..." }
   ],
   "relations": [
-    { "sourceName": "...", "targetName": "...", "relationType": "participates|practices|strengthens|contributes|influences|supports|learns|achieves", "label": "short Korean label" }
+    { "sourceName": "...", "targetName": "...", "relationType": "participates|practices|strengthens|contributes|influences|supports|learns|achieves|family|reads", "label": "short Korean label" }
   ],
   "summary": "Brief Korean summary of what was extracted"
 }
@@ -130,10 +133,10 @@ Rules:
 - Only extract what is explicitly stated or strongly implied.
 - Each relation's sourceName and targetName must exactly match an entity name from the entities array or an already-known entity.`
 
-const VALID_CATEGORIES: NodeCategory[] = ['person', 'interest', 'value', 'event', 'goal']
+const VALID_CATEGORIES: NodeCategory[] = ['person', 'interest', 'value', 'event', 'goal', 'book']
 const VALID_RELATIONS: RelationType[] = [
   'participates', 'practices', 'strengthens', 'contributes',
-  'influences', 'supports', 'learns', 'achieves',
+  'influences', 'supports', 'learns', 'achieves', 'family', 'reads',
 ]
 
 export async function extractEntities(text: string): Promise<ExtractionResult> {

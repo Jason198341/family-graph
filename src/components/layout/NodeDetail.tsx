@@ -8,6 +8,7 @@ const categoryLabels: Record<NodeCategory, string> = {
   value: '가치',
   event: '이벤트',
   goal: '목표',
+  book: '책',
 }
 
 const categoryBadgeColors: Record<NodeCategory, string> = {
@@ -16,6 +17,7 @@ const categoryBadgeColors: Record<NodeCategory, string> = {
   value: 'bg-warm-500/15 text-warm-300 border-warm-500/30',
   event: 'bg-growth-500/15 text-growth-300 border-growth-500/30',
   goal: 'bg-primary-400/15 text-primary-200 border-primary-400/30',
+  book: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
 }
 
 export default function NodeDetail() {
@@ -92,6 +94,9 @@ export default function NodeDetail() {
   if (data.impact) metaEntries.push({ label: '영향', value: data.impact as string })
   if (data.targetDate) metaEntries.push({ label: '목표일', value: data.targetDate as string })
   if (data.progress !== undefined) metaEntries.push({ label: '진행률', value: `${data.progress}%` })
+  if (data.author) metaEntries.push({ label: '저자', value: data.author as string })
+  if (data.totalPages) metaEntries.push({ label: '페이지', value: `${data.totalPages}p` })
+  if (data.linesPerPage) metaEntries.push({ label: '줄/페이지', value: `${data.linesPerPage}줄` })
 
   return (
     <div
