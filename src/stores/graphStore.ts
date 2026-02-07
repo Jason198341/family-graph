@@ -28,8 +28,10 @@ import {
   seedReadingLogs,
   seedReadingGoals,
 } from '@/data/seed'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { useFamilyStore } from './familyStore'
 
-// ─── Persistence helpers ─────────────────────
+// ─── localStorage persistence (dev/fallback mode) ────────
 
 const FG_KEY = 'fg_store'
 
@@ -45,7 +47,7 @@ function loadPersistedState(): Partial<GraphState> | null {
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function persistState(state: GraphState) {
+function persistLocal(state: GraphState) {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
     const {
@@ -59,9 +61,20 @@ function persistState(state: GraphState) {
   }, 1_000)
 }
 
+/** Returns true when we should use localStorage instead of Supabase */
+function useLocalMode() {
+  return !isSupabaseConfigured || !useFamilyStore.getState().activeFamilyId
+}
+
+function getFamilyId() {
+  return useFamilyStore.getState().activeFamilyId ?? ''
+}
+
 // ─── ID generator ────────────────────────────
 
 function genId(type: string): string {
+  // In Supabase mode, generate UUID-compatible IDs
+  if (!useLocalMode()) return crypto.randomUUID()
   const rand = Math.random().toString(36).slice(2, 8)
   return `${type}_${Date.now()}_${rand}`
 }
@@ -109,10 +122,14 @@ interface GraphState {
   isAiLoading: boolean
   aiError: string | null
   toasts: Toast[]
+  dataLoaded: boolean
 
   // view
   setView: (view: AppView) => void
   selectNode: (id: string | null) => void
+
+  // Supabase data loading
+  loadFamilyData: (familyId: string) => Promise<void>
 
   // entity mutations
   addPerson: (data: Omit<FamilyPerson, 'id'>) => FamilyPerson
@@ -236,7 +253,6 @@ function entityToGraphNode(
   index: number,
   total: number,
 ): Node<GraphNodeData> {
-  // Default circular positions - will be overridden by layout util
   const angle = (2 * Math.PI * index) / Math.max(total, 1)
   const radius = category === 'person' ? 120 : category === 'value' ? 300 : 220
   const x = 400 + radius * Math.cos(angle)
@@ -284,165 +300,311 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   isAiLoading: false,
   aiError: null,
   toasts: [],
+  dataLoaded: false,
 
   // ── view actions ──
   setView: (view) => set({ activeView: view }),
   selectNode: (id) => set({ selectedNodeId: id }),
 
-  // ── entity add actions ──
+  // ── Supabase data loading ──
+  loadFamilyData: async (familyId) => {
+    if (!isSupabaseConfigured) {
+      set({ dataLoaded: true })
+      return
+    }
+
+    const [persons, interests, values, events, goals, books, readingLogs, readingGoals, relations, insights, chatMessages] = await Promise.all([
+      supabase.from('persons').select('*').eq('family_id', familyId),
+      supabase.from('interests').select('*').eq('family_id', familyId),
+      supabase.from('family_values').select('*').eq('family_id', familyId),
+      supabase.from('life_events').select('*').eq('family_id', familyId),
+      supabase.from('growth_goals').select('*').eq('family_id', familyId),
+      supabase.from('books').select('*').eq('family_id', familyId),
+      supabase.from('reading_logs').select('*').eq('family_id', familyId),
+      supabase.from('reading_goals').select('*').eq('family_id', familyId),
+      supabase.from('graph_relations').select('*').eq('family_id', familyId),
+      supabase.from('insights').select('*').eq('family_id', familyId),
+      supabase.from('chat_messages').select('*').eq('family_id', familyId).order('created_at'),
+    ])
+
+    set({
+      persons: (persons.data ?? []).map((r) => ({
+        id: r.id, name: r.name, role: r.role, emoji: r.emoji, bio: r.bio, color: r.color,
+      })),
+      interests: (interests.data ?? []).map((r) => ({
+        id: r.id, name: r.name, category: r.category as Interest['category'], emoji: r.emoji, description: r.description,
+      })),
+      values: (values.data ?? []).map((r) => ({
+        id: r.id, name: r.name, emoji: r.emoji, description: r.description,
+        practiceFrequency: r.practice_frequency as FamilyValue['practiceFrequency'],
+      })),
+      events: (events.data ?? []).map((r) => ({
+        id: r.id, title: r.title, description: r.description, date: r.date,
+        personIds: r.person_ids ?? [], emoji: r.emoji, impact: r.impact as LifeEvent['impact'],
+      })),
+      goals: (goals.data ?? []).map((r) => ({
+        id: r.id, title: r.title, description: r.description, personId: r.person_id ?? '',
+        targetDate: r.target_date ?? '', progress: r.progress, emoji: r.emoji,
+      })),
+      books: (books.data ?? []).map((r) => ({
+        id: r.id, title: r.title, author: r.author, totalPages: r.total_pages,
+        linesPerPage: r.lines_per_page, emoji: r.emoji, color: r.color,
+      })),
+      readingLogs: (readingLogs.data ?? []).map((r) => ({
+        id: r.id, personId: r.person_id, bookId: r.book_id, date: r.date, linesRead: r.lines_read,
+      })),
+      readingGoals: (readingGoals.data ?? []).map((r) => ({
+        id: r.id, personId: r.person_id, month: r.month, targetLines: r.target_lines,
+      })),
+      relations: (relations.data ?? []).map((r) => ({
+        id: r.id, sourceId: r.source_id, targetId: r.target_id,
+        sourceType: r.source_type as NodeCategory, targetType: r.target_type as NodeCategory,
+        relationType: r.relation_type as GraphRelation['relationType'],
+        label: r.label, strength: r.strength, createdAt: new Date(r.created_at).getTime(),
+      })),
+      insights: (insights.data ?? []).map((r) => ({
+        id: r.id, title: r.title, content: r.content,
+        relatedNodeIds: r.related_node_ids ?? [], createdAt: new Date(r.created_at).getTime(), emoji: r.emoji,
+      })),
+      chatMessages: (chatMessages.data ?? []).map((r) => ({
+        id: r.id, role: r.role as ChatMessage['role'], content: r.content,
+        timestamp: new Date(r.created_at).getTime(), relatedNodeIds: r.related_node_ids ?? [],
+      })),
+      dataLoaded: true,
+    })
+  },
+
+  // ── entity add actions (optimistic + Supabase sync) ──
   addPerson: (data) => {
-    const person: FamilyPerson = { ...data, id: genId('person') }
+    const id = genId('person')
+    const person: FamilyPerson = { ...data, id }
     set((s) => {
       const next = { persons: [...s.persons, person] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('persons').insert({
+        id, family_id: getFamilyId(), name: data.name, role: data.role,
+        emoji: data.emoji, bio: data.bio, color: data.color,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ persons: s.persons.filter((p) => p.id !== id) }))
+      })
+    }
     return person
   },
 
   addInterest: (data) => {
-    const interest: Interest = { ...data, id: genId('interest') }
+    const id = genId('interest')
+    const interest: Interest = { ...data, id }
     set((s) => {
       const next = { interests: [...s.interests, interest] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('interests').insert({
+        id, family_id: getFamilyId(), name: data.name, category: data.category,
+        emoji: data.emoji, description: data.description,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ interests: s.interests.filter((i) => i.id !== id) }))
+      })
+    }
     return interest
   },
 
   addValue: (data) => {
-    const value: FamilyValue = { ...data, id: genId('value') }
+    const id = genId('value')
+    const value: FamilyValue = { ...data, id }
     set((s) => {
       const next = { values: [...s.values, value] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('family_values').insert({
+        id, family_id: getFamilyId(), name: data.name, emoji: data.emoji,
+        description: data.description, practice_frequency: data.practiceFrequency,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ values: s.values.filter((v) => v.id !== id) }))
+      })
+    }
     return value
   },
 
   addEvent: (data) => {
-    const event: LifeEvent = { ...data, id: genId('event') }
+    const id = genId('event')
+    const event: LifeEvent = { ...data, id }
     set((s) => {
       const next = { events: [...s.events, event] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('life_events').insert({
+        id, family_id: getFamilyId(), title: data.title, description: data.description,
+        date: data.date, person_ids: data.personIds, emoji: data.emoji, impact: data.impact,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ events: s.events.filter((e) => e.id !== id) }))
+      })
+    }
     return event
   },
 
   addGoal: (data) => {
-    const goal: GrowthGoal = { ...data, id: genId('goal') }
+    const id = genId('goal')
+    const goal: GrowthGoal = { ...data, id }
     set((s) => {
       const next = { goals: [...s.goals, goal] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('growth_goals').insert({
+        id, family_id: getFamilyId(), title: data.title, description: data.description,
+        person_id: data.personId, target_date: data.targetDate, progress: data.progress, emoji: data.emoji,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ goals: s.goals.filter((g) => g.id !== id) }))
+      })
+    }
     return goal
   },
 
   addRelation: (data) => {
-    const relation: GraphRelation = {
-      ...data,
-      id: genId('rel'),
-      createdAt: Date.now(),
-    }
+    const id = genId('rel')
+    const relation: GraphRelation = { ...data, id, createdAt: Date.now() }
     set((s) => {
       const next = { relations: [...s.relations, relation] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('graph_relations').insert({
+        id, family_id: getFamilyId(), source_id: data.sourceId, target_id: data.targetId,
+        source_type: data.sourceType, target_type: data.targetType,
+        relation_type: data.relationType, label: data.label, strength: data.strength,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ relations: s.relations.filter((r) => r.id !== id) }))
+      })
+    }
     return relation
   },
 
-  // ── entity remove actions (cascading relation removal) ──
-  removePerson: (id) =>
+  // ── entity remove actions ──
+  removePerson: (id) => {
     set((s) => {
       const next = {
         persons: s.persons.filter((p) => p.id !== id),
-        relations: s.relations.filter(
-          (r) => r.sourceId !== id && r.targetId !== id,
-        ),
-        events: s.events.map((e) => ({
-          ...e,
-          personIds: e.personIds.filter((pid) => pid !== id),
-        })),
+        relations: s.relations.filter((r) => r.sourceId !== id && r.targetId !== id),
+        events: s.events.map((e) => ({ ...e, personIds: e.personIds.filter((pid) => pid !== id) })),
         goals: s.goals.filter((g) => g.personId !== id),
         selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
       }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('persons').delete().eq('id', id)
+      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+    }
+  },
 
-  removeInterest: (id) =>
+  removeInterest: (id) => {
     set((s) => {
       const next = {
         interests: s.interests.filter((i) => i.id !== id),
-        relations: s.relations.filter(
-          (r) => r.sourceId !== id && r.targetId !== id,
-        ),
+        relations: s.relations.filter((r) => r.sourceId !== id && r.targetId !== id),
         selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
       }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('interests').delete().eq('id', id)
+      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+    }
+  },
 
-  removeValue: (id) =>
+  removeValue: (id) => {
     set((s) => {
       const next = {
         values: s.values.filter((v) => v.id !== id),
-        relations: s.relations.filter(
-          (r) => r.sourceId !== id && r.targetId !== id,
-        ),
+        relations: s.relations.filter((r) => r.sourceId !== id && r.targetId !== id),
         selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
       }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('family_values').delete().eq('id', id)
+      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+    }
+  },
 
-  removeEvent: (id) =>
+  removeEvent: (id) => {
     set((s) => {
       const next = {
         events: s.events.filter((e) => e.id !== id),
-        relations: s.relations.filter(
-          (r) => r.sourceId !== id && r.targetId !== id,
-        ),
+        relations: s.relations.filter((r) => r.sourceId !== id && r.targetId !== id),
         selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
       }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('life_events').delete().eq('id', id)
+      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+    }
+  },
 
-  removeRelation: (id) =>
+  removeRelation: (id) => {
     set((s) => {
       const next = { relations: s.relations.filter((r) => r.id !== id) }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('graph_relations').delete().eq('id', id)
+    }
+  },
 
   // ── goal progress ──
-  updateGoalProgress: (id, progress) =>
+  updateGoalProgress: (id, progress) => {
+    const clamped = Math.min(100, Math.max(0, progress))
     set((s) => {
       const next = {
-        goals: s.goals.map((g) =>
-          g.id === id ? { ...g, progress: Math.min(100, Math.max(0, progress)) } : g,
-        ),
+        goals: s.goals.map((g) => g.id === id ? { ...g, progress: clamped } : g),
       }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('growth_goals').update({ progress: clamped }).eq('id', id)
+    }
+  },
 
   // ── book / reading actions ──
   addBook: (data) => {
-    const book: Book = { ...data, id: genId('book') }
+    const id = genId('book')
+    const book: Book = { ...data, id }
     set((s) => {
       const next = { books: [...s.books, book] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('books').insert({
+        id, family_id: getFamilyId(), title: data.title, author: data.author,
+        total_pages: data.totalPages, lines_per_page: data.linesPerPage,
+        emoji: data.emoji, color: data.color,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ books: s.books.filter((b) => b.id !== id) }))
+      })
+    }
     return book
   },
 
-  removeBook: (id) =>
+  removeBook: (id) => {
     set((s) => {
       const next = {
         books: s.books.filter((b) => b.id !== id),
@@ -450,40 +612,64 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         readingLogs: s.readingLogs.filter((l) => l.bookId !== id),
         selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
       }
-      persistState({ ...s, ...next })
-      return next
-    }),
-
-  addReadingLog: (data) => {
-    const log: ReadingLog = { ...data, id: genId('rlog') }
-    set((s) => {
-      const next = { readingLogs: [...s.readingLogs, log] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('books').delete().eq('id', id)
+    }
+  },
+
+  addReadingLog: (data) => {
+    const id = genId('rlog')
+    const log: ReadingLog = { ...data, id }
+    set((s) => {
+      const next = { readingLogs: [...s.readingLogs, log] }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      supabase.from('reading_logs').insert({
+        id, family_id: getFamilyId(), person_id: data.personId,
+        book_id: data.bookId, date: data.date, lines_read: data.linesRead,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ readingLogs: s.readingLogs.filter((l) => l.id !== id) }))
+      })
+    }
     return log
   },
 
   addReadingGoal: (data) => {
-    const goal: ReadingGoal = { ...data, id: genId('rgoal') }
+    const id = genId('rgoal')
+    const goal: ReadingGoal = { ...data, id }
     set((s) => {
       const next = { readingGoals: [...s.readingGoals, goal] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
+    if (!useLocalMode()) {
+      supabase.from('reading_goals').insert({
+        id, family_id: getFamilyId(), person_id: data.personId,
+        month: data.month, target_lines: data.targetLines,
+      }).then(({ error }) => {
+        if (error) set((s) => ({ readingGoals: s.readingGoals.filter((g) => g.id !== id) }))
+      })
+    }
     return goal
   },
 
-  updateReadingGoal: (id, targetLines) =>
+  updateReadingGoal: (id, targetLines) => {
     set((s) => {
       const next = {
-        readingGoals: s.readingGoals.map((g) =>
-          g.id === id ? { ...g, targetLines } : g,
-        ),
+        readingGoals: s.readingGoals.map((g) => g.id === id ? { ...g, targetLines } : g),
       }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('reading_goals').update({ target_lines: targetLines }).eq('id', id)
+    }
+  },
 
   // ── reading queries ──
   getReadingLogsForMonth: (personId, month) => {
@@ -528,38 +714,43 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   setAiLoading: (v) => set({ isAiLoading: v }),
   setAiError: (err) => set({ aiError: err }),
 
-  addInsight: (data) =>
+  addInsight: (data) => {
+    const id = genId('insight')
+    const insight: GrowthInsight = { ...data, id, createdAt: Date.now() }
     set((s) => {
-      const insight: GrowthInsight = {
-        ...data,
-        id: genId('insight'),
-        createdAt: Date.now(),
-      }
       const next = { insights: [...s.insights, insight] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('insights').insert({
+        id, family_id: getFamilyId(), title: data.title, content: data.content,
+        related_node_ids: data.relatedNodeIds, emoji: data.emoji,
+      })
+    }
+  },
 
-  addChatMessage: (data) =>
+  addChatMessage: (data) => {
+    const id = genId('msg')
+    const msg: ChatMessage = { ...data, id, timestamp: Date.now() }
     set((s) => {
-      const msg: ChatMessage = {
-        ...data,
-        id: genId('msg'),
-        timestamp: Date.now(),
-      }
       const next = { chatMessages: [...s.chatMessages, msg] }
-      persistState({ ...s, ...next })
+      if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
-    }),
+    })
+    if (!useLocalMode()) {
+      supabase.from('chat_messages').insert({
+        id, family_id: getFamilyId(), role: data.role, content: data.content,
+        related_node_ids: data.relatedNodeIds ?? [],
+      })
+    }
+  },
 
   // ── toasts ──
   addToast: (message, type) => {
     const id = ++toastCounter
     set((s) => ({ toasts: [...s.toasts, { id, message, type }] }))
-    // auto-dismiss after 4s
-    setTimeout(() => {
-      get().removeToast(id)
-    }, 4_000)
+    setTimeout(() => { get().removeToast(id) }, 4_000)
   },
 
   removeToast: (id) =>
@@ -633,7 +824,6 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     const s = get()
     const nameToId = new Map<string, string>()
 
-    // Build name->id map for existing entities
     for (const p of s.persons) nameToId.set(p.name.toLowerCase(), p.id)
     for (const i of s.interests) nameToId.set(i.name.toLowerCase(), i.id)
     for (const v of s.values) nameToId.set(v.name.toLowerCase(), v.id)
@@ -647,76 +837,38 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     const newEvents: LifeEvent[] = []
     const newGoals: GrowthGoal[] = []
 
-    // Add extracted entities
     for (const ent of result.entities) {
       const nameLower = ent.name.toLowerCase()
-      if (nameToId.has(nameLower)) continue // skip duplicates
+      if (nameToId.has(nameLower)) continue
 
       const id = genId(ent.category)
       nameToId.set(nameLower, id)
 
       switch (ent.category) {
         case 'person':
-          newPersons.push({
-            id,
-            name: ent.name,
-            role: '가족',
-            emoji: ent.emoji || '👤',
-            bio: ent.description,
-            color: CATEGORY_COLORS.person,
-          })
+          newPersons.push({ id, name: ent.name, role: '가족', emoji: ent.emoji || '👤', bio: ent.description, color: CATEGORY_COLORS.person })
           break
         case 'interest':
-          newInterests.push({
-            id,
-            name: ent.name,
-            category: 'hobby',
-            emoji: ent.emoji || '⭐',
-            description: ent.description,
-          })
+          newInterests.push({ id, name: ent.name, category: 'hobby', emoji: ent.emoji || '⭐', description: ent.description })
           break
         case 'value':
-          newValues.push({
-            id,
-            name: ent.name,
-            emoji: ent.emoji || '💎',
-            description: ent.description,
-            practiceFrequency: 'weekly',
-          })
+          newValues.push({ id, name: ent.name, emoji: ent.emoji || '💎', description: ent.description, practiceFrequency: 'weekly' })
           break
         case 'event':
-          newEvents.push({
-            id,
-            title: ent.name,
-            description: ent.description,
-            date: new Date().toISOString().slice(0, 10),
-            personIds: [],
-            emoji: ent.emoji || '📅',
-            impact: 'positive',
-          })
+          newEvents.push({ id, title: ent.name, description: ent.description, date: new Date().toISOString().slice(0, 10), personIds: [], emoji: ent.emoji || '📅', impact: 'positive' })
           break
         case 'goal':
-          newGoals.push({
-            id,
-            title: ent.name,
-            description: ent.description,
-            personId: s.persons[0]?.id ?? '',
-            targetDate: new Date(Date.now() + 90 * 86_400_000).toISOString().slice(0, 10),
-            progress: 0,
-            emoji: ent.emoji || '🎯',
-          })
+          newGoals.push({ id, title: ent.name, description: ent.description, personId: s.persons[0]?.id ?? '', targetDate: new Date(Date.now() + 90 * 86_400_000).toISOString().slice(0, 10), progress: 0, emoji: ent.emoji || '🎯' })
           break
       }
     }
 
-    // Add extracted relations
     const newRelations: GraphRelation[] = []
     for (const rel of result.relations) {
       const sourceId = nameToId.get(rel.sourceName.toLowerCase())
       const targetId = nameToId.get(rel.targetName.toLowerCase())
       if (!sourceId || !targetId) continue
 
-      // Determine source/target types
       const merged = {
         persons: [...s.persons, ...newPersons],
         interests: [...s.interests, ...newInterests],
@@ -734,6 +886,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         isAiLoading: s.isAiLoading,
         aiError: s.aiError,
         toasts: s.toasts,
+        dataLoaded: s.dataLoaded,
       } as unknown as GraphState
 
       const sourceType = findCategory(merged, sourceId)
@@ -741,15 +894,8 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       if (!sourceType || !targetType) continue
 
       newRelations.push({
-        id: genId('rel'),
-        sourceId,
-        targetId,
-        sourceType,
-        targetType,
-        relationType: rel.relationType,
-        label: rel.label,
-        strength: 5,
-        createdAt: Date.now(),
+        id: genId('rel'), sourceId, targetId, sourceType, targetType,
+        relationType: rel.relationType, label: rel.label, strength: 5, createdAt: Date.now(),
       })
     }
 
@@ -762,9 +908,32 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         goals: [...prev.goals, ...newGoals],
         relations: [...prev.relations, ...newRelations],
       }
-      persistState({ ...prev, ...next })
+      if (useLocalMode()) persistLocal({ ...prev, ...next })
       return next
     })
+
+    // Sync new entities to Supabase
+    if (!useLocalMode()) {
+      const fid = getFamilyId()
+      for (const p of newPersons) {
+        supabase.from('persons').insert({ id: p.id, family_id: fid, name: p.name, role: p.role, emoji: p.emoji, bio: p.bio, color: p.color })
+      }
+      for (const i of newInterests) {
+        supabase.from('interests').insert({ id: i.id, family_id: fid, name: i.name, category: i.category, emoji: i.emoji, description: i.description })
+      }
+      for (const v of newValues) {
+        supabase.from('family_values').insert({ id: v.id, family_id: fid, name: v.name, emoji: v.emoji, description: v.description, practice_frequency: v.practiceFrequency })
+      }
+      for (const e of newEvents) {
+        supabase.from('life_events').insert({ id: e.id, family_id: fid, title: e.title, description: e.description, date: e.date, person_ids: e.personIds, emoji: e.emoji, impact: e.impact })
+      }
+      for (const g of newGoals) {
+        supabase.from('growth_goals').insert({ id: g.id, family_id: fid, title: g.title, description: g.description, person_id: g.personId, target_date: g.targetDate, progress: g.progress, emoji: g.emoji })
+      }
+      for (const r of newRelations) {
+        supabase.from('graph_relations').insert({ id: r.id, family_id: fid, source_id: r.sourceId, target_id: r.targetId, source_type: r.sourceType, target_type: r.targetType, relation_type: r.relationType, label: r.label, strength: r.strength })
+      }
+    }
   },
 
   // ── graph context for AI prompts ──

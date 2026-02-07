@@ -131,6 +131,37 @@ export interface ChatMessage {
 
 export type AppView = 'dashboard' | 'graph' | 'chat' | 'extract' | 'timeline' | 'reading'
 
+// ─── Family / Auth Types (Supabase) ────────
+
+export interface Family {
+  id: string
+  name: string
+  emoji: string
+  inviteCode: string
+  createdBy: string
+  createdAt: string
+}
+
+export interface FamilyMember {
+  id: string
+  familyId: string
+  userId: string
+  role: 'admin' | 'member'
+  status: 'pending' | 'approved' | 'rejected'
+  createdAt: string
+  // joined from profiles
+  displayName?: string
+  email?: string
+  avatarEmoji?: string
+}
+
+export interface UserProfile {
+  id: string
+  email: string
+  displayName: string
+  avatarEmoji: string
+}
+
 // ─── Book / Reading Types ─────────────────────
 
 export interface Book {

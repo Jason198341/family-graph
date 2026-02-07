@@ -1,6 +1,10 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
+import { useAuthStore } from '@/stores/authStore'
+import { useFamilyStore } from '@/stores/familyStore'
+import { signOut } from '@/lib/supabase'
 import type { AppView } from '@/types'
+import MemberManager from '@/components/family/MemberManager'
 
 const navItems: { view: AppView; label: string; icon: ReactNode }[] = [
   {
@@ -86,79 +90,147 @@ export default function Sidebar() {
   const activeView = useGraphStore((s) => s.activeView)
   const setView = useGraphStore((s) => s.setView)
   const persons = useGraphStore((s) => s.persons)
+  const profile = useAuthStore((s) => s.profile)
+  const family = useFamilyStore((s) => s.family)
+  const devMode = useAuthStore((s) => s.devMode)
+  const [showSettings, setShowSettings] = useState(false)
+
+  const handleLogout = async () => {
+    await signOut()
+    window.location.reload()
+  }
 
   return (
-    <div className="group/sidebar h-full w-16 hover:w-64 transition-all duration-300 ease-in-out bg-surface-light border-r border-surface-border flex flex-col shrink-0 overflow-hidden z-40">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-3 py-5 border-b border-surface-border min-h-[72px]">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
-          <span className="text-white font-bold text-sm tracking-tight">FG</span>
+    <>
+      <div className="group/sidebar h-full w-16 hover:w-64 transition-all duration-300 ease-in-out bg-surface-light border-r border-surface-border flex flex-col shrink-0 overflow-hidden z-40">
+        {/* Logo + Family name */}
+        <div className="flex items-center gap-3 px-3 py-5 border-b border-surface-border min-h-[72px]">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
+            <span className="text-white font-bold text-sm tracking-tight">
+              {family?.emoji ?? 'FG'}
+            </span>
+          </div>
+          <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+            <h1 className="text-sm font-bold text-white">{family?.name ?? 'Family Graph'}</h1>
+            <p className="text-[10px] text-gray-400">가족 성장 지식그래프</p>
+          </div>
         </div>
-        <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-          <h1 className="text-sm font-bold text-white">Family Graph</h1>
-          <p className="text-[10px] text-gray-400">가족 성장 지식그래프</p>
-        </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-3 flex flex-col gap-1 px-2">
-        {navItems.map(({ view, label, icon }) => {
-          const isActive = activeView === view
-          return (
+        {/* Navigation */}
+        <nav className="flex-1 py-3 flex flex-col gap-1 px-2">
+          {navItems.map(({ view, label, icon }) => {
+            const isActive = activeView === view
+            return (
+              <button
+                key={view}
+                onClick={() => setView(view)}
+                className={`
+                  relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full cursor-pointer
+                  ${isActive
+                    ? 'bg-surface-lighter text-primary-400'
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-surface-hover'
+                  }
+                `}
+              >
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-primary-500 rounded-r-full" />
+                )}
+                <span className="shrink-0 w-5 flex items-center justify-center">{icon}</span>
+                <span className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 text-sm font-medium whitespace-nowrap overflow-hidden">
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* Divider */}
+        <div className="mx-3 border-t border-surface-border" />
+
+        {/* Family member avatars */}
+        <div className="py-4 px-2 flex flex-col gap-2">
+          <span className="text-[10px] text-gray-500 uppercase tracking-wider px-3 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+            가족 구성원
+          </span>
+          {persons.map((person) => (
             <button
-              key={view}
-              onClick={() => setView(view)}
-              className={`
-                relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full cursor-pointer
-                ${isActive
-                  ? 'bg-surface-lighter text-primary-400'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-surface-hover'
-                }
-              `}
+              key={person.id}
+              onClick={() => {
+                setView('graph')
+                useGraphStore.getState().selectNode(person.id)
+              }}
+              className="flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-surface-hover transition-colors w-full cursor-pointer"
             >
-              {/* Active indicator bar */}
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-primary-500 rounded-r-full" />
-              )}
-              <span className="shrink-0 w-5 flex items-center justify-center">{icon}</span>
-              <span className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 text-sm font-medium whitespace-nowrap overflow-hidden">
-                {label}
-              </span>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 border-2"
+                style={{ borderColor: person.color, backgroundColor: `${person.color}15` }}
+              >
+                {person.emoji}
+              </div>
+              <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
+                <p className="text-xs font-medium text-gray-200">{person.name}</p>
+                <p className="text-[10px] text-gray-500">{person.role}</p>
+              </div>
             </button>
-          )
-        })}
-      </nav>
+          ))}
+        </div>
 
-      {/* Divider */}
-      <div className="mx-3 border-t border-surface-border" />
+        {/* Divider */}
+        <div className="mx-3 border-t border-surface-border" />
 
-      {/* Family member avatars */}
-      <div className="py-4 px-2 flex flex-col gap-2">
-        <span className="text-[10px] text-gray-500 uppercase tracking-wider px-3 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-          가족 구성원
-        </span>
-        {persons.map((person) => (
+        {/* User profile + Settings */}
+        <div className="py-3 px-2">
           <button
-            key={person.id}
-            onClick={() => {
-              setView('graph')
-              useGraphStore.getState().selectNode(person.id)
-            }}
-            className="flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-surface-hover transition-colors w-full cursor-pointer"
+            onClick={() => setShowSettings(true)}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-hover transition-colors w-full cursor-pointer"
           >
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 border-2"
-              style={{ borderColor: person.color, backgroundColor: `${person.color}15` }}
-            >
-              {person.emoji}
+            <div className="w-8 h-8 rounded-full bg-primary-500/20 border border-primary-500/30 flex items-center justify-center text-base shrink-0">
+              {profile?.avatarEmoji ?? '👤'}
             </div>
             <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
-              <p className="text-xs font-medium text-gray-200">{person.name}</p>
-              <p className="text-[10px] text-gray-500">{person.role}</p>
+              <p className="text-xs font-medium text-gray-200">{profile?.displayName ?? 'User'}</p>
+              <p className="text-[10px] text-gray-500">
+                {devMode ? 'Dev Mode' : '설정'}
+              </p>
             </div>
           </button>
-        ))}
+        </div>
       </div>
-    </div>
+
+      {/* Settings modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)}>
+          <div
+            className="bg-surface-light border border-surface-border rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto animate-fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">설정</h2>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Member manager */}
+            <MemberManager />
+
+            {/* Logout */}
+            <div className="mt-6 pt-4 border-t border-surface-border">
+              <button
+                onClick={handleLogout}
+                className="w-full py-2.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-colors cursor-pointer"
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

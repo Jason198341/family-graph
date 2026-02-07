@@ -1,9 +1,16 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
+import { useAuthStore } from '@/stores/authStore'
+import { useFamilyStore } from '@/stores/familyStore'
+import { useAuth } from '@/hooks/useAuth'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import Sidebar from '@/components/layout/Sidebar'
 import NodeDetail from '@/components/layout/NodeDetail'
 import Dashboard from '@/components/dashboard/Dashboard'
 import Toast from '@/components/common/Toast'
+import LoginPage from '@/components/auth/LoginPage'
+import FamilySetup from '@/components/family/FamilySetup'
+import PendingApproval from '@/components/family/PendingApproval'
 
 // Lazy-load heavy views for code-splitting
 const KnowledgeGraph = lazy(() => import('@/components/graph/KnowledgeGraph'))
@@ -17,6 +24,19 @@ function ViewLoader() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
         <p className="text-xs text-gray-500">로딩 중...</p>
+      </div>
+    </div>
+  )
+}
+
+function FullScreenLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-screen w-full bg-surface">
+      <div className="flex flex-col items-center gap-3 animate-fade-in-up">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/20">
+          <span className="text-white font-bold text-lg">FG</span>
+        </div>
+        <div className="w-8 h-8 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
       </div>
     </div>
   )
@@ -111,8 +131,23 @@ function TimelineView() {
   )
 }
 
-export default function App() {
+function MainApp() {
   const activeView = useGraphStore((s) => s.activeView)
+  const dataLoaded = useGraphStore((s) => s.dataLoaded)
+  const loadFamilyData = useGraphStore((s) => s.loadFamilyData)
+  const activeFamilyId = useFamilyStore((s) => s.activeFamilyId)
+
+  // Realtime sync
+  useRealtimeSync()
+
+  // Load family data when family becomes active
+  useEffect(() => {
+    if (activeFamilyId) {
+      loadFamilyData(activeFamilyId)
+    }
+  }, [activeFamilyId, loadFamilyData])
+
+  if (!dataLoaded) return <FullScreenLoader />
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-surface">
@@ -133,4 +168,27 @@ export default function App() {
       <Toast />
     </div>
   )
+}
+
+export default function App() {
+  useAuth()
+
+  const authLoading = useAuthStore((s) => s.loading)
+  const authInitialized = useAuthStore((s) => s.initialized)
+  const user = useAuthStore((s) => s.user)
+  const familyStatus = useFamilyStore((s) => s.status)
+
+  // Auth still loading
+  if (!authInitialized || authLoading) return <FullScreenLoader />
+
+  // Not logged in
+  if (!user) return <LoginPage />
+
+  // Family status check
+  if (familyStatus === 'loading') return <FullScreenLoader />
+  if (familyStatus === 'no-family') return <FamilySetup />
+  if (familyStatus === 'pending') return <PendingApproval />
+
+  // Ready
+  return <MainApp />
 }
