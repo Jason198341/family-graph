@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 import { useAiUsageStore } from '@/stores/aiUsageStore'
 import { extractEntities as apiExtractEntities } from '@/utils/fireworksApi'
@@ -77,7 +77,13 @@ export default function ExtractPanel() {
   const recordUsage = useAiUsageStore((s) => s.recordUsage)
   const loadTodayUsage = useAiUsageStore((s) => s.loadTodayUsage)
 
-  useEffect(() => { loadTodayUsage() }, [loadTodayUsage])
+  const usageLoaded = useRef(false)
+  useEffect(() => {
+    if (!usageLoaded.current) {
+      usageLoaded.current = true
+      loadTodayUsage()
+    }
+  }, [loadTodayUsage])
 
   const handleExtract = async () => {
     if (!inputText.trim() || isAiLoading) return

@@ -1,9 +1,39 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useGraphStore } from '@/stores/graphStore'
 import { useAiUsageStore } from '@/stores/aiUsageStore'
 import { streamChat } from '@/utils/fireworksApi'
 import PaywallBanner from '@/components/common/PaywallBanner'
+
+/** Throttle streaming text updates to avoid render storms */
+function useThrottledState<T>(initial: T, ms = 80) {
+  const [value, setValue] = useState(initial)
+  const latest = useRef(initial)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const set = useCallback((v: T) => {
+    latest.current = v
+    if (!timer.current) {
+      timer.current = setTimeout(() => {
+        setValue(latest.current)
+        timer.current = null
+      }, ms)
+    }
+  }, [ms])
+
+  const flush = useCallback(() => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null }
+    setValue(latest.current)
+  }, [])
+
+  const reset = useCallback((v: T) => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null }
+    latest.current = v
+    setValue(v)
+  }, [])
+
+  return [value, set, flush, reset] as const
+}
 
 const suggestedQuestions = [
   '현규의 이번 주 성장 조언은?',
@@ -49,16 +79,23 @@ export default function GrowthChat() {
   const loadTodayUsage = useAiUsageStore((s) => s.loadTodayUsage)
 
   const [input, setInput] = useState('')
-  const [streamingText, setStreamingText] = useState('')
+  const [streamingText, setStreaming, flushStreaming, resetStreaming] = useThrottledState('')
   const [showPaywall, setShowPaywall] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-
-  useEffect(() => { loadTodayUsage() }, [loadTodayUsage])
+  const usageLoaded = useRef(false)
 
   useEffect(() => {
+    if (!usageLoaded.current) {
+      usageLoaded.current = true
+      loadTodayUsage()
+    }
+  }, [loadTodayUsage])
+
+  // Scroll on new messages or AI loading state change (NOT on every streaming chunk)
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chatMessages, isAiLoading, streamingText])
+  }, [chatMessages, isAiLoading])
 
   const handleSubmit = async (text?: string) => {
     const msg = (text ?? input).trim()
@@ -71,7 +108,7 @@ export default function GrowthChat() {
     }
 
     setInput('')
-    setStreamingText('')
+    resetStreaming('')
     addChatMessage({ role: 'user', content: msg })
     setAiLoading(true)
 
@@ -95,14 +132,15 @@ export default function GrowthChat() {
           userMessage: msg,
           onChunk: (chunk) => {
             accumulated += chunk
-            setStreamingText(accumulated)
+            setStreaming(accumulated)
           },
         })
       } catch {
         response = generateLocalResponse(msg, context)
       }
 
-      setStreamingText('')
+      flushStreaming()
+      resetStreaming('')
       addChatMessage({ role: 'assistant', content: response })
     } catch {
       addToast('AI 응답 중 오류가 발생했습니다', 'error')
