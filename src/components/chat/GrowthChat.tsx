@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useGraphStore } from '@/stores/graphStore'
+import { useAiUsageStore } from '@/stores/aiUsageStore'
 import { streamChat } from '@/utils/fireworksApi'
+import PaywallBanner from '@/components/common/PaywallBanner'
 
 const suggestedQuestions = [
   '현규의 이번 주 성장 조언은?',
@@ -41,10 +43,18 @@ export default function GrowthChat() {
   const getGraphContext = useGraphStore((s) => s.getGraphContext)
   const addToast = useGraphStore((s) => s.addToast)
 
+  const canUse = useAiUsageStore((s) => s.canUse)
+  const limitReached = useAiUsageStore((s) => s.limitReached)
+  const recordUsage = useAiUsageStore((s) => s.recordUsage)
+  const loadTodayUsage = useAiUsageStore((s) => s.loadTodayUsage)
+
   const [input, setInput] = useState('')
   const [streamingText, setStreamingText] = useState('')
+  const [showPaywall, setShowPaywall] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => { loadTodayUsage() }, [loadTodayUsage])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -54,10 +64,24 @@ export default function GrowthChat() {
     const msg = (text ?? input).trim()
     if (!msg || isAiLoading) return
 
+    // Check AI usage limit
+    if (!canUse()) {
+      setShowPaywall(true)
+      return
+    }
+
     setInput('')
     setStreamingText('')
     addChatMessage({ role: 'user', content: msg })
     setAiLoading(true)
+
+    // Record usage before calling AI
+    const allowed = await recordUsage('chat')
+    if (!allowed) {
+      setAiLoading(false)
+      setShowPaywall(true)
+      return
+    }
 
     try {
       const context = getGraphContext()
@@ -96,11 +120,17 @@ export default function GrowthChat() {
 
   return (
     <div className="flex flex-col h-full bg-surface">
+      {/* Paywall modal */}
+      {showPaywall && <PaywallBanner variant="modal" onClose={() => setShowPaywall(false)} />}
+
       {/* Header */}
       <div className="px-6 py-4 border-b border-surface-border bg-surface-light/50 backdrop-blur-md">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <span className="text-xl">💬</span> 가족 성장 어드바이저
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <span className="text-xl">💬</span> 가족 성장 어드바이저
+          </h2>
+          <PaywallBanner variant="inline" />
+        </div>
         <p className="text-xs text-gray-500 mt-0.5">AI가 가족 지식그래프를 기반으로 맞춤 조언을 제공합니다</p>
       </div>
 
@@ -186,33 +216,39 @@ export default function GrowthChat() {
 
       {/* Input bar */}
       <div className="px-6 py-4 border-t border-surface-border bg-surface-light/30">
-        <div className="flex items-end gap-3 bg-surface-lighter border border-surface-border rounded-2xl px-4 py-2 focus-within:border-primary-500/40 transition-colors">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="질문을 입력하세요..."
-            rows={1}
-            className="flex-1 bg-transparent text-sm text-gray-200 placeholder:text-gray-600 resize-none outline-none max-h-28 min-h-[24px]"
-            style={{ height: 'auto' }}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement
-              target.style.height = 'auto'
-              target.style.height = Math.min(target.scrollHeight, 112) + 'px'
-            }}
-          />
-          <button
-            onClick={() => handleSubmit()}
-            disabled={!input.trim() || isAiLoading}
-            className="shrink-0 w-8 h-8 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:bg-surface-border disabled:opacity-50 flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed"
-          >
-            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </button>
-        </div>
+        {limitReached ? (
+          <div className="text-center py-2">
+            <PaywallBanner variant="inline" />
+          </div>
+        ) : (
+          <div className="flex items-end gap-3 bg-surface-lighter border border-surface-border rounded-2xl px-4 py-2 focus-within:border-primary-500/40 transition-colors">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="질문을 입력하세요..."
+              rows={1}
+              className="flex-1 bg-transparent text-sm text-gray-200 placeholder:text-gray-600 resize-none outline-none max-h-28 min-h-[24px]"
+              style={{ height: 'auto' }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement
+                target.style.height = 'auto'
+                target.style.height = Math.min(target.scrollHeight, 112) + 'px'
+              }}
+            />
+            <button
+              onClick={() => handleSubmit()}
+              disabled={!input.trim() || isAiLoading}
+              className="shrink-0 w-8 h-8 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:bg-surface-border disabled:opacity-50 flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
+import { useAiUsageStore } from '@/stores/aiUsageStore'
 import { extractEntities as apiExtractEntities } from '@/utils/fireworksApi'
+import PaywallBanner from '@/components/common/PaywallBanner'
 import type { ExtractedEntity, ExtractedRelation, ExtractionResult } from '@/types'
 
 const sampleText = `오늘 현규가 아침에 5km 러닝을 하고 왔다. 마라톤 훈련이 점점 강도가 올라가고 있다.
@@ -63,15 +65,38 @@ function RelationArrow({ rel }: { rel: ExtractedRelation }) {
 export default function ExtractPanel() {
   const [inputText, setInputText] = useState('')
   const [result, setResult] = useState<ExtractionResult | null>(null)
+  const [showPaywall, setShowPaywall] = useState(false)
   const isAiLoading = useGraphStore((s) => s.isAiLoading)
   const setAiLoading = useGraphStore((s) => s.setAiLoading)
   const importExtraction = useGraphStore((s) => s.importExtraction)
   const addToast = useGraphStore((s) => s.addToast)
 
+  const canUse = useAiUsageStore((s) => s.canUse)
+  const limitReached = useAiUsageStore((s) => s.limitReached)
+  const recordUsage = useAiUsageStore((s) => s.recordUsage)
+  const loadTodayUsage = useAiUsageStore((s) => s.loadTodayUsage)
+
+  useEffect(() => { loadTodayUsage() }, [loadTodayUsage])
+
   const handleExtract = async () => {
     if (!inputText.trim() || isAiLoading) return
+
+    // Check AI usage limit
+    if (!canUse()) {
+      setShowPaywall(true)
+      return
+    }
+
     setAiLoading(true)
     setResult(null)
+
+    // Record usage before calling AI
+    const allowed = await recordUsage('extract')
+    if (!allowed) {
+      setAiLoading(false)
+      setShowPaywall(true)
+      return
+    }
 
     try {
       let extraction: ExtractionResult
@@ -100,11 +125,17 @@ export default function ExtractPanel() {
 
   return (
     <div className="flex flex-col h-full bg-surface">
+      {/* Paywall modal */}
+      {showPaywall && <PaywallBanner variant="modal" onClose={() => setShowPaywall(false)} />}
+
       {/* Header */}
       <div className="px-6 py-4 border-b border-surface-border bg-surface-light/50 backdrop-blur-md">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <span className="text-xl">✨</span> AI 엔티티 추출
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <span className="text-xl">✨</span> AI 엔티티 추출
+          </h2>
+          <PaywallBanner variant="inline" />
+        </div>
         <p className="text-xs text-gray-500 mt-0.5">일상 텍스트에서 가족 지식그래프 엔티티와 관계를 자동 추출합니다</p>
       </div>
 
@@ -127,27 +158,31 @@ export default function ExtractPanel() {
             rows={6}
             className="w-full bg-surface-lighter border border-surface-border rounded-2xl px-4 py-3 text-sm text-gray-200 placeholder:text-gray-600 resize-none outline-none focus:border-primary-500/40 transition-colors"
           />
-          <button
-            onClick={handleExtract}
-            disabled={!inputText.trim() || isAiLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-500 hover:to-accent-500 disabled:from-surface-border disabled:to-surface-border text-white font-medium text-sm rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isAiLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                분석 중...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l1.09 3.26L16 6l-2.91.74L12 10l-1.09-3.26L8 6l2.91-.74L12 2z" />
-                  <path d="M5 14l.72 2.17L8 17l-2.28.83L5 20l-.72-2.17L2 17l2.28-.83L5 14z" />
-                  <path d="M19 14l.72 2.17L22 17l-2.28.83L19 20l-.72-2.17L16 17l2.28-.83L19 14z" />
-                </svg>
-                AI 분석
-              </>
-            )}
-          </button>
+          {limitReached ? (
+            <PaywallBanner variant="inline" />
+          ) : (
+            <button
+              onClick={handleExtract}
+              disabled={!inputText.trim() || isAiLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-500 hover:to-accent-500 disabled:from-surface-border disabled:to-surface-border text-white font-medium text-sm rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isAiLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  분석 중...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2l1.09 3.26L16 6l-2.91.74L12 10l-1.09-3.26L8 6l2.91-.74L12 2z" />
+                    <path d="M5 14l.72 2.17L8 17l-2.28.83L5 20l-.72-2.17L2 17l2.28-.83L5 14z" />
+                    <path d="M19 14l.72 2.17L22 17l-2.28.83L19 20l-.72-2.17L16 17l2.28-.83L19 14z" />
+                  </svg>
+                  AI 분석
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Loading shimmer */}
