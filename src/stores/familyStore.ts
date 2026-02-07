@@ -157,15 +157,18 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     const userId = useAuthStore.getState().user?.id
     if (!userId) return null
 
-    const { data, error } = await supabase
+    // INSERT without .select() to avoid SELECT RLS timing issue
+    const { error } = await supabase
       .from('families')
       .insert({ name, emoji, created_by: userId })
-      .select()
-      .single()
 
-    if (error || !data) return null
+    if (error) {
+      console.error('[createFamily] insert error:', error)
+      return null
+    }
 
-    // Reload to get full state
+    // Small delay for trigger to propagate, then reload
+    await new Promise((r) => setTimeout(r, 300))
     await get().loadFamily()
     return get().family
   },
