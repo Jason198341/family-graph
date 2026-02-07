@@ -11,7 +11,7 @@ export default function FamilySetup() {
   const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [createdFamily, setCreatedFamily] = useState<{ inviteCode: string } | null>(null)
+  const [createdFamily, setCreatedFamily] = useState<{ inviteCode: string; showInvite: boolean } | null>(null)
 
   const createFamily = useFamilyStore((s) => s.createFamily)
   const joinByCode = useFamilyStore((s) => s.joinByCode)
@@ -24,7 +24,7 @@ export default function FamilySetup() {
     setError(null)
     const family = await createFamily(familyName.trim(), familyEmoji)
     if (family) {
-      setCreatedFamily({ inviteCode: family.inviteCode })
+      setCreatedFamily({ inviteCode: family.inviteCode, showInvite: false })
     } else {
       setError('가족 생성에 실패했습니다')
     }
@@ -45,15 +45,52 @@ export default function FamilySetup() {
     await signOut()
   }
 
-  // Show invite code after creating family
+  // After family creation: choose solo or invite
   if (createdFamily) {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-surface">
         <div className="w-full max-w-sm mx-4 text-center animate-fade-in-up">
           <span className="text-5xl mb-4 inline-block">🎉</span>
           <h2 className="text-xl font-bold text-white mb-2">가족이 생성되었습니다!</h2>
-          <p className="text-sm text-gray-400 mb-6">아래 초대 코드를 가족에게 공유하세요</p>
-          <InviteCode code={createdFamily.inviteCode} />
+
+          {!createdFamily.showInvite ? (
+            <>
+              <p className="text-sm text-gray-400 mb-8">어떻게 사용하시겠어요?</p>
+              <div className="space-y-3">
+                {/* Solo mode */}
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer group"
+                >
+                  <span className="text-lg block mb-1">🧑‍💻</span>
+                  <span className="font-semibold">바로 시작하기</span>
+                  <span className="block text-xs text-primary-200/70 mt-0.5">혼자 가족 기록을 관리합니다</span>
+                </button>
+
+                {/* Invite mode */}
+                <button
+                  onClick={() => setCreatedFamily({ ...createdFamily, showInvite: true })}
+                  className="w-full py-4 bg-surface-light border border-surface-border hover:border-primary-500/40 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer group"
+                >
+                  <span className="text-lg block mb-1">👨‍👩‍👧‍👦</span>
+                  <span className="font-semibold">가족 초대하기</span>
+                  <span className="block text-xs text-gray-400 mt-0.5">초대 코드로 가족을 초대합니다</span>
+                </button>
+              </div>
+              <p className="text-[11px] text-gray-600 mt-4">초대는 나중에 설정에서도 할 수 있어요</p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-400 mb-6">아래 초대 코드를 가족에게 공유하세요</p>
+              <InviteCode code={createdFamily.inviteCode} />
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full mt-6 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
+              >
+                시작하기
+              </button>
+            </>
+          )}
         </div>
       </div>
     )
