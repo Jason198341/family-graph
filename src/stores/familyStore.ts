@@ -154,52 +154,29 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
   createFamily: async (name, emoji) => {
     if (!isSupabaseConfigured) return null
-    const userId = useAuthStore.getState().user?.id
-    if (!userId) return null
 
-    // INSERT without .select() to avoid SELECT RLS timing issue
-    const { error } = await supabase
-      .from('families')
-      .insert({ name, emoji, created_by: userId })
+    const { data, error } = await supabase.rpc('create_family_with_admin', {
+      family_name: name,
+      family_emoji: emoji,
+    })
 
     if (error) {
-      console.error('[createFamily] insert error:', error)
+      console.error('[createFamily] rpc error:', error)
       return null
     }
 
-    // Wait for trigger, then verify membership exists
-    await new Promise((r) => setTimeout(r, 500))
-
-    // Fallback: if trigger didn't create membership, do it manually
-    const { data: existing } = await supabase
-      .from('family_members')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('status', 'approved')
-      .limit(1)
-
-    if (!existing || existing.length === 0) {
-      // Find the family we just created
-      const { data: fam } = await supabase
-        .from('families')
-        .select('id')
-        .eq('created_by', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
-
-      if (fam) {
-        await supabase.from('family_members').insert({
-          family_id: fam.id,
-          user_id: userId,
-          role: 'admin',
-          status: 'approved',
-        })
-      }
-    }
+    const result = data as { id: string; name: string; emoji: string; invite_code: string } | null
+    if (!result) return null
 
     await get().loadFamily()
-    return get().family
+    return get().family ?? {
+      id: result.id,
+      name: result.name,
+      emoji: result.emoji,
+      inviteCode: result.invite_code,
+      createdBy: useAuthStore.getState().user?.id ?? '',
+      createdAt: new Date().toISOString(),
+    }
   },
 
   joinByCode: async (code) => {
