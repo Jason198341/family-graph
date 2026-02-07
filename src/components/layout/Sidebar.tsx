@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useFamilyStore } from '@/stores/familyStore'
-import { signOut } from '@/lib/supabase'
+import { signOut, supabase } from '@/lib/supabase'
 import type { AppView } from '@/types'
 import MemberManager from '@/components/family/MemberManager'
 
@@ -219,13 +219,31 @@ export default function Sidebar() {
             {/* Member manager */}
             <MemberManager />
 
-            {/* Logout */}
-            <div className="mt-6 pt-4 border-t border-surface-border">
+            {/* Danger zone */}
+            <div className="mt-6 pt-4 border-t border-surface-border space-y-2">
               <button
                 onClick={handleLogout}
                 className="w-full py-2.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-colors cursor-pointer"
               >
                 로그아웃
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('정말 가족을 탈퇴하시겠습니까?\n가족 데이터가 모두 삭제됩니다.')) return
+                  const fid = useFamilyStore.getState().activeFamilyId
+                  if (fid) {
+                    // Delete all family data, then the family itself
+                    const tables = ['chat_messages','insights','graph_relations','reading_goals','reading_logs','books','growth_goals','life_events','family_values','interests','persons','ai_usage','family_members']
+                    for (const t of tables) {
+                      await supabase.from(t).delete().eq('family_id', fid)
+                    }
+                    await supabase.from('families').delete().eq('id', fid)
+                  }
+                  window.location.reload()
+                }}
+                className="w-full py-2.5 bg-red-500/5 text-red-400/70 border border-red-500/10 rounded-lg text-xs hover:bg-red-500/15 hover:text-red-400 transition-colors cursor-pointer"
+              >
+                가족 탈퇴 및 데이터 삭제
               </button>
             </div>
           </div>
