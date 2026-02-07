@@ -92,10 +92,20 @@ export async function streamChat({
 
 // ─── Entity Extraction ───────────────────────
 
-const EXTRACTION_SYSTEM_PROMPT = `You are a Family Knowledge Graph entity extractor. You analyze text about a family and extract structured entities and relationships.
+function buildExtractionPrompt(existingPersons?: { name: string; role: string }[]): string {
+  const personList = existingPersons && existingPersons.length > 0
+    ? existingPersons.map((p) => `  - "${p.name}" (${p.role})`).join('\n')
+    : null
+
+  const personRule = personList
+    ? `\n## IMPORTANT: Existing Family Members\nThe following persons are already registered in the family graph. You MUST use their EXACT name (not role/nickname) when referencing them. Do NOT create new person entities for these people.\n${personList}\n\nIf the text mentions "아빠", "엄마", "아들", "딸" etc., match them to the registered person above by role. Only create a new person entity if someone appears who is NOT in this list.`
+    : ''
+
+  return `You are a Family Knowledge Graph entity extractor. You analyze text about a family and extract structured entities and relationships.
+${personRule}
 
 ## Entity Types
-- **person**: Family members. Fields: name, description.
+- **person**: Family members. Fields: name, description. (Only create if NOT already registered above)
 - **interest**: Hobbies, career fields, sports, skills, or areas of study. Fields: name, description.
 - **value**: Family principles, shared beliefs, daily habits that reflect values. Fields: name, description.
 - **event**: Milestones, trips, achievements, important dates. Fields: name, description.
@@ -131,7 +141,9 @@ Rules:
 - Choose the most fitting single emoji for each entity.
 - Entity names should be concise (1-3 words).
 - Only extract what is explicitly stated or strongly implied.
-- Each relation's sourceName and targetName must exactly match an entity name from the entities array or an already-known entity.`
+- Each relation's sourceName and targetName must exactly match an entity name from the entities array or a registered person name above.
+- For registered persons, include them in the entities array with their exact registered name (so relations can reference them).`
+}
 
 const VALID_CATEGORIES: NodeCategory[] = ['person', 'interest', 'value', 'event', 'goal', 'book']
 const VALID_RELATIONS: RelationType[] = [
@@ -139,7 +151,11 @@ const VALID_RELATIONS: RelationType[] = [
   'influences', 'supports', 'learns', 'achieves', 'family', 'reads',
 ]
 
-export async function extractEntities(text: string): Promise<ExtractionResult> {
+export async function extractEntities(
+  text: string,
+  existingPersons?: { name: string; role: string }[],
+): Promise<ExtractionResult> {
+  const systemPrompt = buildExtractionPrompt(existingPersons)
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: getHeaders(),
@@ -147,7 +163,7 @@ export async function extractEntities(text: string): Promise<ExtractionResult> {
       model: MODEL,
       stream: false,
       messages: [
-        { role: 'system', content: EXTRACTION_SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: `다음 텍스트에서 가족 지식 그래프 엔티티와 관계를 추출해주세요:\n\n${text}` },
       ],
       max_tokens: 2048,

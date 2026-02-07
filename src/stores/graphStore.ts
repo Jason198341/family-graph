@@ -824,7 +824,11 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     const s = get()
     const nameToId = new Map<string, string>()
 
-    for (const p of s.persons) nameToId.set(p.name.toLowerCase(), p.id)
+    // Map by name AND role for persons (아빠→id, 엄마→id, etc.)
+    for (const p of s.persons) {
+      nameToId.set(p.name.toLowerCase(), p.id)
+      if (p.role && p.role !== '가족') nameToId.set(p.role.toLowerCase(), p.id)
+    }
     for (const i of s.interests) nameToId.set(i.name.toLowerCase(), i.id)
     for (const v of s.values) nameToId.set(v.name.toLowerCase(), v.id)
     for (const e of s.events) nameToId.set(e.title.toLowerCase(), e.id)

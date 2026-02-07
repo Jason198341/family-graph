@@ -70,6 +70,7 @@ export default function ExtractPanel() {
   const setAiLoading = useGraphStore((s) => s.setAiLoading)
   const importExtraction = useGraphStore((s) => s.importExtraction)
   const addToast = useGraphStore((s) => s.addToast)
+  const persons = useGraphStore((s) => s.persons)
 
   const canUse = useAiUsageStore((s) => s.canUse)
   const limitReached = useAiUsageStore((s) => s.limitReached)
@@ -99,11 +100,12 @@ export default function ExtractPanel() {
     }
 
     try {
+      const existingPersons = persons.map((p) => ({ name: p.name, role: p.role }))
       let extraction: ExtractionResult
       try {
-        extraction = await apiExtractEntities(inputText)
+        extraction = await apiExtractEntities(inputText, existingPersons)
       } catch {
-        extraction = localExtract(inputText)
+        extraction = localExtract(inputText, existingPersons)
       }
 
       setResult(extraction)
@@ -267,18 +269,39 @@ export default function ExtractPanel() {
 }
 
 // ─── Local extraction fallback ──────────────────
-function localExtract(text: string): ExtractionResult {
+function localExtract(text: string, existingPersons?: { name: string; role: string }[]): ExtractionResult {
   const entities: ExtractedEntity[] = []
   const relations: ExtractedRelation[] = []
   const seenNames = new Set<string>()
 
-  // Simple Korean entity detection patterns
-  const personPatterns = [
-    { pattern: /현규/g, name: '현규', emoji: '👨‍💼' },
-    { pattern: /엄마/g, name: '엄마', emoji: '👩‍🍳' },
-    { pattern: /첫째/g, name: '첫째', emoji: '👧' },
-    { pattern: /아빠/g, name: '현규', emoji: '👨‍💼' },
-  ]
+  // Build role→name mapping from existing persons
+  const roleToName = new Map<string, string>()
+  if (existingPersons) {
+    for (const p of existingPersons) {
+      roleToName.set(p.role, p.name)
+      roleToName.set(p.name, p.name)
+    }
+  }
+
+  // Match existing persons by name or role
+  const personPatterns: { pattern: RegExp; name: string; emoji: string }[] = []
+  if (existingPersons) {
+    for (const p of existingPersons) {
+      // Match by name
+      if (p.name) personPatterns.push({ pattern: new RegExp(p.name, 'g'), name: p.name, emoji: '👤' })
+      // Match by role (아빠, 엄마, etc.)
+      if (p.role && p.role !== '가족') personPatterns.push({ pattern: new RegExp(p.role, 'g'), name: p.name, emoji: '👤' })
+    }
+  }
+  // Fallback if no existing persons
+  if (personPatterns.length === 0) {
+    personPatterns.push(
+      { pattern: /현규/g, name: '현규', emoji: '👨‍💼' },
+      { pattern: /엄마/g, name: '엄마', emoji: '👩‍🍳' },
+      { pattern: /첫째/g, name: '첫째', emoji: '👧' },
+      { pattern: /아빠/g, name: '아빠', emoji: '👨‍💼' },
+    )
+  }
 
   const activityPatterns = [
     { pattern: /마라톤|러닝|달리/g, name: '마라톤', emoji: '🏃', category: 'fitness' as const },
