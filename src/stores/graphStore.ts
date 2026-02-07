@@ -66,9 +66,17 @@ function useLocalMode() {
   return !isSupabaseConfigured || !useFamilyStore.getState().activeFamilyId
 }
 
+/** Fire-and-forget Supabase call with silent error logging (prevents unhandled rejections) */
+function dbSync(p: PromiseLike<{ error: unknown }>) {
+  Promise.resolve(p).then(({ error }) => { if (error) console.error('[db sync]', error) })
+}
+
 function getFamilyId() {
   return useFamilyStore.getState().activeFamilyId ?? ''
 }
+
+/** Prevent concurrent loadFamilyData calls */
+let loadingFamilyId: string | null = null
 
 // ─── ID generator ────────────────────────────
 
@@ -313,6 +321,11 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return
     }
 
+    // Prevent duplicate concurrent loads
+    if (loadingFamilyId === familyId) return
+    loadingFamilyId = familyId
+
+    try {
     const [persons, interests, values, events, goals, books, readingLogs, readingGoals, relations, insights, chatMessages] = await Promise.all([
       supabase.from('persons').select('*').eq('family_id', familyId),
       supabase.from('interests').select('*').eq('family_id', familyId),
@@ -372,6 +385,13 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       })),
       dataLoaded: true,
     })
+    } catch (err) {
+      console.error('[loadFamilyData] failed:', err)
+      // Still mark as loaded so user isn't stuck on spinner forever
+      set({ dataLoaded: true })
+    } finally {
+      loadingFamilyId = null
+    }
   },
 
   // ── entity add actions (optimistic + Supabase sync) ──
@@ -504,8 +524,8 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('persons').delete().eq('id', id)
-      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+      dbSync(supabase.from('persons').delete().eq('id', id))
+      dbSync(supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`))
     }
   },
 
@@ -520,8 +540,8 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('interests').delete().eq('id', id)
-      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+      dbSync(supabase.from('interests').delete().eq('id', id))
+      dbSync(supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`))
     }
   },
 
@@ -536,8 +556,8 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('family_values').delete().eq('id', id)
-      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+      dbSync(supabase.from('family_values').delete().eq('id', id))
+      dbSync(supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`))
     }
   },
 
@@ -552,8 +572,8 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('life_events').delete().eq('id', id)
-      supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`)
+      dbSync(supabase.from('life_events').delete().eq('id', id))
+      dbSync(supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`))
     }
   },
 
@@ -564,7 +584,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('graph_relations').delete().eq('id', id)
+      dbSync(supabase.from('graph_relations').delete().eq('id', id))
     }
   },
 
@@ -579,7 +599,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('growth_goals').update({ progress: clamped }).eq('id', id)
+      dbSync(supabase.from('growth_goals').update({ progress: clamped }).eq('id', id))
     }
   },
 
@@ -616,7 +636,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('books').delete().eq('id', id)
+      dbSync(supabase.from('books').delete().eq('id', id))
     }
   },
 
@@ -667,7 +687,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('reading_goals').update({ target_lines: targetLines }).eq('id', id)
+      dbSync(supabase.from('reading_goals').update({ target_lines: targetLines }).eq('id', id))
     }
   },
 
@@ -723,10 +743,10 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('insights').insert({
+      dbSync(supabase.from('insights').insert({
         id, family_id: getFamilyId(), title: data.title, content: data.content,
         related_node_ids: data.relatedNodeIds, emoji: data.emoji,
-      })
+      }))
     }
   },
 
@@ -739,10 +759,10 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('chat_messages').insert({
+      dbSync(supabase.from('chat_messages').insert({
         id, family_id: getFamilyId(), role: data.role, content: data.content,
         related_node_ids: data.relatedNodeIds ?? [],
-      })
+      }))
     }
   },
 
@@ -920,22 +940,22 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     if (!useLocalMode()) {
       const fid = getFamilyId()
       for (const p of newPersons) {
-        supabase.from('persons').insert({ id: p.id, family_id: fid, name: p.name, role: p.role, emoji: p.emoji, bio: p.bio, color: p.color })
+        dbSync(supabase.from('persons').insert({ id: p.id, family_id: fid, name: p.name, role: p.role, emoji: p.emoji, bio: p.bio, color: p.color }))
       }
       for (const i of newInterests) {
-        supabase.from('interests').insert({ id: i.id, family_id: fid, name: i.name, category: i.category, emoji: i.emoji, description: i.description })
+        dbSync(supabase.from('interests').insert({ id: i.id, family_id: fid, name: i.name, category: i.category, emoji: i.emoji, description: i.description }))
       }
       for (const v of newValues) {
-        supabase.from('family_values').insert({ id: v.id, family_id: fid, name: v.name, emoji: v.emoji, description: v.description, practice_frequency: v.practiceFrequency })
+        dbSync(supabase.from('family_values').insert({ id: v.id, family_id: fid, name: v.name, emoji: v.emoji, description: v.description, practice_frequency: v.practiceFrequency }))
       }
       for (const e of newEvents) {
-        supabase.from('life_events').insert({ id: e.id, family_id: fid, title: e.title, description: e.description, date: e.date, person_ids: e.personIds, emoji: e.emoji, impact: e.impact })
+        dbSync(supabase.from('life_events').insert({ id: e.id, family_id: fid, title: e.title, description: e.description, date: e.date, person_ids: e.personIds, emoji: e.emoji, impact: e.impact }))
       }
       for (const g of newGoals) {
-        supabase.from('growth_goals').insert({ id: g.id, family_id: fid, title: g.title, description: g.description, person_id: g.personId, target_date: g.targetDate, progress: g.progress, emoji: g.emoji })
+        dbSync(supabase.from('growth_goals').insert({ id: g.id, family_id: fid, title: g.title, description: g.description, person_id: g.personId, target_date: g.targetDate, progress: g.progress, emoji: g.emoji }))
       }
       for (const r of newRelations) {
-        supabase.from('graph_relations').insert({ id: r.id, family_id: fid, source_id: r.sourceId, target_id: r.targetId, source_type: r.sourceType, target_type: r.targetType, relation_type: r.relationType, label: r.label, strength: r.strength })
+        dbSync(supabase.from('graph_relations').insert({ id: r.id, family_id: fid, source_id: r.sourceId, target_id: r.targetId, source_type: r.sourceType, target_type: r.targetType, relation_type: r.relationType, label: r.label, strength: r.strength }))
       }
     }
   },

@@ -84,6 +84,12 @@ export default function GrowthChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const usageLoaded = useRef(false)
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Abort any running stream on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort() }
+  }, [])
 
   useEffect(() => {
     if (!usageLoaded.current) {
@@ -109,6 +115,11 @@ export default function GrowthChat() {
 
     setInput('')
     resetStreaming('')
+    // Abort any previous in-flight request
+    abortRef.current?.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+
     addChatMessage({ role: 'user', content: msg })
     setAiLoading(true)
 
@@ -130,12 +141,15 @@ export default function GrowthChat() {
         response = await streamChat({
           systemPrompt,
           userMessage: msg,
+          signal: ctrl.signal,
           onChunk: (chunk) => {
             accumulated += chunk
             setStreaming(accumulated)
           },
         })
-      } catch {
+      } catch (err) {
+        // Don't generate fallback if intentionally aborted
+        if (ctrl.signal.aborted) return
         response = generateLocalResponse(msg, context)
       }
 

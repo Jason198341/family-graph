@@ -2,6 +2,12 @@ import type { ExtractionResult, NodeCategory, RelationType } from '@/types'
 
 const API_URL = '/api/fireworks/inference/v1/chat/completions'
 const MODEL = 'accounts/fireworks/models/deepseek-v3p1'
+/** Hard timeout for all non-streaming API calls (ms) */
+const API_TIMEOUT = 30_000
+/** Hard timeout for streaming calls (ms) */
+const STREAM_TIMEOUT = 60_000
+/** Max response text length to prevent runaway costs */
+const MAX_RESPONSE_LENGTH = 8_000
 
 function getHeaders(): Record<string, string> {
   const apiKey = import.meta.env.VITE_FIREWORKS_API_KEY as string
@@ -9,6 +15,16 @@ function getHeaders(): Record<string, string> {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${apiKey}`,
   }
+}
+
+/** Create an AbortSignal that times out, optionally chained with an external signal */
+function timeoutSignal(ms: number, external?: AbortSignal): { signal: AbortSignal; clear: () => void } {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(new Error(`API timeout after ${ms}ms`)), ms)
+  if (external) {
+    external.addEventListener('abort', () => ctrl.abort(external.reason), { once: true })
+  }
+  return { signal: ctrl.signal, clear: () => clearTimeout(timer) }
 }
 
 // ─── Streaming Chat ──────────────────────────
@@ -26,68 +42,76 @@ export async function streamChat({
   onChunk,
   signal,
 }: StreamChatOptions): Promise<string> {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: getHeaders(),
-    signal,
-    body: JSON.stringify({
-      model: MODEL,
-      stream: true,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-      ],
-      max_tokens: 2048,
-      temperature: 0.7,
-    }),
-  })
+  const { signal: tSignal, clear } = timeoutSignal(STREAM_TIMEOUT, signal)
 
-  if (!response.ok) {
-    const errText = await response.text().catch(() => 'Unknown error')
-    throw new Error(`Fireworks API error ${response.status}: ${errText}`)
-  }
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: getHeaders(),
+      signal: tSignal,
+      body: JSON.stringify({
+        model: MODEL,
+        stream: true,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+        max_tokens: 2048,
+        temperature: 0.7,
+      }),
+    })
 
-  const reader = response.body?.getReader()
-  if (!reader) throw new Error('No response body stream available')
+    if (!response.ok) {
+      const errText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`Fireworks API error ${response.status}: ${errText}`)
+    }
 
-  const decoder = new TextDecoder()
-  let fullText = ''
-  let buffer = ''
+    const reader = response.body?.getReader()
+    if (!reader) throw new Error('No response body stream available')
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+    const decoder = new TextDecoder()
+    let fullText = ''
+    let buffer = ''
 
-    buffer += decoder.decode(value, { stream: true })
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    // Parse SSE lines
-    const lines = buffer.split('\n')
-    // Keep the last potentially incomplete line in buffer
-    buffer = lines.pop() ?? ''
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
 
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (!trimmed || !trimmed.startsWith('data:')) continue
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed || !trimmed.startsWith('data:')) continue
 
-      const data = trimmed.slice(5).trim()
-      if (data === '[DONE]') continue
+        const data = trimmed.slice(5).trim()
+        if (data === '[DONE]') continue
 
-      try {
-        const parsed = JSON.parse(data) as {
-          choices?: { delta?: { content?: string } }[]
+        try {
+          const parsed = JSON.parse(data) as {
+            choices?: { delta?: { content?: string } }[]
+          }
+          const content = parsed.choices?.[0]?.delta?.content
+          if (content) {
+            fullText += content
+            // Safety: stop if response is too long
+            if (fullText.length > MAX_RESPONSE_LENGTH) {
+              reader.cancel()
+              return fullText
+            }
+            onChunk(content)
+          }
+        } catch {
+          // Skip malformed JSON lines
         }
-        const content = parsed.choices?.[0]?.delta?.content
-        if (content) {
-          fullText += content
-          onChunk(content)
-        }
-      } catch {
-        // Skip malformed JSON lines
       }
     }
-  }
 
-  return fullText
+    return fullText
+  } finally {
+    clear()
+  }
 }
 
 // ─── Entity Extraction ───────────────────────
@@ -156,20 +180,27 @@ export async function extractEntities(
   existingPersons?: { name: string; role: string }[],
 ): Promise<ExtractionResult> {
   const systemPrompt = buildExtractionPrompt(existingPersons)
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      model: MODEL,
-      stream: false,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `다음 텍스트에서 가족 지식 그래프 엔티티와 관계를 추출해주세요:\n\n${text}` },
-      ],
-      max_tokens: 2048,
-      temperature: 0.3,
-    }),
-  })
+  const { signal, clear } = timeoutSignal(API_TIMEOUT)
+  let response: Response
+  try {
+    response = await fetch(API_URL, {
+      method: 'POST',
+      headers: getHeaders(),
+      signal,
+      body: JSON.stringify({
+        model: MODEL,
+        stream: false,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `다음 텍스트에서 가족 지식 그래프 엔티티와 관계를 추출해주세요:\n\n${text}` },
+        ],
+        max_tokens: 2048,
+        temperature: 0.3,
+      }),
+    })
+  } finally {
+    clear()
+  }
 
   if (!response.ok) {
     const errText = await response.text().catch(() => 'Unknown error')
@@ -228,32 +259,38 @@ export async function getGrowthAdvice(
   question: string,
   graphContext: string,
 ): Promise<string> {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      model: MODEL,
-      stream: false,
-      messages: [
-        { role: 'system', content: ADVICE_SYSTEM_PROMPT },
-        {
-          role: 'user',
-          content: `다음은 우리 가족의 지식 그래프입니다:\n\n${graphContext}\n\n---\n\n질문: ${question}`,
-        },
-      ],
-      max_tokens: 1024,
-      temperature: 0.7,
-    }),
-  })
+  const { signal, clear } = timeoutSignal(API_TIMEOUT)
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: getHeaders(),
+      signal,
+      body: JSON.stringify({
+        model: MODEL,
+        stream: false,
+        messages: [
+          { role: 'system', content: ADVICE_SYSTEM_PROMPT },
+          {
+            role: 'user',
+            content: `다음은 우리 가족의 지식 그래프입니다:\n\n${graphContext}\n\n---\n\n질문: ${question}`,
+          },
+        ],
+        max_tokens: 1024,
+        temperature: 0.7,
+      }),
+    })
 
-  if (!response.ok) {
-    const errText = await response.text().catch(() => 'Unknown error')
-    throw new Error(`Fireworks API error ${response.status}: ${errText}`)
+    if (!response.ok) {
+      const errText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`Fireworks API error ${response.status}: ${errText}`)
+    }
+
+    const json = (await response.json()) as {
+      choices?: { message?: { content?: string } }[]
+    }
+
+    return json.choices?.[0]?.message?.content ?? '응답을 생성할 수 없습니다.'
+  } finally {
+    clear()
   }
-
-  const json = (await response.json()) as {
-    choices?: { message?: { content?: string } }[]
-  }
-
-  return json.choices?.[0]?.message?.content ?? '응답을 생성할 수 없습니다.'
 }
