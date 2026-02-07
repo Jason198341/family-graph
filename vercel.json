@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/fireworks/:path*",
+      "destination": "https://api.fireworks.ai/:path*"
+    }
+  ]
+}
