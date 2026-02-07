@@ -167,8 +167,37 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       return null
     }
 
-    // Small delay for trigger to propagate, then reload
-    await new Promise((r) => setTimeout(r, 300))
+    // Wait for trigger, then verify membership exists
+    await new Promise((r) => setTimeout(r, 500))
+
+    // Fallback: if trigger didn't create membership, do it manually
+    const { data: existing } = await supabase
+      .from('family_members')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('status', 'approved')
+      .limit(1)
+
+    if (!existing || existing.length === 0) {
+      // Find the family we just created
+      const { data: fam } = await supabase
+        .from('families')
+        .select('id')
+        .eq('created_by', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (fam) {
+        await supabase.from('family_members').insert({
+          family_id: fam.id,
+          user_id: userId,
+          role: 'admin',
+          status: 'approved',
+        })
+      }
+    }
+
     await get().loadFamily()
     return get().family
   },
