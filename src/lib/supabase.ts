@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? ''
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL ?? '').trim()
+const supabaseKey = (import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim()
 
 /** True when real Supabase credentials are present in .env */
 export const isSupabaseConfigured =

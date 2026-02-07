@@ -113,14 +113,24 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       return
     }
 
-    // Load all members with profile info
+    // Load all members
     const { data: allMembers } = await supabase
       .from('family_members')
-      .select('*, profiles:user_id(display_name, email, avatar_emoji)')
+      .select('*')
       .eq('family_id', fam.id)
 
+    // Load profiles for those members
+    const userIds = (allMembers ?? []).map((m) => m.user_id)
+    const { data: profiles } = userIds.length > 0
+      ? await supabase.from('profiles').select('*').in('id', userIds)
+      : { data: [] }
+
+    const profileMap = new Map(
+      (profiles ?? []).map((p: { id: string; display_name: string; email: string; avatar_emoji: string }) => [p.id, p])
+    )
+
     const members: FamilyMember[] = (allMembers ?? []).map((m) => {
-      const profile = m.profiles as unknown as { display_name: string; email: string; avatar_emoji: string } | null
+      const profile = profileMap.get(m.user_id)
       return {
         id: m.id,
         familyId: m.family_id,
