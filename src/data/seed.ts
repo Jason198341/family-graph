@@ -13,7 +13,7 @@ export const seedPersons: FamilyPerson[] = [
   },
   {
     id: 'person-mom',
-    name: '엄마',
+    name: '선미',
     role: '엄마',
     emoji: '👩‍🍳',
     bio: '가족의 건강과 정서를 챙기는 따뜻한 중심축.',
@@ -21,11 +21,19 @@ export const seedPersons: FamilyPerson[] = [
   },
   {
     id: 'person-child1',
-    name: '첫째',
-    role: '자녀',
+    name: '세연',
+    role: '첫째',
     emoji: '👧',
     bio: '호기심 많은 학생. 독서와 그림 그리기를 좋아함.',
     color: '#fb923c',
+  },
+  {
+    id: 'person-child2',
+    name: '성후',
+    role: '둘째',
+    emoji: '👦',
+    bio: '활발하고 에너지 넘치는 둘째.',
+    color: '#4ade80',
   },
 ]
 
@@ -202,5 +210,15 @@ export const seedRelations: GraphRelation[] = [
     id: 'rel-10', sourceId: 'interest-auto', targetId: 'interest-english',
     sourceType: 'interest', targetType: 'interest',
     relationType: 'influences', label: '글로벌 협업', strength: 6, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-11', sourceId: 'person-child2', targetId: 'interest-marathon',
+    sourceType: 'person', targetType: 'interest',
+    relationType: 'participates', label: '함께 달리기', strength: 5, createdAt: Date.now(),
+  },
+  {
+    id: 'rel-12', sourceId: 'person-child2', targetId: 'value-support',
+    sourceType: 'person', targetType: 'value',
+    relationType: 'practices', label: '응원 받는 중', strength: 7, createdAt: Date.now(),
   },
 ]
