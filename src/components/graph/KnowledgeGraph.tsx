@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect, useState } from 'react'
+import { useMemo, useCallback, useEffect, useState, useRef } from 'react'
 import {
   ReactFlow,
   Background,
@@ -6,12 +6,16 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
+  ReactFlowProvider,
+  useViewport,
   type Node,
   type Edge,
   type NodeMouseHandler,
   BackgroundVariant,
 } from '@xyflow/react'
 import { useGraphStore } from '@/stores/graphStore'
+import { elkLayout } from '@/lib/elkLayout'
 import PersonNode from '@/components/graph/nodes/PersonNode'
 import InterestNode from '@/components/graph/nodes/InterestNode'
 import ValueNode from '@/components/graph/nodes/ValueNode'
@@ -27,15 +31,6 @@ const nodeTypes = {
   eventNode: EventNode,
   goalNode: GoalNode,
   bookNode: BookNode,
-}
-
-const categoryToNodeType: Record<string, string> = {
-  person: 'personNode',
-  interest: 'interestNode',
-  value: 'valueNode',
-  event: 'eventNode',
-  goal: 'goalNode',
-  book: 'bookNode',
 }
 
 type NodeTypeKey = 'person' | 'interest' | 'value' | 'event' | 'goal' | 'book'
@@ -72,100 +67,145 @@ const minimapColors: Record<string, string> = {
   custom: '#64748b',
 }
 
-function autoLayout(rawNodes: Node[]): Node[] {
-  // Group nodes by category for a nice clustered layout
+/** Category zone styling for group backgrounds */
+const GROUP_ZONE: Record<string, { label: string; color: string }> = {
+  person:   { label: 'People',    color: '#3b82f6' },
+  interest: { label: 'Interests', color: '#d946ef' },
+  value:    { label: 'Values',    color: '#f97316' },
+  event:    { label: 'Events',    color: '#22c55e' },
+  goal:     { label: 'Goals',     color: '#60a5fa' },
+  book:     { label: 'Books',     color: '#a855f7' },
+}
+
+/** Node sizes (must match elkLayout.ts for consistency) */
+const NODE_SIZE: Record<string, { w: number; h: number }> = {
+  person:   { w: 100, h: 100 },
+  interest: { w: 140, h: 56 },
+  value:    { w: 140, h: 60 },
+  event:    { w: 150, h: 60 },
+  goal:     { w: 110, h: 110 },
+  book:     { w: 120, h: 80 },
+}
+
+interface GroupBounds {
+  category: string
+  x: number; y: number; w: number; h: number
+  color: string; label: string
+}
+
+function computeGroupBounds(nodes: Node[]): GroupBounds[] {
   const groups: Record<string, Node[]> = {}
-  for (const node of rawNodes) {
+  for (const node of nodes) {
     const cat = (node.data as Record<string, unknown>).category as string
     if (!groups[cat]) groups[cat] = []
     groups[cat].push(node)
   }
 
-  const categoryOrder = ['person', 'interest', 'value', 'event', 'goal', 'book']
-  const centerX = 500
-  const centerY = 400
-  const ringRadius: Record<string, number> = {
-    person: 0,
-    interest: 280,
-    value: 280,
-    event: 450,
-    goal: 450,
-    book: 380,
-  }
-  const ringAngleStart: Record<string, number> = {
-    person: 0,
-    interest: -Math.PI / 3,
-    value: Math.PI / 3,
-    event: -Math.PI / 2,
-    goal: Math.PI / 2,
-    book: Math.PI,
-  }
+  const PAD = 40
+  const bounds: GroupBounds[] = []
 
-  const result: Node[] = []
+  for (const [cat, catNodes] of Object.entries(groups)) {
+    const zone = GROUP_ZONE[cat]
+    if (!zone || catNodes.length === 0) continue
+    const dim = NODE_SIZE[cat] ?? { w: 140, h: 60 }
 
-  for (const cat of categoryOrder) {
-    const nodesInGroup = groups[cat] ?? []
-    const r = ringRadius[cat] ?? 300
-    const startAngle = ringAngleStart[cat] ?? 0
-    const spread = nodesInGroup.length > 1 ? Math.PI / 3 : 0
+    const xs = catNodes.map((n) => n.position.x)
+    const ys = catNodes.map((n) => n.position.y)
 
-    nodesInGroup.forEach((node, idx) => {
-      const fraction = nodesInGroup.length > 1 ? idx / (nodesInGroup.length - 1) : 0.5
-      const angle = startAngle - spread / 2 + fraction * spread
-
-      // Person nodes in center cluster
-      if (cat === 'person') {
-        const pAngle = (2 * Math.PI * idx) / Math.max(nodesInGroup.length, 1) - Math.PI / 2
-        const pRadius = nodesInGroup.length > 1 ? 160 : 0
-        result.push({
-          ...node,
-          type: categoryToNodeType[cat] ?? 'custom',
-          position: {
-            x: centerX + pRadius * Math.cos(pAngle),
-            y: centerY + pRadius * Math.sin(pAngle),
-          },
-        })
-      } else {
-        result.push({
-          ...node,
-          type: categoryToNodeType[cat] ?? 'custom',
-          position: {
-            x: centerX + r * Math.cos(angle),
-            y: centerY + r * Math.sin(angle),
-          },
-        })
-      }
+    bounds.push({
+      category: cat,
+      x: Math.min(...xs) - PAD,
+      y: Math.min(...ys) - PAD - 20,
+      w: Math.max(...xs) - Math.min(...xs) + dim.w + PAD * 2,
+      h: Math.max(...ys) - Math.min(...ys) + dim.h + PAD * 2 + 20,
+      color: zone.color,
+      label: zone.label,
     })
   }
 
-  return result
+  return bounds
 }
 
 function buildEdges(rawEdges: Edge[]): Edge[] {
-  return rawEdges.map((edge) => ({
-    ...edge,
-    type: 'default',
-    animated: edge.animated ?? false,
-    style: {
-      ...(edge.style ?? {}),
-      stroke: (edge.style?.stroke as string) ?? '#64748b',
-      strokeWidth: Math.max(1, (edge.style?.strokeWidth as number) ?? 1),
-    },
-    labelStyle: {
-      fill: '#9ca3af',
-      fontSize: 10,
-      fontWeight: 500,
-    },
-    labelBgStyle: {
-      fill: '#0f1420',
-      fillOpacity: 0.85,
-    },
-    labelBgPadding: [4, 2] as [number, number],
-    labelBgBorderRadius: 4,
-  }))
+  return rawEdges.map((edge) => {
+    const strokeColor = (edge.style?.stroke as string) ?? '#64748b'
+    const isFamily = (edge.style?.strokeDasharray as string | undefined) === '6 3'
+    return {
+      ...edge,
+      type: 'smoothstep',
+      animated: edge.animated ?? false,
+      pathOptions: { borderRadius: 16 },
+      style: {
+        stroke: strokeColor,
+        strokeWidth: isFamily ? 1 : 1.5,
+        strokeDasharray: isFamily ? '6 3' : undefined,
+        opacity: 0.6,
+      },
+      labelStyle: {
+        fill: '#9ca3af',
+        fontSize: 9,
+        fontWeight: 500,
+      },
+      labelBgStyle: {
+        fill: '#0f1420',
+        fillOpacity: 0.9,
+      },
+      labelBgPadding: [4, 2] as [number, number],
+      labelBgBorderRadius: 4,
+    }
+  })
 }
 
-export default function KnowledgeGraph() {
+/** Group zone backgrounds rendered in the ReactFlow viewport coordinate system */
+function GroupZones({ bounds }: { bounds: GroupBounds[] }) {
+  const { x, y, zoom } = useViewport()
+  if (bounds.length === 0) return null
+  return (
+    <svg
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    >
+      <g transform={`translate(${x}, ${y}) scale(${zoom})`}>
+        {bounds.map((b) => (
+          <g key={b.category}>
+            <rect
+              x={b.x}
+              y={b.y}
+              width={b.w}
+              height={b.h}
+              rx={16}
+              fill={b.color}
+              fillOpacity={0.04}
+              stroke={b.color}
+              strokeOpacity={0.1}
+              strokeWidth={1}
+            />
+            <text
+              x={b.x + 12}
+              y={b.y + 16}
+              fill={b.color}
+              fillOpacity={0.35}
+              fontSize={11}
+              fontWeight={600}
+              fontFamily="Pretendard, sans-serif"
+            >
+              {b.label}
+            </text>
+          </g>
+        ))}
+      </g>
+    </svg>
+  )
+}
+
+function KnowledgeGraphInner() {
   // Subscribe to actual data arrays so we re-render when entities change
   const persons = useGraphStore((s) => s.persons)
   const interests = useGraphStore((s) => s.interests)
@@ -279,20 +319,29 @@ export default function KnowledgeGraph() {
     }
   }, [addingType, form, addPerson, addInterest, addValue, addEvent, addGoal, addBook, addToast, resetAddForm])
 
+  const { fitView } = useReactFlow()
+
   const rawNodes = useMemo(() => getAllGraphNodes(), [persons, interests, values, events, goals, books, getAllGraphNodes])
   const rawEdges = useMemo(() => getAllGraphEdges(), [relations, getAllGraphEdges])
-
-  const layoutedNodes = useMemo(() => autoLayout(rawNodes), [rawNodes])
   const styledEdges = useMemo(() => buildEdges(rawEdges), [rawEdges])
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes)
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState(styledEdges)
+  const [groupBounds, setGroupBounds] = useState<GroupBounds[]>([])
+  const layoutVersion = useRef(0)
 
-  // Sync store changes → xyflow internal state
+  // Run ELK layout whenever data changes
   useEffect(() => {
-    setNodes(layoutedNodes)
-  }, [layoutedNodes, setNodes])
+    const version = ++layoutVersion.current
+    elkLayout(rawNodes, rawEdges).then((laid) => {
+      if (version !== layoutVersion.current) return // stale
+      setNodes(laid)
+      setGroupBounds(computeGroupBounds(laid))
+      setTimeout(() => fitView({ padding: 0.3, duration: 300 }), 50)
+    })
+  }, [rawNodes, rawEdges, setNodes, fitView])
 
+  // Sync edges
   useEffect(() => {
     setEdges(styledEdges)
   }, [styledEdges, setEdges])
@@ -310,9 +359,13 @@ export default function KnowledgeGraph() {
 
   const handleAutoLayout = useCallback(() => {
     const freshNodes = getAllGraphNodes()
-    const laid = autoLayout(freshNodes)
-    setNodes(laid)
-  }, [getAllGraphNodes, setNodes])
+    const freshEdges = getAllGraphEdges()
+    elkLayout(freshNodes, freshEdges).then((laid) => {
+      setNodes(laid)
+      setGroupBounds(computeGroupBounds(laid))
+      setTimeout(() => fitView({ padding: 0.3, duration: 300 }), 50)
+    })
+  }, [getAllGraphNodes, getAllGraphEdges, setNodes, fitView])
 
   return (
     <div className="relative w-full h-full">
@@ -522,6 +575,7 @@ export default function KnowledgeGraph() {
         proOptions={{ hideAttribution: true }}
         className="bg-surface"
       >
+        <GroupZones bounds={groupBounds} />
         <Background
           variant={BackgroundVariant.Dots}
           gap={24}
@@ -542,5 +596,13 @@ export default function KnowledgeGraph() {
         />
       </ReactFlow>
     </div>
+  )
+}
+
+export default function KnowledgeGraph() {
+  return (
+    <ReactFlowProvider>
+      <KnowledgeGraphInner />
+    </ReactFlowProvider>
   )
 }
