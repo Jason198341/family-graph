@@ -35,7 +35,7 @@ export default function ReadingTracker() {
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const [formPersonId, setFormPersonId] = useState(persons[0]?.id ?? '')
   const [formBookId, setFormBookId] = useState(books[0]?.id ?? '')
-  const [formLines, setFormLines] = useState('')
+  const [formPages, setFormPages] = useState('')
   const [formDate, setFormDate] = useState(todayStr)
   const [showAddBook, setShowAddBook] = useState(false)
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#a855f7' })
@@ -82,16 +82,22 @@ export default function ReadingTracker() {
   const familyTotalTarget = familyStats.reduce((s, f) => s + f.targetLines, 0)
   const familyProgress = familyTotalTarget > 0 ? Math.min(100, Math.round((familyTotalLines / familyTotalTarget) * 100)) : 0
 
+  // ── Derived: selected book's linesPerPage ──
+  const selectedBook = books.find((b) => b.id === formBookId)
+  const linesPerPage = selectedBook?.linesPerPage ?? 25
+  const calculatedLines = Math.round((parseInt(formPages, 10) || 0) * linesPerPage)
+
   // ── Handlers ──
   const handleAddLog = () => {
-    const lines = parseInt(formLines, 10)
-    if (!formPersonId || !formBookId || isNaN(lines) || lines <= 0) {
-      addToast('사람, 책, 줄 수를 확인하세요', 'error')
+    const pages = parseInt(formPages, 10)
+    if (!formPersonId || !formBookId || isNaN(pages) || pages <= 0) {
+      addToast('사람, 책, 페이지 수를 확인하세요', 'error')
       return
     }
+    const lines = Math.round(pages * linesPerPage)
     addReadingLog({ personId: formPersonId, bookId: formBookId, date: formDate, linesRead: lines })
-    addToast(`${lines}줄 기록 완료!`, 'success')
-    setFormLines('')
+    addToast(`${pages}p × ${linesPerPage}줄 = ${lines.toLocaleString()}줄 기록!`, 'success')
+    setFormPages('')
   }
 
   const handleAddBook = () => {
@@ -257,18 +263,21 @@ export default function ReadingTracker() {
             </select>
           </div>
 
-          {/* Lines */}
+          {/* Pages read */}
           <div>
-            <label className="text-[10px] text-gray-500 block mb-1">줄 수</label>
+            <label className="text-[10px] text-gray-500 block mb-1">읽은 페이지 수</label>
             <input
               type="number"
               min={1}
-              value={formLines}
-              onChange={(e) => setFormLines(e.target.value)}
+              value={formPages}
+              onChange={(e) => setFormPages(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddLog()}
-              placeholder="500"
+              placeholder="20"
               className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary-500"
             />
+            {calculatedLines > 0 && (
+              <p className="text-[10px] text-primary-400 mt-0.5">= {calculatedLines.toLocaleString()}줄 ({linesPerPage}줄/p)</p>
+            )}
           </div>
 
           {/* Date */}
