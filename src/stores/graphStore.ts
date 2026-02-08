@@ -66,9 +66,40 @@ function useLocalMode() {
   return !isSupabaseConfigured || !useFamilyStore.getState().activeFamilyId
 }
 
-/** Fire-and-forget Supabase call with silent error logging (prevents unhandled rejections) */
+/** Fire-and-forget Supabase call with error toast + console logging */
 function dbSync(p: PromiseLike<{ error: unknown }>) {
-  Promise.resolve(p).then(({ error }) => { if (error) console.error('[db sync]', error) })
+  Promise.resolve(p)
+    .then(({ error }) => {
+      if (error) {
+        console.error('[db sync]', error)
+        useGraphStore.getState().addToast(`DB 동기화 실패: ${(error as { message?: string }).message ?? error}`, 'error')
+      }
+    })
+    .catch((err) => {
+      console.error('[db sync] unexpected:', err)
+      useGraphStore.getState().addToast('DB 연결 오류', 'error')
+    })
+}
+
+/** Supabase call with rollback on failure + error toast */
+function dbSyncWithRollback(
+  p: PromiseLike<{ error: { message?: string } | null }>,
+  rollback: () => void,
+  label: string,
+) {
+  Promise.resolve(p)
+    .then(({ error }) => {
+      if (error) {
+        console.error(`[${label}]`, error)
+        rollback()
+        useGraphStore.getState().addToast(`저장 실패: ${error.message ?? '알 수 없는 오류'}`, 'error')
+      }
+    })
+    .catch((err) => {
+      console.error(`[${label}] unexpected:`, err)
+      rollback()
+      useGraphStore.getState().addToast('DB 연결 오류', 'error')
+    })
 }
 
 function getFamilyId() {
@@ -406,12 +437,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('persons').insert({
-        id, family_id: getFamilyId(), name: data.name, role: data.role,
-        emoji: data.emoji, bio: data.bio, color: data.color,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ persons: s.persons.filter((p) => p.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('persons').insert({
+          id, family_id: getFamilyId(), name: data.name, role: data.role,
+          emoji: data.emoji, bio: data.bio, color: data.color,
+        }),
+        () => set((s) => ({ persons: s.persons.filter((p) => p.id !== id) })),
+        'addPerson',
+      )
     }
     return person
   },
@@ -425,12 +458,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('interests').insert({
-        id, family_id: getFamilyId(), name: data.name, category: data.category,
-        emoji: data.emoji, description: data.description,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ interests: s.interests.filter((i) => i.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('interests').insert({
+          id, family_id: getFamilyId(), name: data.name, category: data.category,
+          emoji: data.emoji, description: data.description,
+        }),
+        () => set((s) => ({ interests: s.interests.filter((i) => i.id !== id) })),
+        'addInterest',
+      )
     }
     return interest
   },
@@ -444,12 +479,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('family_values').insert({
-        id, family_id: getFamilyId(), name: data.name, emoji: data.emoji,
-        description: data.description, practice_frequency: data.practiceFrequency,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ values: s.values.filter((v) => v.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('family_values').insert({
+          id, family_id: getFamilyId(), name: data.name, emoji: data.emoji,
+          description: data.description, practice_frequency: data.practiceFrequency,
+        }),
+        () => set((s) => ({ values: s.values.filter((v) => v.id !== id) })),
+        'addValue',
+      )
     }
     return value
   },
@@ -463,12 +500,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('life_events').insert({
-        id, family_id: getFamilyId(), title: data.title, description: data.description,
-        date: data.date, person_ids: data.personIds, emoji: data.emoji, impact: data.impact,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ events: s.events.filter((e) => e.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('life_events').insert({
+          id, family_id: getFamilyId(), title: data.title, description: data.description,
+          date: data.date, person_ids: data.personIds, emoji: data.emoji, impact: data.impact,
+        }),
+        () => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
+        'addEvent',
+      )
     }
     return event
   },
@@ -482,12 +521,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('growth_goals').insert({
-        id, family_id: getFamilyId(), title: data.title, description: data.description,
-        person_id: data.personId, target_date: data.targetDate, progress: data.progress, emoji: data.emoji,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ goals: s.goals.filter((g) => g.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('growth_goals').insert({
+          id, family_id: getFamilyId(), title: data.title, description: data.description,
+          person_id: data.personId, target_date: data.targetDate, progress: data.progress, emoji: data.emoji,
+        }),
+        () => set((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
+        'addGoal',
+      )
     }
     return goal
   },
@@ -501,13 +542,15 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('graph_relations').insert({
-        id, family_id: getFamilyId(), source_id: data.sourceId, target_id: data.targetId,
-        source_type: data.sourceType, target_type: data.targetType,
-        relation_type: data.relationType, label: data.label, strength: data.strength,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ relations: s.relations.filter((r) => r.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('graph_relations').insert({
+          id, family_id: getFamilyId(), source_id: data.sourceId, target_id: data.targetId,
+          source_type: data.sourceType, target_type: data.targetType,
+          relation_type: data.relationType, label: data.label, strength: data.strength,
+        }),
+        () => set((s) => ({ relations: s.relations.filter((r) => r.id !== id) })),
+        'addRelation',
+      )
     }
     return relation
   },
@@ -666,13 +709,15 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('books').insert({
-        id, family_id: getFamilyId(), title: data.title, author: data.author,
-        total_pages: data.totalPages, lines_per_page: data.linesPerPage,
-        emoji: data.emoji, color: data.color,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ books: s.books.filter((b) => b.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('books').insert({
+          id, family_id: getFamilyId(), title: data.title, author: data.author,
+          total_pages: data.totalPages, lines_per_page: data.linesPerPage,
+          emoji: data.emoji, color: data.color,
+        }),
+        () => set((s) => ({ books: s.books.filter((b) => b.id !== id) })),
+        'addBook',
+      )
     }
     return book
   },
@@ -702,12 +747,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('reading_logs').insert({
-        id, family_id: getFamilyId(), person_id: data.personId,
-        book_id: data.bookId, date: data.date, lines_read: data.linesRead,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ readingLogs: s.readingLogs.filter((l) => l.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('reading_logs').insert({
+          id, family_id: getFamilyId(), person_id: data.personId,
+          book_id: data.bookId, date: data.date, lines_read: data.linesRead,
+        }),
+        () => set((s) => ({ readingLogs: s.readingLogs.filter((l) => l.id !== id) })),
+        'addReadingLog',
+      )
     }
     return log
   },
@@ -721,12 +768,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       return next
     })
     if (!useLocalMode()) {
-      supabase.from('reading_goals').insert({
-        id, family_id: getFamilyId(), person_id: data.personId,
-        month: data.month, target_lines: data.targetLines,
-      }).then(({ error }) => {
-        if (error) set((s) => ({ readingGoals: s.readingGoals.filter((g) => g.id !== id) }))
-      })
+      dbSyncWithRollback(
+        supabase.from('reading_goals').insert({
+          id, family_id: getFamilyId(), person_id: data.personId,
+          month: data.month, target_lines: data.targetLines,
+        }),
+        () => set((s) => ({ readingGoals: s.readingGoals.filter((g) => g.id !== id) })),
+        'addReadingGoal',
+      )
     }
     return goal
   },
