@@ -12,9 +12,11 @@ import {
   type Node,
   type Edge,
   type NodeMouseHandler,
+  type Connection,
   BackgroundVariant,
 } from '@xyflow/react'
 import { useGraphStore } from '@/stores/graphStore'
+import type { NodeCategory, RelationType } from '@/types'
 import { elkLayout } from '@/lib/elkLayout'
 import PersonNode from '@/components/graph/nodes/PersonNode'
 import InterestNode from '@/components/graph/nodes/InterestNode'
@@ -261,6 +263,117 @@ function GroupZones({ bounds }: { bounds: GroupBounds[] }) {
   )
 }
 
+// ── Relation type options for ConnectionDialog ──
+const relationTypeOptions: { key: RelationType; label: string }[] = [
+  { key: 'participates', label: '참여한다' },
+  { key: 'practices', label: '실천한다' },
+  { key: 'strengthens', label: '강화한다' },
+  { key: 'contributes', label: '기여한다' },
+  { key: 'influences', label: '영향을 준다' },
+  { key: 'supports', label: '지원한다' },
+  { key: 'learns', label: '학습한다' },
+  { key: 'achieves', label: '달성한다' },
+  { key: 'family', label: '가족이다' },
+  { key: 'reads', label: '읽는다' },
+]
+
+interface PendingConnection {
+  sourceId: string
+  targetId: string
+  sourceName: string
+  targetName: string
+  sourceCategory: NodeCategory
+  targetCategory: NodeCategory
+}
+
+function ConnectionDialog({
+  pending,
+  onConfirm,
+  onCancel,
+}: {
+  pending: PendingConnection
+  onConfirm: (relationType: RelationType, label: string, strength: number) => void
+  onCancel: () => void
+}) {
+  const [relationType, setRelationType] = useState<RelationType>('influences')
+  const [label, setLabel] = useState('')
+  const [strength, setStrength] = useState(5)
+
+  return (
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="w-80 bg-surface-light/95 backdrop-blur-md border border-surface-border rounded-2xl shadow-2xl p-5 space-y-4 animate-fade-in-up">
+        <h3 className="text-sm font-semibold text-white">관계 연결</h3>
+
+        {/* Source → Target display */}
+        <div className="flex items-center gap-2 text-xs text-gray-300 bg-surface-lighter rounded-lg px-3 py-2">
+          <span className="font-medium text-primary-300">{pending.sourceName}</span>
+          <svg className="w-4 h-4 text-gray-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+          <span className="font-medium text-primary-300">{pending.targetName}</span>
+        </div>
+
+        {/* Relation type */}
+        <div>
+          <label className="text-[10px] text-gray-500 mb-1 block">관계 타입</label>
+          <select
+            value={relationType}
+            onChange={(e) => setRelationType(e.target.value as RelationType)}
+            className="w-full px-3 py-2 bg-surface/60 border border-surface-border rounded-lg text-sm text-gray-200 focus:border-primary-500/50 focus:outline-none"
+          >
+            {relationTypeOptions.map((opt) => (
+              <option key={opt.key} value={opt.key}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Label */}
+        <div>
+          <label className="text-[10px] text-gray-500 mb-1 block">라벨 (설명)</label>
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="예: 같이 운동한다"
+            className="w-full px-3 py-2 bg-surface/60 border border-surface-border rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:border-primary-500/50 focus:outline-none"
+          />
+        </div>
+
+        {/* Strength slider */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] text-gray-500">강도</label>
+            <span className="text-xs text-primary-400 font-medium">{strength}</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            value={strength}
+            onChange={(e) => setStrength(Number(e.target.value))}
+            className="w-full accent-primary-500"
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={() => onConfirm(relationType, label || relationTypeOptions.find((o) => o.key === relationType)?.label || relationType, strength)}
+            className="flex-1 px-4 py-2 bg-primary-500/20 text-primary-300 border border-primary-500/40 rounded-lg text-sm hover:bg-primary-500/30 hover:text-white transition-colors cursor-pointer font-medium"
+          >
+            연결
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-400 border border-surface-border rounded-lg text-sm hover:text-gray-300 hover:bg-surface-hover transition-colors cursor-pointer"
+          >
+            취소
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function KnowledgeGraphInner() {
   // Subscribe to actual data arrays so we re-render when entities change
   const persons = useGraphStore((s) => s.persons)
@@ -280,7 +393,46 @@ function KnowledgeGraphInner() {
   const addEvent = useGraphStore((s) => s.addEvent)
   const addGoal = useGraphStore((s) => s.addGoal)
   const addBook = useGraphStore((s) => s.addBook)
+  const addRelation = useGraphStore((s) => s.addRelation)
+  const getNodeById = useGraphStore((s) => s.getNodeById)
   const addToast = useGraphStore((s) => s.addToast)
+
+  // Connection dialog state
+  const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null)
+
+  const handleConnect = useCallback((connection: Connection) => {
+    if (!connection.source || !connection.target || connection.source === connection.target) return
+    const srcNode = getNodeById(connection.source)
+    const tgtNode = getNodeById(connection.target)
+    if (!srcNode || !tgtNode) return
+
+    const srcName = (srcNode.data.name as string) ?? (srcNode.data.title as string) ?? connection.source
+    const tgtName = (tgtNode.data.name as string) ?? (tgtNode.data.title as string) ?? connection.target
+
+    setPendingConnection({
+      sourceId: connection.source,
+      targetId: connection.target,
+      sourceName: srcName,
+      targetName: tgtName,
+      sourceCategory: srcNode.category,
+      targetCategory: tgtNode.category,
+    })
+  }, [getNodeById])
+
+  const handleConnectionConfirm = useCallback((relationType: RelationType, label: string, strength: number) => {
+    if (!pendingConnection) return
+    addRelation({
+      sourceId: pendingConnection.sourceId,
+      targetId: pendingConnection.targetId,
+      sourceType: pendingConnection.sourceCategory,
+      targetType: pendingConnection.targetCategory,
+      relationType,
+      label,
+      strength,
+    })
+    addToast(`${pendingConnection.sourceName} → ${pendingConnection.targetName} 연결됨`, 'success')
+    setPendingConnection(null)
+  }, [pendingConnection, addRelation, addToast])
 
   // Add-node UI state
   const [showTypeMenu, setShowTypeMenu] = useState(false)
@@ -645,6 +797,15 @@ function KnowledgeGraphInner() {
         </div>
       )}
 
+      {/* Connection Dialog */}
+      {pendingConnection && (
+        <ConnectionDialog
+          pending={pendingConnection}
+          onConfirm={handleConnectionConfirm}
+          onCancel={() => setPendingConnection(null)}
+        />
+      )}
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -655,6 +816,8 @@ function KnowledgeGraphInner() {
         onNodeMouseEnter={handleNodeMouseEnter}
         onNodeMouseLeave={handleNodeMouseLeave}
         onPaneClick={handlePaneClick}
+        onConnect={handleConnect}
+        connectionLineStyle={{ stroke: '#60a5fa', strokeWidth: 2, strokeDasharray: '6 3' }}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.2}

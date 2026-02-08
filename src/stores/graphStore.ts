@@ -151,8 +151,10 @@ interface GraphState {
   removeInterest: (id: string) => void
   removeValue: (id: string) => void
   removeEvent: (id: string) => void
+  removeGoal: (id: string) => void
   removeRelation: (id: string) => void
 
+  updateEntity: (category: NodeCategory, id: string, updates: Record<string, unknown>) => void
   updateGoalProgress: (id: string, progress: number) => void
 
   // book / reading mutations
@@ -577,6 +579,22 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     }
   },
 
+  removeGoal: (id) => {
+    set((s) => {
+      const next = {
+        goals: s.goals.filter((g) => g.id !== id),
+        relations: s.relations.filter((r) => r.sourceId !== id && r.targetId !== id),
+        selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
+      }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSync(supabase.from('growth_goals').delete().eq('id', id))
+      dbSync(supabase.from('graph_relations').delete().or(`source_id.eq.${id},target_id.eq.${id}`))
+    }
+  },
+
   removeRelation: (id) => {
     set((s) => {
       const next = { relations: s.relations.filter((r) => r.id !== id) }
@@ -585,6 +603,41 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     })
     if (!useLocalMode()) {
       dbSync(supabase.from('graph_relations').delete().eq('id', id))
+    }
+  },
+
+  // ── generic entity update ──
+  updateEntity: (category, id, updates) => {
+    const tableMap: Record<NodeCategory, string> = {
+      person: 'persons', interest: 'interests', value: 'family_values',
+      event: 'life_events', goal: 'growth_goals', book: 'books',
+    }
+    const fieldMap: Record<NodeCategory, string> = {
+      person: 'persons', interest: 'interests', value: 'values',
+      event: 'events', goal: 'goals', book: 'books',
+    }
+
+    // Build Supabase column mapping (camelCase → snake_case)
+    const snakeUpdates: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(updates)) {
+      const snake = k.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase())
+      snakeUpdates[snake] = v
+    }
+
+    set((s) => {
+      const field = fieldMap[category] as keyof typeof s
+      const arr = s[field] as unknown as Record<string, unknown>[]
+      const next = {
+        [field]: arr.map((item) =>
+          (item.id as string) === id ? { ...item, ...updates } : item,
+        ),
+      }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+
+    if (!useLocalMode()) {
+      dbSync(supabase.from(tableMap[category]).update(snakeUpdates).eq('id', id))
     }
   },
 

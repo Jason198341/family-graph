@@ -5,7 +5,7 @@ import { Handle, Position } from '@xyflow/react'
  * Allows edges to connect from any direction via sourceHandle / targetHandle IDs.
  * IDs: s-top, s-right, s-bottom, s-left (source), t-top, t-right, t-bottom, t-left (target)
  */
-const S = { opacity: 0, width: 1, height: 1, pointerEvents: 'none' as const }
+const S = { opacity: 0, width: 8, height: 8, pointerEvents: 'auto' as const }
 
 export function BiHandles() {
   return (
