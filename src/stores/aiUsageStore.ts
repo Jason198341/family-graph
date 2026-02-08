@@ -6,6 +6,9 @@ import { useFamilyStore } from './familyStore'
 const DAILY_FREE_LIMIT = 3
 const LS_KEY = 'fg_ai_usage'
 
+/** Emails with unlimited AI usage (no daily cap) */
+const UNLIMITED_EMAILS = ['skypeople41@gmail.com']
+
 type AiFeature = 'chat' | 'extract'
 
 interface AiUsageState {
@@ -18,6 +21,11 @@ interface AiUsageState {
   loadTodayUsage: () => Promise<void>
   recordUsage: (feature: AiFeature) => Promise<boolean>
   canUse: () => boolean
+}
+
+function isUnlimitedUser(): boolean {
+  const email = useAuthStore.getState().user?.email
+  return !!email && UNLIMITED_EMAILS.includes(email.toLowerCase())
 }
 
 function todayKey(): string {
@@ -46,6 +54,11 @@ export const useAiUsageStore = create<AiUsageState>((set, get) => ({
   remaining: DAILY_FREE_LIMIT,
 
   loadTodayUsage: async () => {
+    if (isUnlimitedUser()) {
+      set({ todayCount: 0, limitReached: false, remaining: Infinity, loading: false })
+      return
+    }
+
     if (!isSupabaseConfigured) {
       const count = getLocalCount()
       set({
@@ -78,6 +91,8 @@ export const useAiUsageStore = create<AiUsageState>((set, get) => ({
   },
 
   recordUsage: async (feature: AiFeature) => {
+    if (isUnlimitedUser()) return true
+
     const { todayCount } = get()
     if (todayCount >= DAILY_FREE_LIMIT) return false
 
@@ -116,5 +131,5 @@ export const useAiUsageStore = create<AiUsageState>((set, get) => ({
     return true
   },
 
-  canUse: () => get().todayCount < DAILY_FREE_LIMIT,
+  canUse: () => isUnlimitedUser() || get().todayCount < DAILY_FREE_LIMIT,
 }))
