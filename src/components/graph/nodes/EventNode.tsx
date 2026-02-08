@@ -1,5 +1,6 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { type NodeProps } from '@xyflow/react'
 import type { GraphNodeData } from '@/types'
+import { BiHandles } from './BiHandles'
 
 const impactColors: Record<string, string> = {
   positive: '#22c55e',
@@ -15,8 +16,7 @@ export default function EventNode({ data, selected }: NodeProps) {
 
   return (
     <div className="relative">
-      <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-growth-400 !border-surface-light" />
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-growth-400 !border-surface-light" id="left" />
+      <BiHandles />
 
       <div
         className={`flex items-start gap-0 rounded-xl bg-surface-lighter border border-surface-border overflow-hidden transition-all duration-300 ${selected ? 'node-glow' : ''}`}
@@ -41,8 +41,6 @@ export default function EventNode({ data, selected }: NodeProps) {
         </div>
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-growth-400 !border-surface-light" id="bottom" />
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-growth-400 !border-surface-light" id="right" />
     </div>
   )
 }

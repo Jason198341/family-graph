@@ -1,5 +1,6 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { type NodeProps } from '@xyflow/react'
 import type { GraphNodeData } from '@/types'
+import { BiHandles } from './BiHandles'
 
 export default function GoalNode({ data, selected }: NodeProps) {
   const d = data as unknown as GraphNodeData
@@ -13,8 +14,7 @@ export default function GoalNode({ data, selected }: NodeProps) {
 
   return (
     <div className="relative flex flex-col items-center">
-      <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" />
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" id="left" />
+      <BiHandles />
 
       {/* Progress ring card */}
       <div
@@ -72,8 +72,6 @@ export default function GoalNode({ data, selected }: NodeProps) {
         </span>
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" id="bottom" />
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" id="right" />
     </div>
   )
 }

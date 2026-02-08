@@ -1,5 +1,6 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { type NodeProps } from '@xyflow/react'
 import type { GraphNodeData } from '@/types'
+import { BiHandles } from './BiHandles'
 
 export default function BookNode({ data, selected }: NodeProps) {
   const d = data as unknown as GraphNodeData
@@ -7,8 +8,7 @@ export default function BookNode({ data, selected }: NodeProps) {
 
   return (
     <div className="relative flex flex-col items-center">
-      <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-purple-400 !border-surface-light" />
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-purple-400 !border-surface-light" id="left" />
+      <BiHandles />
 
       {/* Book card */}
       <div
@@ -27,8 +27,6 @@ export default function BookNode({ data, selected }: NodeProps) {
         )}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-purple-400 !border-surface-light" id="bottom" />
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-purple-400 !border-surface-light" id="right" />
     </div>
   )
 }

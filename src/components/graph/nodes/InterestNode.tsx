@@ -1,5 +1,6 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { type NodeProps } from '@xyflow/react'
 import type { GraphNodeData } from '@/types'
+import { BiHandles } from './BiHandles'
 
 const categoryColors: Record<string, string> = {
   career: '#f59e0b',
@@ -16,8 +17,7 @@ export default function InterestNode({ data, selected }: NodeProps) {
 
   return (
     <div className="relative">
-      <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-accent-400 !border-surface-light" />
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-accent-400 !border-surface-light" id="left" />
+      <BiHandles />
 
       <div
         className={`flex items-center gap-2.5 px-4 py-3 rounded-xl bg-surface-lighter border transition-all duration-300 ${selected ? 'node-glow' : ''}`}
@@ -37,8 +37,6 @@ export default function InterestNode({ data, selected }: NodeProps) {
         />
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-accent-400 !border-surface-light" id="bottom" />
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-accent-400 !border-surface-light" id="right" />
     </div>
   )
 }

@@ -1,5 +1,6 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { type NodeProps } from '@xyflow/react'
 import type { GraphNodeData } from '@/types'
+import { BiHandles } from './BiHandles'
 
 export default function PersonNode({ data, selected }: NodeProps) {
   const d = data as unknown as GraphNodeData
@@ -7,12 +8,7 @@ export default function PersonNode({ data, selected }: NodeProps) {
 
   return (
     <div className="relative flex flex-col items-center">
-      {/* Top handle */}
-      <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" />
-      {/* Left handle */}
-      <Handle type="source" position={Position.Left} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" id="left" />
-      {/* Right handle */}
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" id="right" />
+      <BiHandles />
 
       {/* Node circle */}
       <div
@@ -35,8 +31,6 @@ export default function PersonNode({ data, selected }: NodeProps) {
         )}
       </div>
 
-      {/* Bottom handle */}
-      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-primary-400 !border-surface-light" id="bottom" />
     </div>
   )
 }

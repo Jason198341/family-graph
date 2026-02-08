@@ -126,19 +126,76 @@ function computeGroupBounds(nodes: Node[]): GroupBounds[] {
   return bounds
 }
 
-function buildEdges(rawEdges: Edge[]): Edge[] {
+/**
+ * Assign optimal sourceHandle / targetHandle based on relative node positions.
+ * This spreads edges around nodes instead of all bunching at one handle.
+ */
+function assignHandles(edges: Edge[], nodeMap: Map<string, Node>): Edge[] {
+  return edges.map((edge) => {
+    const src = nodeMap.get(edge.source)
+    const tgt = nodeMap.get(edge.target)
+    if (!src || !tgt) return edge
+
+    const dx = tgt.position.x - src.position.x
+    const dy = tgt.position.y - src.position.y
+
+    let sourceHandle: string
+    let targetHandle: string
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Horizontal dominant
+      if (dx > 0) { sourceHandle = 's-right'; targetHandle = 't-left' }
+      else { sourceHandle = 's-left'; targetHandle = 't-right' }
+    } else {
+      // Vertical dominant
+      if (dy > 0) { sourceHandle = 's-bottom'; targetHandle = 't-top' }
+      else { sourceHandle = 's-top'; targetHandle = 't-bottom' }
+    }
+
+    return { ...edge, sourceHandle, targetHandle }
+  })
+}
+
+/**
+ * Style edges with interactive dimming.
+ * - Default: very dim (ghost lines)
+ * - Active node hovered/selected: connected edges highlighted, rest ultra-dim
+ */
+function buildEdges(
+  rawEdges: Edge[],
+  activeNodeId: string | null,
+): Edge[] {
+  const connectedSet = new Set<string>()
+  if (activeNodeId) {
+    for (const e of rawEdges) {
+      if (e.source === activeNodeId || e.target === activeNodeId) {
+        connectedSet.add(e.id)
+      }
+    }
+  }
+
   return rawEdges.map((edge) => {
     const strokeColor = (edge.style?.stroke as string) ?? '#64748b'
     const isFamily = (edge.style?.strokeDasharray as string | undefined) === '6 3'
+    const isConnected = connectedSet.has(edge.id)
+    const hasActive = activeNodeId !== null
+
+    // Opacity: highlighted = 0.8, default = 0.15, ultra-dim = 0.05
+    const opacity = hasActive
+      ? (isConnected ? 0.8 : 0.05)
+      : 0.18
+
     return {
       ...edge,
       type: 'default',
-      animated: edge.animated ?? false,
+      animated: isConnected ? (edge.animated ?? false) : false,
+      label: isConnected ? edge.label : undefined,
       style: {
         stroke: strokeColor,
-        strokeWidth: isFamily ? 1 : 1.5,
+        strokeWidth: isConnected ? 2 : (isFamily ? 0.8 : 1),
         strokeDasharray: isFamily ? '6 3' : undefined,
-        opacity: 0.55,
+        opacity,
+        transition: 'opacity 0.3s, stroke-width 0.3s',
       },
       labelStyle: {
         fill: '#9ca3af',
@@ -322,34 +379,58 @@ function KnowledgeGraphInner() {
 
   const rawNodes = useMemo(() => getAllGraphNodes(), [persons, interests, values, events, goals, books, getAllGraphNodes])
   const rawEdges = useMemo(() => getAllGraphEdges(), [relations, getAllGraphEdges])
-  const styledEdges = useMemo(() => buildEdges(rawEdges), [rawEdges])
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState(styledEdges)
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [groupBounds, setGroupBounds] = useState<GroupBounds[]>([])
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const layoutVersion = useRef(0)
+  const layoutedNodesRef = useRef<Node[]>([])
+  const handleEdgesRef = useRef<Edge[]>([])
+
+  // Active node = hovered or selected
+  const activeNodeId = hoveredNodeId ?? selectedNodeId
 
   // Run ELK layout whenever data changes
   useEffect(() => {
     const version = ++layoutVersion.current
     elkLayout(rawNodes, rawEdges).then((laid) => {
       if (version !== layoutVersion.current) return // stale
+      layoutedNodesRef.current = laid
+
+      // Build node position map for handle assignment
+      const nodeMap = new Map(laid.map((n) => [n.id, n]))
+      const withHandles = assignHandles(rawEdges, nodeMap)
+      handleEdgesRef.current = withHandles
+
       setNodes(laid)
+      setEdges(buildEdges(withHandles, activeNodeId))
       setGroupBounds(computeGroupBounds(laid))
       setTimeout(() => fitView({ padding: 0.3, duration: 300 }), 50)
     })
-  }, [rawNodes, rawEdges, setNodes, fitView])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawNodes, rawEdges, setNodes, setEdges, fitView])
 
-  // Sync edges
+  // Re-style edges on hover/select change (no re-layout needed)
   useEffect(() => {
-    setEdges(styledEdges)
-  }, [styledEdges, setEdges])
+    if (handleEdgesRef.current.length > 0) {
+      setEdges(buildEdges(handleEdgesRef.current, activeNodeId))
+    }
+  }, [activeNodeId, setEdges])
 
   const handleNodeClick: NodeMouseHandler = useCallback(
     (_event, node) => {
       selectNode(node.id)
     },
     [selectNode],
+  )
+
+  const handleNodeMouseEnter: NodeMouseHandler = useCallback(
+    (_event, node) => setHoveredNodeId(node.id), [],
+  )
+
+  const handleNodeMouseLeave = useCallback(
+    () => setHoveredNodeId(null), [],
   )
 
   const handlePaneClick = useCallback(() => {
@@ -360,11 +441,16 @@ function KnowledgeGraphInner() {
     const freshNodes = getAllGraphNodes()
     const freshEdges = getAllGraphEdges()
     elkLayout(freshNodes, freshEdges).then((laid) => {
+      layoutedNodesRef.current = laid
+      const nodeMap = new Map(laid.map((n) => [n.id, n]))
+      const withHandles = assignHandles(freshEdges, nodeMap)
+      handleEdgesRef.current = withHandles
       setNodes(laid)
+      setEdges(buildEdges(withHandles, activeNodeId))
       setGroupBounds(computeGroupBounds(laid))
       setTimeout(() => fitView({ padding: 0.3, duration: 300 }), 50)
     })
-  }, [getAllGraphNodes, getAllGraphEdges, setNodes, fitView])
+  }, [getAllGraphNodes, getAllGraphEdges, setNodes, setEdges, fitView, activeNodeId])
 
   return (
     <div className="relative w-full h-full">
@@ -566,6 +652,8 @@ function KnowledgeGraphInner() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
+        onNodeMouseEnter={handleNodeMouseEnter}
+        onNodeMouseLeave={handleNodeMouseLeave}
         onPaneClick={handlePaneClick}
         fitView
         fitViewOptions={{ padding: 0.3 }}
