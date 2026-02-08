@@ -59,20 +59,21 @@ export async function elkLayout(
       'elk.algorithm': 'layered',
       'elk.direction': direction,
       'elk.partitioning.activate': 'true',
-      // Generous spacing to give edges room
-      'elk.spacing.nodeNode': '80',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '160',
-      'elk.layered.spacing.edgeNodeBetweenLayers': '50',
+      // Spacing — generous to prevent edge overlap
+      'elk.spacing.nodeNode': '70',
       'elk.spacing.edgeEdge': '25',
-      'elk.spacing.edgeNode': '40',
-      // Edge routing — splines for curved paths
+      'elk.spacing.edgeNode': '35',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '140',
+      'elk.layered.spacing.edgeNodeBetweenLayers': '40',
+      'elk.layered.spacing.edgeEdgeBetweenLayers': '20',
+      // Edge routing — splines for smooth curves
       'elk.edgeRouting': 'SPLINES',
       // Quality
       'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
       'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-      'elk.layered.crossingMinimization.thoroughness': '30',
+      'elk.layered.thoroughness': '10',
       // Padding
-      'elk.padding': '[top=80,left=80,bottom=80,right=80]',
+      'elk.padding': '[top=60,left=60,bottom=60,right=60]',
     },
   }
 
