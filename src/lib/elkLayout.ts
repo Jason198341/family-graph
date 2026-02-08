@@ -59,17 +59,20 @@ export async function elkLayout(
       'elk.algorithm': 'layered',
       'elk.direction': direction,
       'elk.partitioning.activate': 'true',
-      // Spacing
-      'elk.spacing.nodeNode': '50',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-      'elk.layered.spacing.edgeNodeBetweenLayers': '30',
-      // Edge routing
+      // Generous spacing to give edges room
+      'elk.spacing.nodeNode': '80',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '160',
+      'elk.layered.spacing.edgeNodeBetweenLayers': '50',
+      'elk.spacing.edgeEdge': '25',
+      'elk.spacing.edgeNode': '40',
+      // Edge routing — splines for curved paths
       'elk.edgeRouting': 'SPLINES',
       // Quality
       'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
       'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+      'elk.layered.crossingMinimization.thoroughness': '30',
       // Padding
-      'elk.padding': '[top=60,left=60,bottom=60,right=60]',
+      'elk.padding': '[top=80,left=80,bottom=80,right=80]',
     },
   }
 

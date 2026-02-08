@@ -132,14 +132,13 @@ function buildEdges(rawEdges: Edge[]): Edge[] {
     const isFamily = (edge.style?.strokeDasharray as string | undefined) === '6 3'
     return {
       ...edge,
-      type: 'smoothstep',
+      type: 'default',
       animated: edge.animated ?? false,
-      pathOptions: { borderRadius: 16 },
       style: {
         stroke: strokeColor,
         strokeWidth: isFamily ? 1 : 1.5,
         strokeDasharray: isFamily ? '6 3' : undefined,
-        opacity: 0.6,
+        opacity: 0.55,
       },
       labelStyle: {
         fill: '#9ca3af',
