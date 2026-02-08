@@ -309,7 +309,7 @@ export default function ReadingTracker() {
         {/* Add book form */}
         {showAddBook && (
           <div className="bg-surface-light/80 backdrop-blur-md border border-primary-500/30 rounded-2xl p-4 space-y-3">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <div>
                 <label className="text-[10px] text-gray-500 block mb-1">제목</label>
                 <input
@@ -338,6 +338,16 @@ export default function ReadingTracker() {
                   className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary-500"
                 />
               </div>
+              <div>
+                <label className="text-[10px] text-gray-500 block mb-1">페이지당 줄 수</label>
+                <input
+                  type="number"
+                  value={newBook.linesPerPage}
+                  onChange={(e) => setNewBook((p) => ({ ...p, linesPerPage: e.target.value }))}
+                  placeholder="25"
+                  className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary-500"
+                />
+              </div>
               <div className="flex items-end">
                 <button
                   onClick={handleAddBook}
@@ -347,6 +357,7 @@ export default function ReadingTracker() {
                 </button>
               </div>
             </div>
+            <p className="text-[10px] text-gray-600">💡 아이들 책은 페이지당 3~5줄, 일반 도서는 15~25줄 정도입니다</p>
           </div>
         )}
 
