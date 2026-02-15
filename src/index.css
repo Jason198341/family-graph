@@ -177,6 +177,13 @@ html[data-font-size="xlarge"] {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Main content area bottom padding — clears BottomNav + safe area */
+@media (max-width: 767px) {
+  .main-bottom-safe {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* Prevent pull-to-refresh in standalone mode */
 @media (display-mode: standalone) {
   body { overscroll-behavior-y: contain; }

@@ -68,7 +68,7 @@ function MainApp() {
         <Sidebar />
       </div>
 
-      <main className="flex-1 flex overflow-hidden relative pb-14 md:pb-0">
+      <main className="flex-1 flex overflow-hidden relative main-bottom-safe md:pb-0">
         {activeView === 'dashboard' && <RaceDashboard />}
         <Suspense fallback={<ViewLoader />}>
           {activeView === 'reading' && <ReadingTracker />}
