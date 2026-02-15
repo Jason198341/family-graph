@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 
 interface HighlightTimelineProps {
@@ -17,9 +17,10 @@ export default function HighlightTimeline({ month }: HighlightTimelineProps) {
   const [bookId, setBookId] = useState('')
   const [content, setContent] = useState('')
 
-  const monthHighlights = [...highlights]
-    .filter((h) => h.date.startsWith(month))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const monthHighlights = useMemo(
+    () => [...highlights].filter((h) => h.date.startsWith(month)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [highlights, month],
+  )
 
   const handleSubmit = () => {
     if (!personId || !bookId || !content.trim()) return
@@ -33,10 +34,10 @@ export default function HighlightTimeline({ month }: HighlightTimelineProps) {
     setShowForm(false)
   }
 
-  // 이 달의 명문장: most recent highlight from each person, longest content
-  const bestHighlight = monthHighlights.length > 0
-    ? [...monthHighlights].sort((a, b) => b.content.length - a.content.length)[0]
-    : null
+  const bestHighlight = useMemo(
+    () => monthHighlights.length > 0 ? [...monthHighlights].sort((a, b) => b.content.length - a.content.length)[0] : null,
+    [monthHighlights],
+  )
 
   return (
     <div className="py-2 md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 animate-fade-in-up">

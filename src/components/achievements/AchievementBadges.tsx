@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 
 interface AchievementBadgesProps {
@@ -6,15 +7,17 @@ interface AchievementBadgesProps {
 
 export default function AchievementBadges({ month }: AchievementBadgesProps) {
   const getAchievements = useGraphStore((s) => s.getAchievements)
-  const achievements = getAchievements(month)
-
-  const unlocked = achievements.filter((a) => a.unlocked)
-  const locked = achievements.filter((a) => !a.unlocked)
-
-  // Family tree: grows based on total family lines
   const readingLogs = useGraphStore((s) => s.readingLogs)
-  const monthLogs = readingLogs.filter((l) => l.date.startsWith(month))
-  const totalLines = monthLogs.reduce((s, l) => s + l.linesRead, 0)
+
+  const { unlocked, locked, totalLines } = useMemo(() => {
+    const achievements = getAchievements(month)
+    const monthLogs = readingLogs.filter((l) => l.date.startsWith(month))
+    return {
+      unlocked: achievements.filter((a) => a.unlocked),
+      locked: achievements.filter((a) => !a.unlocked),
+      totalLines: monthLogs.reduce((s, l) => s + l.linesRead, 0),
+    }
+  }, [getAchievements, readingLogs, month])
   const treeStage = totalLines >= 50000 ? 5 : totalLines >= 30000 ? 4 : totalLines >= 10000 ? 3 : totalLines >= 5000 ? 2 : totalLines >= 1000 ? 1 : 0
   const treeEmojis = ['🌰', '🌱', '🌿', '🪴', '🌳', '🌲']
 

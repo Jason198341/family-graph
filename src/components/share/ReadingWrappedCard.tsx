@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useShareImage } from '@/hooks/useShareImage'
@@ -28,43 +28,52 @@ export default function ReadingWrappedCard() {
   const familyName = family?.name ?? '우리 가족'
   const familyEmoji = family?.emoji ?? '🏠'
 
-  // === Compute annual stats ===
-  const yearLogs = readingLogs.filter((l) => l.date.startsWith(String(year)))
-  const totalLines = yearLogs.reduce((s, l) => s + l.linesRead, 0)
-  const totalDays = new Set(yearLogs.map((l) => l.date)).size
-  const completedBooks = bookProgress.filter((p) => p.completed && p.completedDate?.startsWith(String(year))).length
-  const totalReviews = reviews.filter((r) => r.createdAt.startsWith(String(year))).length
+  // === Compute annual stats (memoized) ===
+  const { totalLines, totalDays, completedBooks, totalReviews, personStats, topReader, topBook, bookLineMap, topBookId, getPersonality } = useMemo(() => {
+    const yLogs = readingLogs.filter((l) => l.date.startsWith(String(year)))
+    const tLines = yLogs.reduce((s, l) => s + l.linesRead, 0)
+    const tDays = new Set(yLogs.map((l) => l.date)).size
+    const cBooks = bookProgress.filter((p) => p.completed && p.completedDate?.startsWith(String(year))).length
+    const tReviews = reviews.filter((r) => r.createdAt.startsWith(String(year))).length
 
-  // Per-person stats
-  const personStats = persons.map((p) => {
-    const logs = yearLogs.filter((l) => l.personId === p.id)
-    const lines = logs.reduce((s, l) => s + l.linesRead, 0)
-    const days = new Set(logs.map((l) => l.date)).size
-    const streak = getStreakDays(p.id)
-    return { person: p, lines, days, streak }
-  }).sort((a, b) => b.lines - a.lines)
+    const pStats = persons.map((p) => {
+      const logs = yLogs.filter((l) => l.personId === p.id)
+      const lines = logs.reduce((s, l) => s + l.linesRead, 0)
+      const days = new Set(logs.map((l) => l.date)).size
+      const streak = getStreakDays(p.id)
+      return { person: p, lines, days, streak }
+    }).sort((a, b) => b.lines - a.lines)
 
-  const topReader = personStats[0]
+    const bLineMap = new Map<string, number>()
+    yLogs.forEach((l) => bLineMap.set(l.bookId, (bLineMap.get(l.bookId) ?? 0) + l.linesRead))
+    const tBookId = [...bLineMap.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
 
-  // Most read book
-  const bookLineMap = new Map<string, number>()
-  yearLogs.forEach((l) => bookLineMap.set(l.bookId, (bookLineMap.get(l.bookId) ?? 0) + l.linesRead))
-  const topBookId = [...bookLineMap.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
-  const topBook = books.find((b) => b.id === topBookId)
-
-  // Reading personality for each person
-  function getPersonality(personId: string): { title: string; emoji: string; desc: string } {
     const month = `${year}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
-    const radar = getRadarData(personId, month)
-    const top = [...radar].sort((a, b) => b.value - a.value)[0]
-    switch (top?.label) {
-      case '양': return { title: '다독가', emoji: '📚', desc: '양으로 승부하는 독서가' }
-      case '질': return { title: '깊이파', emoji: '🔬', desc: '깊이 있는 독서를 추구' }
-      case '나눔': return { title: '나눔이', emoji: '💬', desc: '읽은 책을 나누는 것을 좋아해요' }
-      case '다양성': return { title: '탐험가', emoji: '🌍', desc: '다양한 장르를 넘나드는' }
-      default: return { title: '독서인', emoji: '📖', desc: '꾸준히 읽어가는 중' }
+    const personalityCache = new Map<string, { title: string; emoji: string; desc: string }>()
+    const getPers = (personId: string) => {
+      if (personalityCache.has(personId)) return personalityCache.get(personId)!
+      const radar = getRadarData(personId, month)
+      const top = [...radar].sort((a, b) => b.value - a.value)[0]
+      let result: { title: string; emoji: string; desc: string }
+      switch (top?.label) {
+        case '양': result = { title: '다독가', emoji: '📚', desc: '양으로 승부하는 독서가' }; break
+        case '질': result = { title: '깊이파', emoji: '🔬', desc: '깊이 있는 독서를 추구' }; break
+        case '나눔': result = { title: '나눔이', emoji: '💬', desc: '읽은 책을 나누는 것을 좋아해요' }; break
+        case '다양성': result = { title: '탐험가', emoji: '🌍', desc: '다양한 장르를 넘나드는' }; break
+        default: result = { title: '독서인', emoji: '📖', desc: '꾸준히 읽어가는 중' }
+      }
+      personalityCache.set(personId, result)
+      return result
     }
-  }
+
+    return {
+      totalLines: tLines, totalDays: tDays, completedBooks: cBooks, totalReviews: tReviews,
+      personStats: pStats, topReader: pStats[0],
+      topBook: books.find((b) => b.id === tBookId),
+      bookLineMap: bLineMap, topBookId: tBookId,
+      getPersonality: getPers,
+    }
+  }, [readingLogs, bookProgress, reviews, persons, books, year, getStreakDays, getRadarData])
 
   // === Slides ===
   const slides: SlideData[] = [

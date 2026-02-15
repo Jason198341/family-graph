@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 import PersonAvatar from '@/components/common/PersonAvatar'
 
@@ -11,31 +12,33 @@ export default function RaceStats({ month }: RaceStatsProps) {
   const getRaceProgress = useGraphStore((s) => s.getRaceProgress)
   const getStreakDays = useGraphStore((s) => s.getStreakDays)
 
-  const stats = persons.map((person) => {
-    const progress = getRaceProgress(person.id, month)
-    const monthLogs = readingLogs.filter(
-      (l) => l.personId === person.id && l.date.startsWith(month),
-    )
-    const totalLines = monthLogs.reduce((s, l) => s + l.linesRead, 0)
-    const streak = getStreakDays(person.id)
-
-    return { person, progress, totalLines, logCount: monthLogs.length, streak }
-  })
-
-  // Keep original order (no competitive sorting) - just find top reader
-  const topReader = stats.length > 0
-    ? [...stats].sort((a, b) => b.totalLines - a.totalLines)[0]
-    : null
-  const hasTopReader = topReader && topReader.totalLines > 0
-
-  const maxLines = Math.max(1, ...stats.map((s) => s.totalLines))
+  const { stats, topReader, hasTopReader, maxLines } = useMemo(() => {
+    const computed = persons.map((person) => {
+      const progress = getRaceProgress(person.id, month)
+      const monthLogs = readingLogs.filter(
+        (l) => l.personId === person.id && l.date.startsWith(month),
+      )
+      const totalLines = monthLogs.reduce((s, l) => s + l.linesRead, 0)
+      const streak = getStreakDays(person.id)
+      return { person, progress, totalLines, logCount: monthLogs.length, streak }
+    })
+    const top = computed.length > 0
+      ? [...computed].sort((a, b) => b.totalLines - a.totalLines)[0]
+      : null
+    return {
+      stats: computed,
+      topReader: top,
+      hasTopReader: top !== null && top.totalLines > 0,
+      maxLines: Math.max(1, ...computed.map((s) => s.totalLines)),
+    }
+  }, [persons, readingLogs, month, getRaceProgress, getStreakDays])
 
   return (
     <div className="space-y-4">
       {/* Member cards — flat list on mobile, grid on desktop */}
       <div className="divide-y divide-surface-border md:divide-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-3 stagger-fade">
         {stats.map(({ person, progress, totalLines, logCount, streak }) => {
-          const isTop = hasTopReader && topReader.person.id === person.id
+          const isTop = hasTopReader && topReader?.person.id === person.id
 
           return (
             <div
