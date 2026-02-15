@@ -209,9 +209,9 @@ export default function ReadingWrappedCard() {
   const currentSlide = slides[slideIdx]
 
   return (
-    <div className="space-y-4">
-      {/* Card */}
-      <div ref={ref} className="w-full max-w-[540px] aspect-[540/680] mx-auto rounded-xl md:rounded-3xl overflow-hidden shadow-2xl relative">
+    <div className="space-y-3">
+      {/* Card — shorter on mobile, original ratio on desktop */}
+      <div ref={ref} className="w-full max-w-[540px] h-[360px] md:h-auto md:aspect-[540/680] mx-auto rounded-xl md:rounded-3xl overflow-hidden shadow-xl border border-slate-200 relative">
         <div className="absolute inset-0" style={{ background: currentSlide.bg }} />
         <div className="relative z-10 h-full flex flex-col">
           <div className="flex-1 flex flex-col">
@@ -221,35 +221,33 @@ export default function ReadingWrappedCard() {
         </div>
       </div>
 
-      {/* Slide navigation */}
-      <div className="flex items-center justify-center gap-2">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setSlideIdx(i)}
-            className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
-              i === slideIdx ? 'bg-amber-500 scale-125' : 'bg-slate-300 hover:bg-slate-400'
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Slide counter + nav */}
-      <div className="flex items-center justify-center gap-4">
+      {/* Compact nav: arrows + dots + counter in one row */}
+      <div className="flex items-center justify-center gap-3">
         <button
           onClick={() => setSlideIdx(Math.max(0, slideIdx - 1))}
           disabled={slideIdx === 0}
-          className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+          className="px-2 py-1 text-xs text-slate-500 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
         >
-          ← 이전
+          ←
         </button>
-        <span className="text-xs text-slate-400 tabular-nums">{slideIdx + 1} / {slides.length}</span>
+        <div className="flex items-center gap-1.5">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setSlideIdx(i)}
+              className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                i === slideIdx ? 'bg-amber-500 scale-125' : 'bg-slate-300 hover:bg-slate-400'
+              }`}
+            />
+          ))}
+        </div>
+        <span className="text-xs text-slate-400 tabular-nums">{slideIdx + 1}/{slides.length}</span>
         <button
           onClick={() => setSlideIdx(Math.min(slides.length - 1, slideIdx + 1))}
           disabled={slideIdx === slides.length - 1}
-          className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+          className="px-2 py-1 text-xs text-slate-500 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
         >
-          다음 →
+          →
         </button>
       </div>
 
