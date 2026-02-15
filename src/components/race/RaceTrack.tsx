@@ -6,28 +6,28 @@ interface Runner {
   emoji: string
   color: string
   percent: number
+  totalLines: number
 }
 
 interface RaceTrackProps {
-  year: number
+  month: string
 }
 
-export default function RaceTrack({ year }: RaceTrackProps) {
+export default function RaceTrack({ month }: RaceTrackProps) {
   const persons = useGraphStore((s) => s.persons)
   const getRaceProgress = useGraphStore((s) => s.getRaceProgress)
+  const getTotalLinesForMonth = useGraphStore((s) => s.getTotalLinesForMonth)
 
   const runners: Runner[] = persons
-    .map((p) => {
-      const progress = getRaceProgress(p.id, year)
-      return {
-        personId: p.id,
-        name: p.name,
-        emoji: p.emoji,
-        color: p.color,
-        percent: progress.combinedPercent,
-      }
-    })
-    .sort((a, b) => b.percent - a.percent)
+    .map((p) => ({
+      personId: p.id,
+      name: p.name,
+      emoji: p.emoji,
+      color: p.color,
+      percent: getRaceProgress(p.id, month),
+      totalLines: getTotalLinesForMonth(p.id, month),
+    }))
+    .sort((a, b) => b.totalLines - a.totalLines)
 
   const markers = [25, 50, 75]
 
@@ -40,7 +40,6 @@ export default function RaceTrack({ year }: RaceTrackProps) {
 
         return (
           <div key={runner.personId} className="relative">
-            {/* Track */}
             <div className="relative h-14 bg-surface-lighter rounded-xl border border-surface-border overflow-hidden">
               {/* Track gradient fill */}
               <div
@@ -58,16 +57,16 @@ export default function RaceTrack({ year }: RaceTrackProps) {
                   className="absolute top-0 bottom-0 w-px bg-surface-border"
                   style={{ left: `${m}%` }}
                 >
-                  <span className="absolute -top-0.5 left-1 text-[8px] text-gray-600">{m}%</span>
+                  <span className="absolute -top-0.5 left-1 text-[8px] text-espresso-400">{m}%</span>
                 </div>
               ))}
 
               {/* Start line */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-600" />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-espresso-400" />
 
               {/* Finish line */}
-              <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-race-500/60">
-                <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_3px,rgba(245,158,11,0.3)_3px,rgba(245,158,11,0.3)_6px)]" />
+              <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-amber-500/60">
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_3px,rgba(251,191,36,0.3)_3px,rgba(251,191,36,0.3)_6px)]" />
               </div>
 
               {/* Runner */}
@@ -86,19 +85,28 @@ export default function RaceTrack({ year }: RaceTrackProps) {
               {/* Rank + Name label */}
               <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <span className="text-sm">{medal}</span>
-                <span className="text-xs font-bold text-white">{runner.name}</span>
+                <span className="text-xs font-bold text-cream-100">{runner.name}</span>
               </div>
 
-              {/* Percent label */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {/* Percent + Lines label */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-right">
                 <span className="text-sm font-bold tabular-nums" style={{ color: runner.color }}>
                   {runner.percent}%
+                </span>
+                <span className="text-[9px] text-espresso-300 ml-1.5">
+                  {runner.totalLines.toLocaleString()}줄
                 </span>
               </div>
             </div>
           </div>
         )
       })}
+
+      {runners.length === 0 && (
+        <div className="text-center py-8 text-espresso-400 text-sm">
+          가족 구성원을 추가하면 레이스가 시작됩니다
+        </div>
+      )}
     </div>
   )
 }

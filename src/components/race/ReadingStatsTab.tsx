@@ -62,7 +62,7 @@ export default function ReadingStatsTab({ year }: ReadingStatsTabProps) {
     <div className="space-y-6">
       {/* Monthly bar chart */}
       <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-        <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-4">월별 독서량</h3>
+        <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">월별 독서량</h3>
         <div className="flex items-end gap-1 h-32">
           {monthlyData.map((d, i) => {
             const height = d.total > 0 ? Math.max(4, (d.total / maxMonthly) * 100) : 0
@@ -73,12 +73,12 @@ export default function ReadingStatsTab({ year }: ReadingStatsTabProps) {
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] rounded-t transition-all duration-500"
                     style={{
                       height: `${height}%`,
-                      backgroundColor: d.total > 0 ? '#3b82f6' : 'transparent',
+                      backgroundColor: d.total > 0 ? '#d97706' : 'transparent',
                       opacity: d.total > 0 ? 0.8 : 0,
                     }}
                   />
                 </div>
-                <span className="text-[9px] text-gray-600">{d.month}</span>
+                <span className="text-[9px] text-espresso-400">{d.month}</span>
               </div>
             )
           })}
@@ -87,23 +87,23 @@ export default function ReadingStatsTab({ year }: ReadingStatsTabProps) {
 
       {/* Heatmap */}
       <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-        <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-4">일별 독서 히트맵</h3>
+        <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">일별 독서 히트맵</h3>
         <HeatmapCalendar year={year} data={heatmapData} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Top days */}
         <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-          <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-3">TOP 5 최다 독서일</h3>
+          <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-3">TOP 5 최다 독서일</h3>
           {topDays.length === 0 ? (
-            <p className="text-sm text-gray-600">기록이 없습니다</p>
+            <p className="text-sm text-espresso-400">기록이 없습니다</p>
           ) : (
             <div className="space-y-2">
               {topDays.map((d, i) => (
                 <div key={d.date} className="flex items-center gap-3">
-                  <span className="text-sm w-5 text-center text-gray-500">{i + 1}</span>
-                  <span className="text-xs text-gray-300 flex-1">{d.date}</span>
-                  <span className="text-xs font-bold text-primary-400">{d.lines.toLocaleString()}줄</span>
+                  <span className="text-sm w-5 text-center text-espresso-400">{i + 1}</span>
+                  <span className="text-xs text-cream-200 flex-1">{d.date}</span>
+                  <span className="text-xs font-bold text-amber-400">{d.lines.toLocaleString()}줄</span>
                 </div>
               ))}
             </div>
@@ -112,13 +112,13 @@ export default function ReadingStatsTab({ year }: ReadingStatsTabProps) {
 
         {/* Per-person summary */}
         <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-          <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-3">구성원별 독서량</h3>
+          <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-3">구성원별 독서량</h3>
           <div className="space-y-2">
             {personStats.map(({ person, total, logCount }) => (
               <div key={person.id} className="flex items-center gap-3">
                 <span className="text-lg">{person.emoji}</span>
-                <span className="text-xs text-gray-300 flex-1">{person.name}</span>
-                <span className="text-xs text-gray-500">{logCount}건</span>
+                <span className="text-xs text-cream-200 flex-1">{person.name}</span>
+                <span className="text-xs text-espresso-400">{logCount}건</span>
                 <span className="text-xs font-bold" style={{ color: person.color }}>
                   {total.toLocaleString()}줄
                 </span>

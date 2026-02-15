@@ -28,7 +28,7 @@ function getDaysInYear(year: number) {
 export default function HeatmapCalendar({ year, data, colorScale }: HeatmapCalendarProps) {
   const [tooltip, setTooltip] = useState<{ date: string; value: number; x: number; y: number } | null>(null)
 
-  const colors = colorScale ?? ['#1a2033', '#164e3a', '#16a34a', '#22c55e', '#4ade80']
+  const colors = colorScale ?? ['#302920', '#5c4a28', '#d97706', '#f59e0b', '#fbbf24']
 
   const { grid, maxVal } = useMemo(() => {
     const dataMap = new Map(data.map((d) => [d.date, d.value]))
