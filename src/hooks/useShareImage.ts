@@ -21,6 +21,9 @@ export function useShareImage() {
       backgroundColor: bgColor === 'rgba(0, 0, 0, 0)' ? '#ffffff' : bgColor,
       useCORS: true,
       logging: false,
+      scrollY: -window.scrollY,
+      height: element.scrollHeight,
+      windowHeight: element.scrollHeight,
       onclone: (doc) => {
         // 1. Remove lab/oklch/oklab from stylesheets (html2canvas can't parse them)
         for (const sheet of Array.from(doc.styleSheets)) {

@@ -72,7 +72,6 @@ export default function ShareCard({ month, onClose }: Props) {
           style={{
             background: 'linear-gradient(135deg, #fef3c7 0%, #fff7ed 30%, #fffbeb 60%, #fef9c3 100%)',
             borderRadius: '16px',
-            overflow: 'hidden',
           }}
         >
           <div style={{ padding: '28px 24px 32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
