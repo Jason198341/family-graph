@@ -3,15 +3,6 @@ import { useGraphStore } from '@/stores/graphStore'
 import RaceTrack from './RaceTrack'
 import RaceStats from './RaceStats'
 import FamilyLeaderboard from './FamilyLeaderboard'
-import ReadingStatsTab from './ReadingStatsTab'
-
-type StatsTab = 'race' | 'leaderboard' | 'stats'
-
-const TABS: { key: StatsTab; label: string; icon: string }[] = [
-  { key: 'race', label: '가족 레이스', icon: '🏃' },
-  { key: 'leaderboard', label: '전체 순위', icon: '🏆' },
-  { key: 'stats', label: '독서 통계', icon: '📊' },
-]
 
 function getMonthStr(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -19,9 +10,7 @@ function getMonthStr(date: Date) {
 
 export default function RaceDashboard() {
   const [month, setMonth] = useState(() => getMonthStr(new Date()))
-  const [activeTab, setActiveTab] = useState<StatsTab>('race')
 
-  const familyRank = useGraphStore((s) => s.familyRank)
   const loadFamilyRank = useGraphStore((s) => s.loadFamilyRank)
 
   const [y, m] = month.split('-').map(Number)
@@ -71,62 +60,19 @@ export default function RaceDashboard() {
         </div>
       </div>
 
-      {/* Rank Widget */}
-      {familyRank && familyRank.total > 0 && (
-        <button
-          onClick={() => setActiveTab('leaderboard')}
-          className="w-full bg-amber-500/8 hover:bg-amber-500/15 border border-amber-500/25 rounded-xl px-5 py-3 flex items-center gap-3 transition-colors cursor-pointer animate-fade-in-up"
-          style={{ animationDelay: '40ms' }}
-        >
-          <span className="text-xl">🏆</span>
-          <p className="text-sm font-semibold text-amber-300">
-            전체 {familyRank.total}가족 중 {familyRank.rank}위
-          </p>
-          <span className="text-xs text-amber-400/60 ml-auto">
-            이번 달 {familyRank.totalLines.toLocaleString()}줄
-          </span>
-          <svg className="w-4 h-4 text-amber-400/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      )}
+      {/* ── 1. 전체 가족 순위 ── */}
+      <FamilyLeaderboard month={month} />
 
-      {/* Race Track */}
+      {/* ── 2. 개인 순위 (레이스 트랙) ── */}
       <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">
-          레이스 트랙
+          🏃 개인 레이스 트랙
         </h2>
         <RaceTrack month={month} />
       </div>
 
-      {/* Stats Cards */}
+      {/* ── 3. 가족 내 순위 (멤버 카드 + 바 차트) ── */}
       <RaceStats month={month} />
-
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-1 bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-xl p-1">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              activeTab === tab.key
-                ? 'bg-surface-lighter text-cream-100 shadow-sm'
-                : 'text-espresso-400 hover:text-espresso-200'
-            }`}
-          >
-            <span>{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'race' && (
-        <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-          <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">이번 달 가족 레이스 현황</h3>
-          <RaceTrack month={month} />
-        </div>
-      )}
-      {activeTab === 'leaderboard' && <FamilyLeaderboard month={month} />}
-      {activeTab === 'stats' && <ReadingStatsTab year={y} />}
     </div>
   )
 }
