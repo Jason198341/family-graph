@@ -30,7 +30,7 @@ export default function ReviewsPage() {
   const sortedLetters = [...letters].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 pt-2 md:p-8 space-y-2 md:space-y-6">
+    <div className="flex-1 overflow-y-auto px-3 pt-2 pb-4 md:p-8 space-y-2 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
