@@ -44,6 +44,8 @@ export default function ReadingTracker() {
   const [showAddBook, setShowAddBook] = useState(false)
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#a855f7' })
 
+  const getEffectiveTargetLines = useGraphStore((s) => s.getEffectiveTargetLines)
+
   // ── Computed data ──
   const familyStats = useMemo(() => {
     return persons.map((person) => {
@@ -51,10 +53,7 @@ export default function ReadingTracker() {
         (l) => l.personId === person.id && l.date.startsWith(selectedMonth),
       )
       const totalLines = monthLogs.reduce((sum, l) => sum + l.linesRead, 0)
-      const goal = readingGoals.find(
-        (g) => g.personId === person.id && g.month === selectedMonth,
-      )
-      const targetLines = goal?.targetLines ?? 0
+      const targetLines = getEffectiveTargetLines(person.id, selectedMonth)
       const progress = targetLines > 0 ? Math.min(100, Math.round((totalLines / targetLines) * 100)) : 0
 
       // Current book: most recent log
@@ -207,15 +206,23 @@ export default function ReadingTracker() {
               const goal = readingGoals.find(
                 (g) => g.personId === person.id && g.month === selectedMonth,
               )
+              const autoTarget = useGraphStore.getState().getAutoTargetLines(person.id, selectedMonth)
+              const isManual = !!goal
               return (
                 <div key={person.id} className="flex items-center gap-3">
                   <span className="text-lg">{person.emoji}</span>
-                  <span className="text-xs font-medium text-gray-300 w-12">{person.name}</span>
+                  <div className="w-16">
+                    <span className="text-xs font-medium text-gray-300">{person.name}</span>
+                    <span className={`block text-[8px] ${isManual ? 'text-primary-400' : 'text-warm-400'}`}>
+                      {isManual ? '수동' : '자동'}
+                    </span>
+                  </div>
                   <input
                     type="number"
                     min={0}
-                    step={1000}
-                    defaultValue={goal?.targetLines ?? 0}
+                    step={500}
+                    defaultValue={goal?.targetLines ?? autoTarget}
+                    placeholder={autoTarget.toLocaleString()}
                     onBlur={(e) => {
                       const val = parseInt(e.target.value, 10)
                       if (isNaN(val) || val < 0) return
@@ -237,7 +244,9 @@ export default function ReadingTracker() {
               )
             })}
           </div>
-          <p className="text-[9px] text-gray-600">숫자 입력 후 Enter 또는 바깥 클릭으로 저장됩니다</p>
+          <p className="text-[9px] text-gray-600">
+            자동 목표: 1~3월은 전월 성취, 4월부터는 최근 3개월 평균 · 수동 입력 시 자동 대신 적용
+          </p>
         </div>
       )}
 

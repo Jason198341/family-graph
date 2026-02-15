@@ -220,6 +220,8 @@ interface GraphState {
   getReadingLogsForMonth: (personId: string, month: string) => ReadingLog[]
   getReadingGoalForMonth: (personId: string, month: string) => ReadingGoal | undefined
   getTotalLinesForMonth: (personId: string, month: string) => number
+  getAutoTargetLines: (personId: string, month: string) => number
+  getEffectiveTargetLines: (personId: string, month: string) => number
   getStreakDays: (personId: string) => number
 
   // writing queries
@@ -982,6 +984,46 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     return s.readingLogs
       .filter((l) => l.personId === personId && l.date.startsWith(month))
       .reduce((sum, l) => sum + l.linesRead, 0)
+  },
+
+  getAutoTargetLines: (personId, month) => {
+    const s = get()
+    // month format: 'YYYY-MM'
+    const [y, m] = month.split('-').map(Number)
+
+    function prevMonthStr(yr: number, mo: number): string {
+      const d = new Date(yr, mo - 2, 1) // mo-1 is current, mo-2 is prev
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    }
+
+    function linesForMonth(mo: string): number {
+      return s.readingLogs
+        .filter((l) => l.personId === personId && l.date.startsWith(mo))
+        .reduce((sum, l) => sum + l.linesRead, 0)
+    }
+
+    // Jan/Feb/Mar (month <= 3): use previous month's achievement
+    if (m <= 3) {
+      const prev = prevMonthStr(y, m)
+      return linesForMonth(prev)
+    }
+
+    // April onwards: average of last 3 months
+    const months = [
+      prevMonthStr(y, m),
+      prevMonthStr(y, m - 1),
+      prevMonthStr(y, m - 2),
+    ]
+    const totals = months.map(linesForMonth)
+    const sum = totals.reduce((a, b) => a + b, 0)
+    return Math.round(sum / 3)
+  },
+
+  getEffectiveTargetLines: (personId, month) => {
+    const s = get()
+    const manual = s.readingGoals.find((g) => g.personId === personId && g.month === month)
+    if (manual) return manual.targetLines
+    return get().getAutoTargetLines(personId, month)
   },
 
   getStreakDays: (personId) => {

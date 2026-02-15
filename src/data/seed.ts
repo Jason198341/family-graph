@@ -209,16 +209,13 @@ export const seedBooks: Book[] = [
 // ─── 독서 목표 ──────────────────────────────
 
 export const seedReadingGoals: ReadingGoal[] = [
-  // 1월 목표
+  // 1월 목표 (수동 설정)
   { id: 'rg-jan-1', personId: 'person-dad', month: '2026-01', targetLines: 20000 },
   { id: 'rg-jan-2', personId: 'person-mom', month: '2026-01', targetLines: 10000 },
   { id: 'rg-jan-3', personId: 'person-child1', month: '2026-01', targetLines: 20000 },
   { id: 'rg-jan-4', personId: 'person-child2', month: '2026-01', targetLines: 10000 },
-  // 2월 목표 (1월 성취 기준)
-  { id: 'rg-1', personId: 'person-dad', month: '2026-02', targetLines: 19259 },
-  { id: 'rg-2', personId: 'person-mom', month: '2026-02', targetLines: 3400 },
-  { id: 'rg-3', personId: 'person-child1', month: '2026-02', targetLines: 19260 },
-  { id: 'rg-4', personId: 'person-child2', month: '2026-02', targetLines: 7800 },
+  // 2월 목표: 자동 계산 (전월 성취 = 아빠 19259, 엄마 3400, 세연 19260, 성후 7800)
+  // 수동 설정 안 하면 getAutoTargetLines()가 자동으로 계산
 ]
 
 // ─── 독서 기록 ──────────────────────────────
