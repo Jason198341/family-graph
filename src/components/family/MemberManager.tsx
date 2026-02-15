@@ -92,7 +92,7 @@ export default function MemberManager() {
           <div className="bg-surface border border-primary-500/20 rounded-xl p-4 mb-3 space-y-3 animate-fade-in-up">
             {/* Quick role presets */}
             <div>
-              <p className="text-[10px] text-gray-500 mb-1.5">빠른 선택</p>
+              <p className="text-xs text-gray-500 mb-1.5">빠른 선택</p>
               <div className="flex flex-wrap gap-1.5">
                 {ROLE_PRESETS.map((preset) => (
                   <button
@@ -112,7 +112,7 @@ export default function MemberManager() {
 
             {/* Name input */}
             <div>
-              <label className="text-[10px] text-gray-500 mb-1 block">이름</label>
+              <label className="text-xs text-gray-500 mb-1 block">이름</label>
               <input
                 type="text"
                 value={newName}
@@ -125,7 +125,7 @@ export default function MemberManager() {
 
             {/* Emoji picker */}
             <div>
-              <label className="text-[10px] text-gray-500 mb-1 block">이모지</label>
+              <label className="text-xs text-gray-500 mb-1 block">이모지</label>
               <div className="flex gap-1.5 flex-wrap">
                 {[...ROLE_PRESETS.map((p) => p.emoji), ...EXTRA_EMOJIS].map((emoji) => (
                   <button
@@ -146,7 +146,7 @@ export default function MemberManager() {
 
             {/* Color picker */}
             <div>
-              <label className="text-[10px] text-gray-500 mb-1 block">색상</label>
+              <label className="text-xs text-gray-500 mb-1 block">색상</label>
               <div className="flex gap-1.5">
                 {['#3b82f6', '#ec4899', '#22c55e', '#f59e0b', '#6366f1', '#a855f7', '#ef4444', '#14b8a6'].map((c) => (
                   <button
@@ -172,7 +172,7 @@ export default function MemberManager() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white font-medium">{newName || '이름'}</p>
-                <p className="text-[10px] text-gray-500">{newRole || '역할'}</p>
+                <p className="text-xs text-gray-500">{newRole || '역할'}</p>
               </div>
               <button
                 onClick={handleAddPerson}
@@ -197,7 +197,7 @@ export default function MemberManager() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white truncate">{p.name}</p>
-                <p className="text-[10px] text-gray-500">{p.role}</p>
+                <p className="text-xs text-gray-500">{p.role}</p>
               </div>
             </div>
           ))}
@@ -220,7 +220,7 @@ export default function MemberManager() {
                   <span className="text-lg">{m.avatarEmoji ?? '👤'}</span>
                   <div>
                     <p className="text-sm text-white">{m.displayName ?? m.email ?? '알 수 없음'}</p>
-                    {m.email && <p className="text-[10px] text-gray-500">{m.email}</p>}
+                    {m.email && <p className="text-xs text-gray-500">{m.email}</p>}
                   </div>
                 </div>
                 <div className="flex gap-1.5">
@@ -256,7 +256,7 @@ export default function MemberManager() {
                 <p className="text-sm text-white truncate">{m.displayName ?? m.email ?? '알 수 없음'}</p>
               </div>
               {m.role === 'admin' && (
-                <span className="text-[10px] px-2 py-0.5 bg-primary-500/20 text-primary-400 rounded-full border border-primary-500/30">
+                <span className="text-xs px-2 py-0.5 bg-primary-500/20 text-primary-400 rounded-full border border-primary-500/30">
                   관리자
                 </span>
               )}

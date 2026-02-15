@@ -28,11 +28,11 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-cream-100">{person?.name ?? '알 수 없음'}</p>
-          <p className="text-[10px] text-espresso-400">
+          <p className="text-xs text-espresso-400">
             {book?.emoji} {book?.title ?? '알 수 없는 책'} · {book?.author}
           </p>
         </div>
-        <span className="text-[10px] text-espresso-400">
+        <span className="text-xs text-espresso-400">
           {new Date(review.createdAt).toLocaleDateString('ko-KR')}
         </span>
       </div>
@@ -69,7 +69,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
           )
         })}
         {likeCount > 0 && (
-          <span className="text-[10px] text-espresso-400 ml-auto">
+          <span className="text-xs text-espresso-400 ml-auto">
             {likeCount}명이 좋아합니다
           </span>
         )}

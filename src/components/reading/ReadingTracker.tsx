@@ -170,7 +170,7 @@ export default function ReadingTracker() {
         </button>
         <button
           onClick={() => setShowGoalEditor(!showGoalEditor)}
-          className="ml-auto text-[10px] px-3 py-1.5 bg-surface-lighter border border-surface-border rounded-lg text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
+          className="ml-auto text-xs px-3 py-1.5 bg-surface-lighter border border-surface-border rounded-lg text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
         >
           🎯 목표 설정
         </button>
@@ -213,12 +213,12 @@ export default function ReadingTracker() {
                     }}
                     className="flex-1 bg-surface border border-surface-border rounded-lg px-3 py-1.5 text-sm text-cream-100 outline-none focus:border-amber-500 tabular-nums"
                   />
-                  <span className="text-[10px] text-espresso-400">줄</span>
+                  <span className="text-xs text-espresso-400">줄</span>
                 </div>
               )
             })}
           </div>
-          <p className="text-[9px] text-espresso-400">
+          <p className="text-xs text-espresso-400">
             각 구성원의 월별 독서 목표를 수동으로 입력하세요
           </p>
         </div>
@@ -227,19 +227,19 @@ export default function ReadingTracker() {
       {/* Family overview stats */}
       <div className="grid grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
         <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
-          <p className="text-[10px] text-espresso-400 uppercase tracking-wider mb-1">가족 전체</p>
+          <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">가족 전체</p>
           <p className="text-2xl font-bold text-cream-100">{familyTotalLines.toLocaleString()}<span className="text-xs text-espresso-400 ml-1">줄</span></p>
           <div className="mt-2 h-1.5 bg-surface rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-700" style={{ width: `${familyProgress}%` }} />
           </div>
-          <p className="text-[10px] text-espresso-400 mt-1">{familyProgress}% 달성 {familyTotalTarget > 0 ? `(목표 ${familyTotalTarget.toLocaleString()}줄)` : ''}</p>
+          <p className="text-xs text-espresso-400 mt-1">{familyProgress}% 달성 {familyTotalTarget > 0 ? `(목표 ${familyTotalTarget.toLocaleString()}줄)` : ''}</p>
         </div>
         <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
-          <p className="text-[10px] text-espresso-400 uppercase tracking-wider mb-1">등록 도서</p>
+          <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">등록 도서</p>
           <p className="text-2xl font-bold text-cream-100">{books.length}<span className="text-xs text-espresso-400 ml-1">권</span></p>
         </div>
         <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
-          <p className="text-[10px] text-espresso-400 uppercase tracking-wider mb-1">이번 달 기록</p>
+          <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">이번 달 기록</p>
           <p className="text-2xl font-bold text-cream-100">{readingLogs.filter((l) => l.date.startsWith(selectedMonth)).length}<span className="text-xs text-espresso-400 ml-1">건</span></p>
         </div>
       </div>
@@ -264,12 +264,12 @@ export default function ReadingTracker() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-cream-100">{person.name}</p>
-                    <span className="text-[10px] text-espresso-400">{person.role}</span>
+                    <span className="text-xs text-espresso-400">{person.role}</span>
                     {readToday && (
-                      <span className="text-[9px] px-1.5 py-0.5 bg-success-500/15 text-success-400 border border-success-500/30 rounded-full">오늘 완료</span>
+                      <span className="text-xs px-1.5 py-0.5 bg-success-500/15 text-success-400 border border-success-500/30 rounded-full">오늘 완료</span>
                     )}
                   </div>
-                  <p className="text-[10px] text-espresso-400">
+                  <p className="text-xs text-espresso-400">
                     {totalLines.toLocaleString()} / {targetLines > 0 ? `${targetLines.toLocaleString()}줄` : '목표 미설정'}
                     {streak > 0 && <span className="ml-2 text-amber-400">🔥 {streak}일 연속</span>}
                   </p>
@@ -285,7 +285,7 @@ export default function ReadingTracker() {
               </div>
 
               {currentBook && (
-                <div className="mt-3 flex items-center gap-2 text-[10px] text-espresso-400">
+                <div className="mt-3 flex items-center gap-2 text-xs text-espresso-400">
                   <span>{currentBook.emoji}</span>
                   <span>현재: {currentBook.title}</span>
                 </div>
@@ -300,7 +300,7 @@ export default function ReadingTracker() {
         <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">독서 기록 입력</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
-            <label className="text-[10px] text-espresso-400 block mb-1">누가</label>
+            <label className="text-xs text-espresso-400 block mb-1">누가</label>
             <select
               value={formPersonId}
               onChange={(e) => setFormPersonId(e.target.value)}
@@ -313,7 +313,7 @@ export default function ReadingTracker() {
           </div>
 
           <div>
-            <label className="text-[10px] text-espresso-400 block mb-1">어떤 책</label>
+            <label className="text-xs text-espresso-400 block mb-1">어떤 책</label>
             <select
               value={formBookId}
               onChange={(e) => setFormBookId(e.target.value)}
@@ -327,12 +327,12 @@ export default function ReadingTracker() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[10px] text-espresso-400">
+              <label className="text-xs text-espresso-400">
                 {pageMode === 'absolute' ? '현재 페이지 번호' : '읽은 페이지 수'}
               </label>
               <button
                 onClick={() => setPageMode(pageMode === 'delta' ? 'absolute' : 'delta')}
-                className="text-[9px] text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                className="text-xs text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
               >
                 {pageMode === 'delta' ? '→ 페이지 번호 입력' : '→ 읽은 수 입력'}
               </button>
@@ -347,10 +347,10 @@ export default function ReadingTracker() {
               className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-amber-500"
             />
             {calculatedLines > 0 && (
-              <p className="text-[10px] text-amber-400 mt-0.5">= {calculatedLines.toLocaleString()}줄 ({linesPerPage}줄/p)</p>
+              <p className="text-xs text-amber-400 mt-0.5">= {calculatedLines.toLocaleString()}줄 ({linesPerPage}줄/p)</p>
             )}
             {selectedBook && (
-              <p className="text-[9px] text-espresso-400 mt-0.5">
+              <p className="text-xs text-espresso-400 mt-0.5">
                 진행: {selectedBook.currentPage ?? 0}/{selectedBook.totalPages}p
                 {selectedBook.completed && ' ✅ 완독'}
               </p>
@@ -358,7 +358,7 @@ export default function ReadingTracker() {
           </div>
 
           <div>
-            <label className="text-[10px] text-espresso-400 block mb-1">날짜</label>
+            <label className="text-xs text-espresso-400 block mb-1">날짜</label>
             <input
               type="date"
               value={formDate}
@@ -384,7 +384,7 @@ export default function ReadingTracker() {
           <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">책장</h2>
           <button
             onClick={() => setShowAddBook(!showAddBook)}
-            className="text-[10px] px-3 py-1 bg-surface-lighter border border-surface-border rounded-lg text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
+            className="text-xs px-3 py-1 bg-surface-lighter border border-surface-border rounded-lg text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
           >
             + 새 책 추가
           </button>
@@ -394,7 +394,7 @@ export default function ReadingTracker() {
           <div className="bg-surface-light/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-4 space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <div>
-                <label className="text-[10px] text-espresso-400 block mb-1">제목</label>
+                <label className="text-xs text-espresso-400 block mb-1">제목</label>
                 <input
                   value={newBook.title}
                   onChange={(e) => setNewBook((p) => ({ ...p, title: e.target.value }))}
@@ -403,7 +403,7 @@ export default function ReadingTracker() {
                 />
               </div>
               <div>
-                <label className="text-[10px] text-espresso-400 block mb-1">저자</label>
+                <label className="text-xs text-espresso-400 block mb-1">저자</label>
                 <input
                   value={newBook.author}
                   onChange={(e) => setNewBook((p) => ({ ...p, author: e.target.value }))}
@@ -412,7 +412,7 @@ export default function ReadingTracker() {
                 />
               </div>
               <div>
-                <label className="text-[10px] text-espresso-400 block mb-1">전체 페이지</label>
+                <label className="text-xs text-espresso-400 block mb-1">전체 페이지</label>
                 <input
                   type="number"
                   value={newBook.totalPages}
@@ -422,7 +422,7 @@ export default function ReadingTracker() {
                 />
               </div>
               <div>
-                <label className="text-[10px] text-espresso-400 block mb-1">페이지당 줄 수</label>
+                <label className="text-xs text-espresso-400 block mb-1">페이지당 줄 수</label>
                 <input
                   type="number"
                   value={newBook.linesPerPage}
@@ -440,7 +440,7 @@ export default function ReadingTracker() {
                 </button>
               </div>
             </div>
-            <p className="text-[10px] text-espresso-400">아이들 책은 페이지당 3~5줄, 일반 도서는 15~25줄 정도입니다</p>
+            <p className="text-xs text-espresso-400">아이들 책은 페이지당 3~5줄, 일반 도서는 15~25줄 정도입니다</p>
           </div>
         )}
 
@@ -464,7 +464,7 @@ export default function ReadingTracker() {
                   <span className="text-2xl">{book.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-cream-100 truncate">{book.title}</p>
-                    <p className="text-[10px] text-espresso-400">{book.author} · {book.totalPages}p</p>
+                    <p className="text-xs text-espresso-400">{book.author} · {book.totalPages}p</p>
                   </div>
                 </div>
                 <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden">
@@ -474,7 +474,7 @@ export default function ReadingTracker() {
                   />
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[10px] text-espresso-400">{readLines.toLocaleString()} / {totalBookLines.toLocaleString()}줄 ({bookProgress}%)</span>
+                  <span className="text-xs text-espresso-400">{readLines.toLocaleString()} / {totalBookLines.toLocaleString()}줄 ({bookProgress}%)</span>
                   <div className="flex -space-x-1">
                     {readers.map((p) => (
                       <span key={p!.id} className="text-xs" title={p!.name}>{p!.emoji}</span>
@@ -509,7 +509,7 @@ export default function ReadingTracker() {
                     </p>
                   </div>
                   <span className="text-xs font-bold text-amber-400">{log.linesRead.toLocaleString()}줄</span>
-                  <span className="text-[10px] text-espresso-400">{log.date}</span>
+                  <span className="text-xs text-espresso-400">{log.date}</span>
                 </div>
               )
             })}

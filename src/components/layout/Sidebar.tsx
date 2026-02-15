@@ -9,7 +9,7 @@ import MemberManager from '@/components/family/MemberManager'
 const navItems: { view: AppView; label: string; icon: ReactNode }[] = [
   {
     view: 'dashboard',
-    label: '레이스',
+    label: '성장 기록',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
@@ -41,7 +41,7 @@ const navItems: { view: AppView; label: string; icon: ReactNode }[] = [
   },
   {
     view: 'tips',
-    label: '독서법',
+    label: '독서 코치',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
@@ -77,7 +77,7 @@ export default function Sidebar() {
           </div>
           <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
             <h1 className="text-sm font-bold text-cream-100">{family?.name ?? '가족 독서'}</h1>
-            <p className="text-[10px] text-espresso-300">가족 독서 레이스</p>
+            <p className="text-xs text-espresso-300">가족 독서 여정</p>
           </div>
         </div>
 
@@ -114,7 +114,7 @@ export default function Sidebar() {
 
         {/* Family member avatars */}
         <div className="py-4 px-2 flex flex-col gap-2">
-          <span className="text-[10px] text-espresso-400 uppercase tracking-wider px-3 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          <span className="text-xs text-espresso-400 uppercase tracking-wider px-3 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap">
             가족 구성원
           </span>
           {persons.map((person) => (
@@ -130,7 +130,7 @@ export default function Sidebar() {
               </div>
               <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
                 <p className="text-xs font-medium text-cream-200">{person.name}</p>
-                <p className="text-[10px] text-espresso-400">{person.role}</p>
+                <p className="text-xs text-espresso-400">{person.role}</p>
               </div>
             </div>
           ))}
@@ -138,6 +138,25 @@ export default function Sidebar() {
 
         {/* Divider */}
         <div className="mx-3 border-t border-surface-border" />
+
+        {/* Font size toggle */}
+        <div className="py-2 px-2">
+          <button
+            onClick={() => {
+              const sizes = ['normal', 'large', 'xlarge'] as const
+              const current = useGraphStore.getState().fontSize
+              const next = sizes[(sizes.indexOf(current) + 1) % sizes.length]
+              useGraphStore.getState().setFontSize(next)
+            }}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-hover transition-colors w-full cursor-pointer text-espresso-300 hover:text-cream-200"
+            title="글자 크기 조절"
+          >
+            <span className="shrink-0 w-5 flex items-center justify-center text-sm font-bold">A</span>
+            <span className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 text-xs font-medium whitespace-nowrap overflow-hidden">
+              글자 크기
+            </span>
+          </button>
+        </div>
 
         {/* User profile + Settings */}
         <div className="py-3 px-2">
@@ -150,7 +169,7 @@ export default function Sidebar() {
             </div>
             <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
               <p className="text-xs font-medium text-cream-200">{profile?.displayName ?? 'User'}</p>
-              <p className="text-[10px] text-espresso-400">
+              <p className="text-xs text-espresso-400">
                 {devMode ? 'Dev Mode' : '설정'}
               </p>
             </div>

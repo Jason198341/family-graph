@@ -101,7 +101,7 @@ export default function HeatmapCalendar({ year, data, colorScale }: HeatmapCalen
         {monthLabels.map((m, i) => (
           <span
             key={i}
-            className="text-[9px] text-gray-600"
+            className="text-xs text-gray-600"
             style={{ width: `${100 / 12}%`, textAlign: 'center' }}
           >
             {m}월
@@ -112,7 +112,7 @@ export default function HeatmapCalendar({ year, data, colorScale }: HeatmapCalen
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="fixed z-50 px-2 py-1 bg-surface-light border border-surface-border rounded text-[10px] text-white pointer-events-none"
+          className="fixed z-50 px-2 py-1 bg-surface-light border border-surface-border rounded text-xs text-white pointer-events-none"
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           {tooltip.date}: {tooltip.value.toLocaleString()}줄
@@ -121,11 +121,11 @@ export default function HeatmapCalendar({ year, data, colorScale }: HeatmapCalen
 
       {/* Legend */}
       <div className="flex items-center gap-1 mt-2 justify-end">
-        <span className="text-[9px] text-gray-600">적음</span>
+        <span className="text-xs text-gray-600">적음</span>
         {colors.map((c, i) => (
           <div key={i} style={{ width: 10, height: 10, backgroundColor: c, borderRadius: 2 }} />
         ))}
-        <span className="text-[9px] text-gray-600">많음</span>
+        <span className="text-xs text-gray-600">많음</span>
       </div>
     </div>
   )

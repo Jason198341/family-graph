@@ -87,7 +87,7 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-5 py-3 flex items-center gap-3 animate-fade-in-up">
           <span className="text-2xl">🏠</span>
           <p className="text-sm font-bold text-amber-300">
-            우리 가족은 {displayRankings.length}가족 중 {ourRank}위!
+            우리 가족은 {displayRankings.length}가족과 함께 읽고 있어요!
           </p>
           {ourRankIdx >= 0 && (
             <span className="ml-auto text-xs text-amber-400/70">
@@ -99,7 +99,7 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
 
       <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
         <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">
-          전체 가족 순위표
+          전체 가족 현황
         </h3>
 
         {loading ? (
@@ -126,12 +126,12 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
                       <span className="text-lg">{family.familyEmoji}</span>
                       <span className={`text-sm font-bold ${style.text}`}>{family.familyName}</span>
                       {isOurFamily && (
-                        <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-semibold">
+                        <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-semibold">
                           우리 가족
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-espresso-400">
+                    <p className="text-xs text-espresso-400">
                       {family.memberCount}명 · 1인당 평균 {(family.avgPerMember ?? 0).toLocaleString()}줄
                     </p>
                   </div>
@@ -139,7 +139,7 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
                     <p className={`text-lg font-bold tabular-nums ${style.text}`}>
                       {(family.totalLines ?? 0).toLocaleString()}
                     </p>
-                    <p className="text-[9px] text-espresso-400">줄</p>
+                    <p className="text-xs text-espresso-400">줄</p>
                   </div>
                 </div>
               )

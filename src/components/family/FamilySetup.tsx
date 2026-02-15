@@ -160,7 +160,7 @@ export default function FamilySetup() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-300">{newName || '이름'}</p>
-                  <p className="text-[10px] text-gray-500">{newRole || '역할'}</p>
+                  <p className="text-xs text-gray-500">{newRole || '역할'}</p>
                 </div>
               </div>
             )}
@@ -180,7 +180,7 @@ export default function FamilySetup() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white">{p.name}</p>
-                        <p className="text-[10px] text-gray-500">{p.role}</p>
+                        <p className="text-xs text-gray-500">{p.role}</p>
                       </div>
                       <button
                         onClick={() => removeMember(i)}

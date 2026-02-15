@@ -78,7 +78,7 @@ export default function ReadingStatsTab({ year }: ReadingStatsTabProps) {
                     }}
                   />
                 </div>
-                <span className="text-[9px] text-espresso-400">{d.month}</span>
+                <span className="text-xs text-espresso-400">{d.month}</span>
               </div>
             )
           })}

@@ -18,24 +18,21 @@ export default function RaceTrack({ month }: RaceTrackProps) {
   const getRaceProgress = useGraphStore((s) => s.getRaceProgress)
   const getTotalLinesForMonth = useGraphStore((s) => s.getTotalLinesForMonth)
 
-  const runners: Runner[] = persons
-    .map((p) => ({
-      personId: p.id,
-      name: p.name,
-      emoji: p.emoji,
-      color: p.color,
-      percent: getRaceProgress(p.id, month),
-      totalLines: getTotalLinesForMonth(p.id, month),
-    }))
-    .sort((a, b) => b.totalLines - a.totalLines)
+  // Keep input order (no competitive sorting)
+  const runners: Runner[] = persons.map((p) => ({
+    personId: p.id,
+    name: p.name,
+    emoji: p.emoji,
+    color: p.color,
+    percent: getRaceProgress(p.id, month),
+    totalLines: getTotalLinesForMonth(p.id, month),
+  }))
 
   const markers = [25, 50, 75]
 
   return (
     <div className="space-y-3">
-      {runners.map((runner, idx) => {
-        const rank = idx + 1
-        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}`
+      {runners.map((runner) => {
         const isFinished = runner.percent >= 100
 
         return (
@@ -57,7 +54,7 @@ export default function RaceTrack({ month }: RaceTrackProps) {
                   className="absolute top-0 bottom-0 w-px bg-surface-border"
                   style={{ left: `${m}%` }}
                 >
-                  <span className="absolute -top-0.5 left-1 text-[8px] text-espresso-400">{m}%</span>
+                  <span className="absolute -top-0.5 left-1 text-xs text-espresso-400">{m}%</span>
                 </div>
               ))}
 
@@ -82,9 +79,8 @@ export default function RaceTrack({ month }: RaceTrackProps) {
                 </div>
               </div>
 
-              {/* Rank + Name label */}
+              {/* Name label */}
               <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <span className="text-sm">{medal}</span>
                 <span className="text-xs font-bold text-cream-100">{runner.name}</span>
               </div>
 
@@ -93,7 +89,7 @@ export default function RaceTrack({ month }: RaceTrackProps) {
                 <span className="text-sm font-bold tabular-nums" style={{ color: runner.color }}>
                   {runner.percent}%
                 </span>
-                <span className="text-[9px] text-espresso-300 ml-1.5">
+                <span className="text-xs text-espresso-300 ml-1.5">
                   {runner.totalLines.toLocaleString()}줄
                 </span>
               </div>
@@ -104,7 +100,7 @@ export default function RaceTrack({ month }: RaceTrackProps) {
 
       {runners.length === 0 && (
         <div className="text-center py-8 text-espresso-400 text-sm">
-          가족 구성원을 추가하면 레이스가 시작됩니다
+          가족 구성원을 추가하면 독서 여정이 시작됩니다
         </div>
       )}
     </div>

@@ -40,7 +40,7 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[10px] text-espresso-400 block mb-1">추천인</label>
+          <label className="text-xs text-espresso-400 block mb-1">추천인</label>
           <select
             value={personId}
             onChange={(e) => setPersonId(e.target.value)}
@@ -52,7 +52,7 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
           </select>
         </div>
         <div>
-          <label className="text-[10px] text-espresso-400 block mb-1">이모지</label>
+          <label className="text-xs text-espresso-400 block mb-1">이모지</label>
           <div className="flex flex-wrap gap-1">
             {EMOJI_OPTIONS.map((e) => (
               <button
@@ -71,7 +71,7 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[10px] text-espresso-400 block mb-1">책 제목 *</label>
+          <label className="text-xs text-espresso-400 block mb-1">책 제목 *</label>
           <input
             value={bookTitle}
             onChange={(e) => setBookTitle(e.target.value)}
@@ -80,7 +80,7 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
           />
         </div>
         <div>
-          <label className="text-[10px] text-espresso-400 block mb-1">저자</label>
+          <label className="text-xs text-espresso-400 block mb-1">저자</label>
           <input
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
@@ -91,7 +91,7 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
       </div>
 
       <div>
-        <label className="text-[10px] text-espresso-400 block mb-1">추천 이유 *</label>
+        <label className="text-xs text-espresso-400 block mb-1">추천 이유 *</label>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}

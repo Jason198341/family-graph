@@ -56,15 +56,15 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
             <div className="grid grid-cols-3 gap-3 mb-5">
               <div className="bg-surface-lighter rounded-xl p-3 text-center">
                 <p className="text-lg font-bold text-cream-100">{readers.length}</p>
-                <p className="text-[10px] text-espresso-400">총 독자</p>
+                <p className="text-xs text-espresso-400">총 독자</p>
               </div>
               <div className="bg-surface-lighter rounded-xl p-3 text-center">
                 <p className="text-lg font-bold text-success-400">{completedCount}</p>
-                <p className="text-[10px] text-espresso-400">완독</p>
+                <p className="text-xs text-espresso-400">완독</p>
               </div>
               <div className="bg-surface-lighter rounded-xl p-3 text-center">
                 <p className="text-lg font-bold text-amber-400">{readingCount}</p>
-                <p className="text-[10px] text-espresso-400">읽는 중</p>
+                <p className="text-xs text-espresso-400">읽는 중</p>
               </div>
             </div>
 
@@ -83,22 +83,22 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
                       <span className="text-lg">{reader.personEmoji}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-cream-100">{reader.personName}</p>
-                        <p className="text-[10px] text-espresso-400">
+                        <p className="text-xs text-espresso-400">
                           {reader.familyEmoji} {reader.familyName}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
                         {reader.completed ? (
-                          <span className="text-[10px] px-2 py-0.5 bg-success-500/15 text-success-400 rounded-full font-semibold">
+                          <span className="text-xs px-2 py-0.5 bg-success-500/15 text-success-400 rounded-full font-semibold">
                             완독
                           </span>
                         ) : (
-                          <span className="text-[10px] text-espresso-400">
+                          <span className="text-xs text-espresso-400">
                             {reader.currentPage}/{reader.totalPages}p
                           </span>
                         )}
                         {reader.reviewCount > 0 && (
-                          <p className="text-[9px] text-espresso-400 mt-0.5">
+                          <p className="text-xs text-espresso-400 mt-0.5">
                             후기 {reader.reviewCount}개
                           </p>
                         )}
@@ -128,7 +128,7 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm">{review.personEmoji}</span>
                         <span className="text-xs font-semibold text-cream-100">{review.personName}</span>
-                        <span className="text-[10px] text-espresso-400">
+                        <span className="text-xs text-espresso-400">
                           {review.familyEmoji} {review.familyName}
                         </span>
                         <div className="flex gap-0.5 ml-auto">

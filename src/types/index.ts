@@ -125,3 +125,38 @@ export interface BookReaderInfo {
   totalPages: number
   reviewCount: number
 }
+
+// ─── Daily Highlight (오늘의 한 줄) ──────────
+
+export interface DailyHighlight {
+  id: string
+  personId: string
+  bookId: string
+  content: string       // 인상 깊은 문장
+  date: string          // YYYY-MM-DD
+  createdAt: string
+}
+
+// ─── Reading Letter (독서 편지) ──────────────
+
+export interface ReadingLetter {
+  id: string
+  fromPersonId: string
+  toPersonId: string
+  bookId?: string
+  content: string
+  createdAt: string
+}
+
+// ─── Achievement (도전 과제) ─────────────────
+
+export interface Achievement {
+  id: string
+  type: string
+  label: string
+  description: string
+  emoji: string
+  unlocked: boolean
+  progress?: number     // 0-100
+  unlockedAt?: string
+}

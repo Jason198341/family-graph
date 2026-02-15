@@ -18,9 +18,9 @@ export default function CommunityReviewCard({ review, onBookClick }: CommunityRe
       <div className="flex items-center gap-3 mb-3">
         <div className="flex items-center gap-1.5 px-2 py-1 bg-surface-lighter rounded-lg border border-surface-border shrink-0">
           <span className="text-sm">{review.familyEmoji}</span>
-          <span className="text-[10px] font-semibold text-espresso-300">{review.familyName}</span>
+          <span className="text-xs font-semibold text-espresso-300">{review.familyName}</span>
           {isOurFamily && (
-            <span className="text-[8px] px-1 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">
+            <span className="text-xs px-1 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">
               우리
             </span>
           )}
@@ -32,14 +32,14 @@ export default function CommunityReviewCard({ review, onBookClick }: CommunityRe
             <p className="text-sm font-bold text-cream-100 truncate">{review.personName}</p>
             <button
               onClick={() => onBookClick?.(review.bookTitle)}
-              className="text-[10px] text-espresso-400 hover:text-amber-400 transition-colors cursor-pointer truncate block"
+              className="text-xs text-espresso-400 hover:text-amber-400 transition-colors cursor-pointer truncate block"
             >
               {review.bookEmoji} {review.bookTitle} · {review.bookAuthor}
             </button>
           </div>
         </div>
 
-        <span className="text-[10px] text-espresso-400 shrink-0">
+        <span className="text-xs text-espresso-400 shrink-0">
           {new Date(review.createdAt).toLocaleDateString('ko-KR')}
         </span>
       </div>
@@ -59,7 +59,7 @@ export default function CommunityReviewCard({ review, onBookClick }: CommunityRe
       {/* Likes count */}
       {review.likes.length > 0 && (
         <div className="mt-3 pt-3 border-t border-surface-border">
-          <span className="text-[10px] text-espresso-400">
+          <span className="text-xs text-espresso-400">
             ❤️ {review.likes.length}명이 좋아합니다
           </span>
         </div>

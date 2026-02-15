@@ -4,8 +4,6 @@ interface RaceStatsProps {
   month: string
 }
 
-const MEDAL = ['🥇', '🥈', '🥉']
-
 export default function RaceStats({ month }: RaceStatsProps) {
   const persons = useGraphStore((s) => s.persons)
   const readingLogs = useGraphStore((s) => s.readingLogs)
@@ -23,24 +21,25 @@ export default function RaceStats({ month }: RaceStatsProps) {
     return { person, progress, totalLines, logCount: monthLogs.length, streak }
   })
 
-  // Sort by total lines for ranking
-  const ranked = [...stats].sort((a, b) => b.totalLines - a.totalLines)
-  const maxLines = ranked[0]?.totalLines ?? 1
-  const mvp = ranked[0]?.totalLines > 0 ? ranked[0] : null
+  // Keep original order (no competitive sorting) - just find top reader
+  const topReader = stats.length > 0
+    ? [...stats].sort((a, b) => b.totalLines - a.totalLines)[0]
+    : null
+  const hasTopReader = topReader && topReader.totalLines > 0
+
+  const maxLines = Math.max(1, ...stats.map((s) => s.totalLines))
 
   return (
     <div className="space-y-4">
-      {/* Member cards with rank */}
+      {/* Member cards — input order, no rank */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger-fade">
         {stats.map(({ person, progress, totalLines, logCount, streak }) => {
-          const rankIdx = ranked.findIndex((r) => r.person.id === person.id)
-          const medal = rankIdx < 3 && totalLines > 0 ? MEDAL[rankIdx] : null
-          const isMvp = mvp?.person.id === person.id
+          const isTop = hasTopReader && topReader.person.id === person.id
 
           return (
             <div
               key={person.id}
-              className={`bg-surface-light/80 backdrop-blur-md border rounded-2xl p-4 hover:border-surface-hover transition-colors ${isMvp ? 'border-amber-500/40 ring-1 ring-amber-500/20' : 'border-surface-border'}`}
+              className={`bg-surface-light/80 backdrop-blur-md border rounded-2xl p-4 hover:border-surface-hover transition-colors ${isTop ? 'border-amber-500/40 ring-1 ring-amber-500/20' : 'border-surface-border'}`}
             >
               <div className="flex items-center gap-2 mb-3">
                 <div
@@ -50,22 +49,19 @@ export default function RaceStats({ month }: RaceStatsProps) {
                   {person.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <p className="text-sm font-bold text-cream-100 truncate">{person.name}</p>
-                    {medal && <span className="text-sm">{medal}</span>}
-                  </div>
-                  <p className="text-[10px] text-espresso-400">{person.role}</p>
+                  <p className="text-sm font-bold text-cream-100 truncate">{person.name}</p>
+                  <p className="text-xs text-espresso-400">{person.role}</p>
                 </div>
-                {isMvp && (
-                  <span className="text-[8px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-bold shrink-0">
-                    MVP
+                {isTop && (
+                  <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-bold shrink-0">
+                    독서왕
                   </span>
                 )}
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-espresso-400">이번 달 진행률</span>
+                  <span className="text-xs text-espresso-400">이번 달 진행률</span>
                   <span className="text-xs font-bold" style={{ color: person.color }}>{progress}%</span>
                 </div>
                 <div className="h-1.5 bg-surface rounded-full overflow-hidden">
@@ -77,17 +73,17 @@ export default function RaceStats({ month }: RaceStatsProps) {
 
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <div>
-                    <p className="text-[9px] text-espresso-400">독서량</p>
-                    <p className="text-xs font-bold text-cream-100">{totalLines.toLocaleString()}<span className="text-[9px] text-espresso-400">줄</span></p>
+                    <p className="text-xs text-espresso-400">독서량</p>
+                    <p className="text-xs font-bold text-cream-100">{totalLines.toLocaleString()}<span className="text-xs text-espresso-400">줄</span></p>
                   </div>
                   <div>
-                    <p className="text-[9px] text-espresso-400">기록 횟수</p>
-                    <p className="text-xs font-bold text-cream-100">{logCount}<span className="text-[9px] text-espresso-400">회</span></p>
+                    <p className="text-xs text-espresso-400">기록 횟수</p>
+                    <p className="text-xs font-bold text-cream-100">{logCount}<span className="text-xs text-espresso-400">회</span></p>
                   </div>
                 </div>
 
                 {streak > 0 && (
-                  <p className="text-[10px] text-amber-400">🔥 {streak}일 연속 독서</p>
+                  <p className="text-xs text-amber-400">🔥 {streak}일 연속 독서</p>
                 )}
               </div>
             </div>
@@ -95,20 +91,20 @@ export default function RaceStats({ month }: RaceStatsProps) {
         })}
       </div>
 
-      {/* Member comparison bar chart */}
-      {ranked.length > 1 && maxLines > 0 && (
+      {/* Member comparison bar chart — input order */}
+      {stats.length > 1 && maxLines > 0 && (
         <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up" style={{ animationDelay: '320ms' }}>
           <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">
-            가족 내 비교
+            가족 구성원 현황
           </h3>
           <div className="space-y-3">
-            {ranked.map(({ person, totalLines }, idx) => {
+            {stats.map(({ person, totalLines }) => {
               const pct = maxLines > 0 ? (totalLines / maxLines) * 100 : 0
               return (
                 <div key={person.id} className="flex items-center gap-3">
                   <div className="flex items-center gap-2 w-20 shrink-0">
-                    <span className="text-sm">{idx < 3 && totalLines > 0 ? MEDAL[idx] : `${idx + 1}.`}</span>
                     <span className="text-sm">{person.emoji}</span>
+                    <span className="text-xs text-cream-100 font-medium">{person.name}</span>
                   </div>
                   <div className="flex-1 h-5 bg-surface rounded-full overflow-hidden">
                     <div
@@ -119,14 +115,14 @@ export default function RaceStats({ month }: RaceStatsProps) {
                       }}
                     >
                       {pct > 20 && (
-                        <span className="text-[9px] font-bold text-white/90">
+                        <span className="text-xs font-bold text-white/90">
                           {totalLines.toLocaleString()}
                         </span>
                       )}
                     </div>
                   </div>
                   {pct <= 20 && (
-                    <span className="text-[10px] text-espresso-300 w-16 text-right tabular-nums">
+                    <span className="text-xs text-espresso-300 w-16 text-right tabular-nums">
                       {totalLines.toLocaleString()}줄
                     </span>
                   )}

@@ -140,3 +140,25 @@ h1, h2, h3 {
 .star-rating .star { color: #4a3f33; transition: color 0.15s; }
 .star-rating .star.active { color: #fbbf24; }
 .star-rating .star:hover { color: #f59e0b; }
+
+/* ── Font size scaling ── */
+html[data-font-size="large"] {
+  font-size: 18px;
+}
+html[data-font-size="xlarge"] {
+  font-size: 20px;
+}
+
+/* ── Tree growth animation ── */
+@keyframes treeGrow {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-tree-grow { animation: treeGrow 0.6s ease-out; }
+
+/* ── Letter entrance ── */
+@keyframes letterSlide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-letter-slide { animation: letterSlide 0.4s ease-out; }

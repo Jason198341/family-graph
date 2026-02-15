@@ -11,6 +11,10 @@ import LoginPage from '@/components/auth/LoginPage'
 import FamilySetup from '@/components/family/FamilySetup'
 import PendingApproval from '@/components/family/PendingApproval'
 
+// Initialize font size from localStorage
+const savedFontSize = localStorage.getItem('fg_font_size')
+if (savedFontSize) document.documentElement.dataset.fontSize = savedFontSize
+
 const ReadingTracker = lazy(() => import('@/components/reading/ReadingTracker'))
 const ReviewsPage = lazy(() => import('@/components/reviews/ReviewsPage'))
 const TipsPage = lazy(() => import('@/components/tips/TipsPage'))

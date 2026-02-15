@@ -9,6 +9,9 @@ import type {
   BookRecommendation,
   CommunityReview,
   BookReaderInfo,
+  DailyHighlight,
+  ReadingLetter,
+  Achievement,
 } from '@/types'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useFamilyStore } from './familyStore'
@@ -32,10 +35,10 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null
 function persistLocal(state: GraphState) {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    const { persons, books, readingLogs, readingGoals, reviews, recommendations } = state
+    const { persons, books, readingLogs, readingGoals, reviews, recommendations, highlights, letters } = state
     localStorage.setItem(
       FG_KEY,
-      JSON.stringify({ persons, books, readingLogs, readingGoals, reviews, recommendations }),
+      JSON.stringify({ persons, books, readingLogs, readingGoals, reviews, recommendations, highlights, letters }),
     )
   }, 1_000)
 }
@@ -116,6 +119,8 @@ interface GraphState {
   readingGoals: ReadingGoal[]
   reviews: BookReview[]
   recommendations: BookRecommendation[]
+  highlights: DailyHighlight[]
+  letters: ReadingLetter[]
 
   // community data (cross-family)
   communityReviews: CommunityReview[]
@@ -125,9 +130,11 @@ interface GraphState {
   activeView: AppView
   toasts: Toast[]
   dataLoaded: boolean
+  fontSize: 'normal' | 'large' | 'xlarge'
 
   // view
   setView: (view: AppView) => void
+  setFontSize: (size: 'normal' | 'large' | 'xlarge') => void
 
   // Supabase data loading
   loadFamilyData: (familyId: string) => Promise<void>
@@ -154,6 +161,14 @@ interface GraphState {
   addRecommendation: (data: Omit<BookRecommendation, 'id' | 'createdAt'>) => BookRecommendation
   removeRecommendation: (id: string) => void
 
+  // highlight mutations
+  addHighlight: (data: Omit<DailyHighlight, 'id' | 'createdAt'>) => DailyHighlight
+  removeHighlight: (id: string) => void
+
+  // letter mutations
+  addLetter: (data: Omit<ReadingLetter, 'id' | 'createdAt'>) => ReadingLetter
+  removeLetter: (id: string) => void
+
   // community actions
   loadCommunityReviews: () => Promise<void>
   loadFamilyRank: (month: string) => Promise<void>
@@ -166,6 +181,12 @@ interface GraphState {
   getStreakDays: (personId: string) => number
   getRaceProgress: (personId: string, month: string) => number
 
+  // achievement queries
+  getAchievements: (month: string) => Achievement[]
+
+  // radar chart data
+  getRadarData: (personId: string, month: string) => { label: string; value: number }[]
+
   // toasts
   addToast: (message: string, type: Toast['type']) => void
   removeToast: (id: number) => void
@@ -175,14 +196,17 @@ interface GraphState {
 
 function getInitialData() {
   const persisted = loadPersistedState()
+  const p = persisted as Record<string, unknown> | null
   if (persisted && persisted.persons && persisted.persons.length > 0) {
     return {
       persons: persisted.persons ?? [],
       books: persisted.books ?? [],
       readingLogs: persisted.readingLogs ?? [],
       readingGoals: persisted.readingGoals ?? [],
-      reviews: (persisted as Record<string, unknown>).reviews as BookReview[] ?? [],
-      recommendations: (persisted as Record<string, unknown>).recommendations as BookRecommendation[] ?? [],
+      reviews: (p?.reviews as BookReview[]) ?? [],
+      recommendations: (p?.recommendations as BookRecommendation[]) ?? [],
+      highlights: (p?.highlights as DailyHighlight[]) ?? [],
+      letters: (p?.letters as ReadingLetter[]) ?? [],
     }
   }
   return {
@@ -192,6 +216,8 @@ function getInitialData() {
     readingGoals: [] as ReadingGoal[],
     reviews: [] as BookReview[],
     recommendations: [] as BookRecommendation[],
+    highlights: [] as DailyHighlight[],
+    letters: [] as ReadingLetter[],
   }
 }
 
@@ -211,9 +237,15 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   activeView: 'dashboard' as AppView,
   toasts: [],
   dataLoaded: false,
+  fontSize: (localStorage.getItem('fg_font_size') as 'normal' | 'large' | 'xlarge') || 'normal',
 
   // ── view actions ──
   setView: (view) => set({ activeView: view }),
+  setFontSize: (size) => {
+    localStorage.setItem('fg_font_size', size)
+    document.documentElement.dataset.fontSize = size
+    set({ fontSize: size })
+  },
 
   // ── Supabase data loading ──
   loadFamilyData: async (familyId) => {
@@ -599,6 +631,73 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     return []
   },
 
+  // ── highlight mutations ──
+  addHighlight: (data) => {
+    const id = genId('hl')
+    const highlight: DailyHighlight = { ...data, id, createdAt: new Date().toISOString() }
+    set((s) => {
+      const next = { highlights: [...s.highlights, highlight] }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSyncWithRollback(
+        supabase.from('daily_highlights').insert({
+          id, family_id: getFamilyId(), person_id: data.personId,
+          book_id: data.bookId, content: data.content, date: data.date,
+        }),
+        () => set((s) => ({ highlights: s.highlights.filter((h) => h.id !== id) })),
+        'addHighlight',
+      )
+    }
+    return highlight
+  },
+
+  removeHighlight: (id) => {
+    set((s) => {
+      const next = { highlights: s.highlights.filter((h) => h.id !== id) }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSync(supabase.from('daily_highlights').delete().eq('id', id))
+    }
+  },
+
+  // ── letter mutations ──
+  addLetter: (data) => {
+    const id = genId('letter')
+    const letter: ReadingLetter = { ...data, id, createdAt: new Date().toISOString() }
+    set((s) => {
+      const next = { letters: [...s.letters, letter] }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSyncWithRollback(
+        supabase.from('reading_letters').insert({
+          id, family_id: getFamilyId(), from_person_id: data.fromPersonId,
+          to_person_id: data.toPersonId, book_id: data.bookId ?? null,
+          content: data.content,
+        }),
+        () => set((s) => ({ letters: s.letters.filter((l) => l.id !== id) })),
+        'addLetter',
+      )
+    }
+    return letter
+  },
+
+  removeLetter: (id) => {
+    set((s) => {
+      const next = { letters: s.letters.filter((l) => l.id !== id) }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSync(supabase.from('reading_letters').delete().eq('id', id))
+    }
+  },
+
   // ── reading queries ──
   getReadingLogsForMonth: (personId, month) => {
     return get().readingLogs.filter((l) => l.personId === personId && l.date.startsWith(month))
@@ -643,6 +742,134 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       .filter((l) => l.personId === personId && l.date.startsWith(month))
       .reduce((sum, l) => sum + l.linesRead, 0)
     return Math.min(100, Math.round((total / goal.targetLines) * 100))
+  },
+
+  // ── achievement queries (computed from existing data) ──
+  getAchievements: (month) => {
+    const s = get()
+    const monthLogs = s.readingLogs.filter((l) => l.date.startsWith(month))
+    const totalFamilyLines = monthLogs.reduce((sum, l) => sum + l.linesRead, 0)
+    const achievements: Achievement[] = []
+
+    // 1. 가족 합산 목표
+    const familyGoalSteps = [1000, 5000, 10000, 30000, 50000]
+    for (const step of familyGoalSteps) {
+      achievements.push({
+        id: `family-${step}`, type: 'family-lines',
+        label: `${step.toLocaleString()}줄 달성`,
+        description: `가족 합산 ${step.toLocaleString()}줄 읽기`,
+        emoji: step >= 30000 ? '🌳' : step >= 10000 ? '🌿' : '🌱',
+        unlocked: totalFamilyLines >= step,
+        progress: Math.min(100, Math.round((totalFamilyLines / step) * 100)),
+      })
+    }
+
+    // 2. 전원 같은 날 독서
+    const dateSet: Record<string, Set<string>> = {}
+    for (const log of monthLogs) {
+      if (!dateSet[log.date]) dateSet[log.date] = new Set()
+      dateSet[log.date].add(log.personId)
+    }
+    const allTogetherDays = Object.values(dateSet).filter((ps) => ps.size >= s.persons.length && s.persons.length > 1).length
+    achievements.push({
+      id: 'all-together', type: 'cooperation',
+      label: '온 가족 독서의 날',
+      description: `가족 전원이 같은 날 읽기 (${allTogetherDays}일)`,
+      emoji: '👨‍👩‍👧‍👦',
+      unlocked: allTogetherDays > 0,
+      progress: Math.min(100, allTogetherDays * 20),
+    })
+
+    // 3. 연속 독서 (가족 중 최고 스트릭)
+    const maxStreak = Math.max(0, ...s.persons.map((p) => s.getStreakDays(p.id)))
+    const streakSteps = [{ d: 7, e: '🔥', l: '7일 연속' }, { d: 14, e: '💪', l: '14일 연속' }, { d: 30, e: '🏆', l: '30일 연속' }]
+    for (const ss of streakSteps) {
+      achievements.push({
+        id: `streak-${ss.d}`, type: 'streak',
+        label: ss.l, description: `연속 ${ss.d}일 독서 달성`,
+        emoji: ss.e,
+        unlocked: maxStreak >= ss.d,
+        progress: Math.min(100, Math.round((maxStreak / ss.d) * 100)),
+      })
+    }
+
+    // 4. 첫 후기 / 첫 추천
+    achievements.push({
+      id: 'first-review', type: 'milestone',
+      label: '첫 후기', description: '첫 독서 후기 작성',
+      emoji: '📝', unlocked: s.reviews.length > 0,
+      progress: s.reviews.length > 0 ? 100 : 0,
+    })
+    achievements.push({
+      id: 'first-recommend', type: 'milestone',
+      label: '첫 추천', description: '첫 책 추천 작성',
+      emoji: '💡', unlocked: s.recommendations.length > 0,
+      progress: s.recommendations.length > 0 ? 100 : 0,
+    })
+
+    // 5. 완독 마일스톤
+    const completedBooks = s.books.filter((b) => b.completed).length
+    const bookSteps = [{ n: 1, l: '첫 완독' }, { n: 5, l: '5권 완독' }, { n: 10, l: '10권 완독' }]
+    for (const bs of bookSteps) {
+      achievements.push({
+        id: `books-${bs.n}`, type: 'books',
+        label: bs.l, description: `${bs.n}권 완독 달성`,
+        emoji: '📚', unlocked: completedBooks >= bs.n,
+        progress: Math.min(100, Math.round((completedBooks / bs.n) * 100)),
+      })
+    }
+
+    // 6. 오늘의 한 줄
+    const hlCount = s.highlights.filter((h) => h.date.startsWith(month)).length
+    achievements.push({
+      id: 'highlights-10', type: 'highlights',
+      label: '명문장 수집가', description: '이번 달 한 줄 10개 이상',
+      emoji: '✨', unlocked: hlCount >= 10,
+      progress: Math.min(100, hlCount * 10),
+    })
+
+    return achievements
+  },
+
+  // ── radar chart data ──
+  getRadarData: (personId, month) => {
+    const s = get()
+    const monthLogs = s.readingLogs.filter((l) => l.personId === personId && l.date.startsWith(month))
+    const goal = s.readingGoals.find((g) => g.personId === personId && g.month === month)
+    const totalLines = monthLogs.reduce((sum, l) => sum + l.linesRead, 0)
+
+    // 양(Volume): lines read vs goal (or vs 5000 default)
+    const volumeTarget = goal?.targetLines ?? 5000
+    const volume = Math.min(100, Math.round((totalLines / volumeTarget) * 100))
+
+    // 질(Quality): average review rating * review content length score
+    const personReviews = s.reviews.filter((r) => r.personId === personId)
+    const avgRating = personReviews.length > 0
+      ? personReviews.reduce((sum, r) => sum + r.rating, 0) / personReviews.length
+      : 0
+    const avgLength = personReviews.length > 0
+      ? personReviews.reduce((sum, r) => sum + r.content.length, 0) / personReviews.length
+      : 0
+    const quality = Math.min(100, Math.round((avgRating / 5) * 50 + Math.min(50, avgLength / 4)))
+
+    // 나눔(Sharing): reviews + recommendations + likes given
+    const recsCount = s.recommendations.filter((r) => r.personId === personId).length
+    const likesGiven = s.reviews.reduce((sum, r) => sum + (r.likes.includes(personId) ? 1 : 0), 0)
+    const sharing = Math.min(100, (personReviews.length * 15) + (recsCount * 20) + (likesGiven * 10))
+
+    // 다양성(Diversity): unique books + unique authors
+    const readBookIds = new Set(monthLogs.map((l) => l.bookId))
+    const readAuthors = new Set(
+      [...readBookIds].map((bid) => s.books.find((b) => b.id === bid)?.author).filter(Boolean),
+    )
+    const diversity = Math.min(100, readBookIds.size * 15 + readAuthors.size * 10)
+
+    return [
+      { label: '양', value: volume },
+      { label: '질', value: quality },
+      { label: '나눔', value: sharing },
+      { label: '다양성', value: diversity },
+    ]
   },
 
   // ── toasts ──

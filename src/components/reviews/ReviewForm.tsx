@@ -33,7 +33,7 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[10px] text-espresso-400 block mb-1">작성자</label>
+          <label className="text-xs text-espresso-400 block mb-1">작성자</label>
           <select
             value={personId}
             onChange={(e) => setPersonId(e.target.value)}
@@ -45,7 +45,7 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
           </select>
         </div>
         <div>
-          <label className="text-[10px] text-espresso-400 block mb-1">책</label>
+          <label className="text-xs text-espresso-400 block mb-1">책</label>
           <select
             value={bookId}
             onChange={(e) => setBookId(e.target.value)}
@@ -60,7 +60,7 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
 
       {/* Star rating selector */}
       <div>
-        <label className="text-[10px] text-espresso-400 block mb-1">별점</label>
+        <label className="text-xs text-espresso-400 block mb-1">별점</label>
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
@@ -83,7 +83,7 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
 
       {/* Content */}
       <div>
-        <label className="text-[10px] text-espresso-400 block mb-1">후기</label>
+        <label className="text-xs text-espresso-400 block mb-1">후기</label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}

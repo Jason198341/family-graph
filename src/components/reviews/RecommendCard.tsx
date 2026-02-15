@@ -15,7 +15,7 @@ export default function RecommendCard({ recommendation }: RecommendCardProps) {
         <span className="text-3xl">{recommendation.emoji}</span>
         <div className="flex-1">
           <p className="text-sm font-bold text-cream-100">{recommendation.bookTitle}</p>
-          <p className="text-[10px] text-espresso-400">{recommendation.author}</p>
+          <p className="text-xs text-espresso-400">{recommendation.author}</p>
         </div>
       </div>
 
@@ -29,9 +29,9 @@ export default function RecommendCard({ recommendation }: RecommendCardProps) {
           >
             {person?.emoji ?? '👤'}
           </div>
-          <span className="text-[10px] text-espresso-400">{person?.name ?? '알 수 없음'} 추천</span>
+          <span className="text-xs text-espresso-400">{person?.name ?? '알 수 없음'} 추천</span>
         </div>
-        <span className="text-[10px] text-espresso-400">
+        <span className="text-xs text-espresso-400">
           {new Date(recommendation.createdAt).toLocaleDateString('ko-KR')}
         </span>
       </div>
