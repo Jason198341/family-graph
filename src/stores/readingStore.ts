@@ -451,12 +451,13 @@ export const useReadingStore = create<ReadingState>()((set, get) => ({
   },
 
   updateBook: (id, updates) => {
-    const current = get()
-    const idx = current.books.findIndex((b) => b.id === id)
-    if (idx === -1) return
-    const newBooks = current.books.map((b) => (b.id === id ? { ...b, ...updates } : b))
-    set({ books: newBooks })
-    if (useLocalMode()) persistLocal({ ...current, books: newBooks })
+    set((s) => {
+      const idx = s.books.findIndex((b) => b.id === id)
+      if (idx === -1) return {}
+      const books = s.books.map((b) => (b.id === id ? { ...b, ...updates } : b))
+      if (useLocalMode()) persistLocal({ ...s, books })
+      return { books }
+    })
     if (!useLocalMode()) {
       const dbUpdates: Record<string, unknown> = {}
       if (updates.title !== undefined) dbUpdates.title = updates.title
