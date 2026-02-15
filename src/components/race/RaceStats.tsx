@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import PersonAvatar from '@/components/common/PersonAvatar'
 
 interface RaceStatsProps {
@@ -7,10 +7,10 @@ interface RaceStatsProps {
 }
 
 export default function RaceStats({ month }: RaceStatsProps) {
-  const persons = useGraphStore((s) => s.persons)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
-  const getRaceProgress = useGraphStore((s) => s.getRaceProgress)
-  const getStreakDays = useGraphStore((s) => s.getStreakDays)
+  const persons = useReadingStore((s) => s.persons)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
+  const getRaceProgress = useReadingStore((s) => s.getRaceProgress)
+  const getStreakDays = useReadingStore((s) => s.getStreakDays)
 
   const { stats, topReader, hasTopReader, maxLines } = useMemo(() => {
     const computed = persons.map((person) => {

@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 
 interface ReviewFormProps {
   onClose: () => void
 }
 
 export default function ReviewForm({ onClose }: ReviewFormProps) {
-  const persons = useGraphStore((s) => s.persons)
-  const books = useGraphStore((s) => s.books)
-  const addReview = useGraphStore((s) => s.addReview)
-  const addToast = useGraphStore((s) => s.addToast)
+  const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const addReview = useReadingStore((s) => s.addReview)
+  const addToast = useReadingStore((s) => s.addToast)
 
   const [personId, setPersonId] = useState(persons[0]?.id ?? '')
   const [bookId, setBookId] = useState(books[0]?.id ?? '')

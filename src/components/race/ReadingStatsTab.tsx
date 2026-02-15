@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import HeatmapCalendar from './HeatmapCalendar'
 
 interface ReadingStatsTabProps {
@@ -7,8 +7,8 @@ interface ReadingStatsTabProps {
 }
 
 export default function ReadingStatsTab({ year }: ReadingStatsTabProps) {
-  const persons = useGraphStore((s) => s.persons)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
+  const persons = useReadingStore((s) => s.persons)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
 
   const yearPrefix = String(year)
   const yearLogs = readingLogs.filter((l) => l.date.startsWith(yearPrefix))

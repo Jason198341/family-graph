@@ -1,4 +1,4 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useShareImage } from '@/hooks/useShareImage'
 import ShareButton from './ShareButton'
@@ -10,10 +10,10 @@ interface Props {
 
 export default function RaceShareCard({ month }: Props) {
   const { ref, download, share } = useShareImage()
-  const persons = useGraphStore((s) => s.persons)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
-  const getRaceProgress = useGraphStore((s) => s.getRaceProgress)
-  const getStreakDays = useGraphStore((s) => s.getStreakDays)
+  const persons = useReadingStore((s) => s.persons)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
+  const getRaceProgress = useReadingStore((s) => s.getRaceProgress)
+  const getStreakDays = useReadingStore((s) => s.getStreakDays)
   const family = useFamilyStore((s) => s.family)
 
   const [y, m] = month.split('-').map(Number)

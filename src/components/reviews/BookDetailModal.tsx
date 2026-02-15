@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import type { BookReaderInfo } from '@/types'
 
 interface BookDetailModalProps {
@@ -10,8 +10,8 @@ interface BookDetailModalProps {
 export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalProps) {
   const [readers, setReaders] = useState<BookReaderInfo[]>([])
   const [loading, setLoading] = useState(true)
-  const getBookReaders = useGraphStore((s) => s.getBookReaders)
-  const communityFeed = useGraphStore((s) => s.communityFeed)
+  const getBookReaders = useReadingStore((s) => s.getBookReaders)
+  const communityFeed = useReadingStore((s) => s.communityFeed)
 
   const bookReviews = communityFeed.filter(
     (r) => r.bookTitle.toLowerCase() === bookTitle.toLowerCase() && r.postType === 'review',

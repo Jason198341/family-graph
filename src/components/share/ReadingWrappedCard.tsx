@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useShareImage } from '@/hooks/useShareImage'
 import ShareButton from './ShareButton'
@@ -15,13 +15,13 @@ export default function ReadingWrappedCard() {
   const { ref, download, share } = useShareImage()
   const [slideIdx, setSlideIdx] = useState(0)
 
-  const persons = useGraphStore((s) => s.persons)
-  const books = useGraphStore((s) => s.books)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
-  const reviews = useGraphStore((s) => s.reviews)
-  const bookProgress = useGraphStore((s) => s.bookProgress)
-  const getRadarData = useGraphStore((s) => s.getRadarData)
-  const getStreakDays = useGraphStore((s) => s.getStreakDays)
+  const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
+  const reviews = useReadingStore((s) => s.reviews)
+  const bookProgress = useReadingStore((s) => s.bookProgress)
+  const getRadarData = useReadingStore((s) => s.getRadarData)
+  const getStreakDays = useReadingStore((s) => s.getStreakDays)
   const family = useFamilyStore((s) => s.family)
 
   const year = new Date().getFullYear()

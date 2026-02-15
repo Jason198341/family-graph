@@ -1,4 +1,4 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useShareImage } from '@/hooks/useShareImage'
 import ShareButton from './ShareButton'
@@ -15,8 +15,8 @@ const STAGES = [
 
 export default function TreeCelebrationCard() {
   const { ref, download, share } = useShareImage()
-  const persons = useGraphStore((s) => s.persons)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
+  const persons = useReadingStore((s) => s.persons)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
   const family = useFamilyStore((s) => s.family)
 
   const totalLines = readingLogs.reduce((s, l) => s + l.linesRead, 0)

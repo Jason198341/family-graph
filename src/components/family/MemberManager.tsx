@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useFamilyStore } from '@/stores/familyStore'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { resizeImage } from '@/lib/resizeImage'
 import PersonAvatar from '@/components/common/PersonAvatar'
 import InviteCode from './InviteCode'
@@ -33,10 +33,10 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
   const regenerateInviteCode = useFamilyStore((s) => s.regenerateInviteCode)
   const updateFamily = useFamilyStore((s) => s.updateFamily)
 
-  const persons = useGraphStore((s) => s.persons)
-  const addPerson = useGraphStore((s) => s.addPerson)
-  const updatePerson = useGraphStore((s) => s.updatePerson)
-  const addToast = useGraphStore((s) => s.addToast)
+  const persons = useReadingStore((s) => s.persons)
+  const addPerson = useReadingStore((s) => s.addPerson)
+  const updatePerson = useReadingStore((s) => s.updatePerson)
+  const addToast = useReadingStore((s) => s.addToast)
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [newName, setNewName] = useState('')

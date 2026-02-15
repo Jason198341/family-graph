@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import type { CommunityFeedPost } from '@/types'
 
@@ -15,11 +15,11 @@ export default function UnifiedPostCard({ post, onBookClick }: Props) {
     familyCount: number; readerCount: number; completedCount: number
   } | null>(null)
 
-  const feedComments = useGraphStore((s) => s.feedComments)
-  const toggleFeedLike = useGraphStore((s) => s.toggleFeedLike)
-  const loadPostComments = useGraphStore((s) => s.loadPostComments)
-  const addPostComment = useGraphStore((s) => s.addPostComment)
-  const getBookReaderStats = useGraphStore((s) => s.getBookReaderStats)
+  const feedComments = useReadingStore((s) => s.feedComments)
+  const toggleFeedLike = useReadingStore((s) => s.toggleFeedLike)
+  const loadPostComments = useReadingStore((s) => s.loadPostComments)
+  const addPostComment = useReadingStore((s) => s.addPostComment)
+  const getBookReaderStats = useReadingStore((s) => s.getBookReaderStats)
 
   const family = useFamilyStore((s) => s.family)
   const familyId = family?.id ?? 'local'

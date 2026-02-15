@@ -1,4 +1,4 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import type { BookRecommendation } from '@/types'
 
 interface RecommendCardProps {
@@ -6,7 +6,7 @@ interface RecommendCardProps {
 }
 
 export default function RecommendCard({ recommendation }: RecommendCardProps) {
-  const persons = useGraphStore((s) => s.persons)
+  const persons = useReadingStore((s) => s.persons)
   const person = persons.find((p) => p.id === recommendation.personId)
 
   return (

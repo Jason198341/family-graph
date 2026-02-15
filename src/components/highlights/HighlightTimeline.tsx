@@ -1,16 +1,16 @@
 import { useState, useMemo } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 
 interface HighlightTimelineProps {
   month: string
 }
 
 export default function HighlightTimeline({ month }: HighlightTimelineProps) {
-  const highlights = useGraphStore((s) => s.highlights)
-  const persons = useGraphStore((s) => s.persons)
-  const books = useGraphStore((s) => s.books)
-  const addHighlight = useGraphStore((s) => s.addHighlight)
-  const removeHighlight = useGraphStore((s) => s.removeHighlight)
+  const highlights = useReadingStore((s) => s.highlights)
+  const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const addHighlight = useReadingStore((s) => s.addHighlight)
+  const removeHighlight = useReadingStore((s) => s.removeHighlight)
 
   const [showForm, setShowForm] = useState(false)
   const [personId, setPersonId] = useState('')

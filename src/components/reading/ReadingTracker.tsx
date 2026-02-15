@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import PersonAvatar from '@/components/common/PersonAvatar'
 import type { BookProgress } from '@/types'
 
@@ -25,20 +25,20 @@ function todayStr() {
 }
 
 export default function ReadingTracker() {
-  const persons = useGraphStore((s) => s.persons)
-  const books = useGraphStore((s) => s.books)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
-  const readingGoals = useGraphStore((s) => s.readingGoals)
-  const addReadingLog = useGraphStore((s) => s.addReadingLog)
-  const removeReadingLog = useGraphStore((s) => s.removeReadingLog)
-  const updateReadingLog = useGraphStore((s) => s.updateReadingLog)
-  const addReadingGoal = useGraphStore((s) => s.addReadingGoal)
-  const updateReadingGoal = useGraphStore((s) => s.updateReadingGoal)
-  const addBook = useGraphStore((s) => s.addBook)
-  const addToast = useGraphStore((s) => s.addToast)
-  const updateBookProgress = useGraphStore((s) => s.updateBookProgress)
-  const getBookProgress = useGraphStore((s) => s.getBookProgress)
-  const bookProgressList = useGraphStore((s) => s.bookProgress)
+  const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
+  const readingGoals = useReadingStore((s) => s.readingGoals)
+  const addReadingLog = useReadingStore((s) => s.addReadingLog)
+  const removeReadingLog = useReadingStore((s) => s.removeReadingLog)
+  const updateReadingLog = useReadingStore((s) => s.updateReadingLog)
+  const addReadingGoal = useReadingStore((s) => s.addReadingGoal)
+  const updateReadingGoal = useReadingStore((s) => s.updateReadingGoal)
+  const addBook = useReadingStore((s) => s.addBook)
+  const addToast = useReadingStore((s) => s.addToast)
+  const updateBookProgress = useReadingStore((s) => s.updateBookProgress)
+  const getBookProgress = useReadingStore((s) => s.getBookProgress)
+  const bookProgressList = useReadingStore((s) => s.bookProgress)
 
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const [formPersonId, setFormPersonId] = useState(persons[0]?.id ?? '')

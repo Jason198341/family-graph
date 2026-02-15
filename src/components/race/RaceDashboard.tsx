@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import RaceTrack from './RaceTrack'
 import RaceStats from './RaceStats'
 import FamilyLeaderboard from './FamilyLeaderboard'
@@ -15,9 +15,9 @@ function getMonthStr(date: Date) {
 export default function RaceDashboard() {
   const [month, setMonth] = useState(() => getMonthStr(new Date()))
 
-  const loadFamilyRank = useGraphStore((s) => s.loadFamilyRank)
-  const persons = useGraphStore((s) => s.persons)
-  const getRadarData = useGraphStore((s) => s.getRadarData)
+  const loadFamilyRank = useReadingStore((s) => s.loadFamilyRank)
+  const persons = useReadingStore((s) => s.persons)
+  const getRadarData = useReadingStore((s) => s.getRadarData)
 
   const [y, m] = month.split('-').map(Number)
   const displayMonth = `${y}년 ${m}월`

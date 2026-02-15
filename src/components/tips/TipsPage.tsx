@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { readingTips, CATEGORIES, type ReadingTip } from '@/data/readingTips'
 
 const DIFFICULTY_LABEL: Record<number, string> = { 1: '쉬움', 2: '보통', 3: '고급' }
@@ -38,10 +38,10 @@ export default function TipsPage() {
   const [aiUsedToday, setAiUsedToday] = useState(isUsedToday)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
-  const persons = useGraphStore((s) => s.persons)
-  const books = useGraphStore((s) => s.books)
-  const bookProgress = useGraphStore((s) => s.bookProgress)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
+  const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const bookProgress = useReadingStore((s) => s.bookProgress)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
 
   const filtered = category === '전체'
     ? readingTips

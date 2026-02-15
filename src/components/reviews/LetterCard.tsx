@@ -1,4 +1,4 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import type { ReadingLetter } from '@/types'
 
 interface LetterCardProps {
@@ -6,9 +6,9 @@ interface LetterCardProps {
 }
 
 export default function LetterCard({ letter }: LetterCardProps) {
-  const persons = useGraphStore((s) => s.persons)
-  const books = useGraphStore((s) => s.books)
-  const removeLetter = useGraphStore((s) => s.removeLetter)
+  const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const removeLetter = useReadingStore((s) => s.removeLetter)
 
   const from = persons.find((p) => p.id === letter.fromPersonId)
   const to = persons.find((p) => p.id === letter.toPersonId)

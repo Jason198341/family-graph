@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useAuth } from '@/hooks/useAuth'
@@ -19,7 +19,6 @@ if (savedFontSize) document.documentElement.dataset.fontSize = savedFontSize
 const ReadingTracker = lazy(() => import('@/components/reading/ReadingTracker'))
 const ReviewsPage = lazy(() => import('@/components/reviews/ReviewsPage'))
 const TipsPage = lazy(() => import('@/components/tips/TipsPage'))
-const SharePage = lazy(() => import('@/components/share/SharePage'))
 
 function ViewLoader() {
   return (
@@ -46,9 +45,9 @@ function FullScreenLoader() {
 }
 
 function MainApp() {
-  const activeView = useGraphStore((s) => s.activeView)
-  const dataLoaded = useGraphStore((s) => s.dataLoaded)
-  const loadFamilyData = useGraphStore((s) => s.loadFamilyData)
+  const activeView = useReadingStore((s) => s.activeView)
+  const dataLoaded = useReadingStore((s) => s.dataLoaded)
+  const loadFamilyData = useReadingStore((s) => s.loadFamilyData)
   const activeFamilyId = useFamilyStore((s) => s.activeFamilyId)
 
   useRealtimeSync()
@@ -69,12 +68,11 @@ function MainApp() {
       </div>
 
       <main className="flex-1 min-h-0 flex overflow-hidden relative">
-        {activeView === 'dashboard' && <RaceDashboard />}
+        {activeView === 'home' && <RaceDashboard />}
         <Suspense fallback={<ViewLoader />}>
-          {activeView === 'reading' && <ReadingTracker />}
-          {activeView === 'reviews' && <ReviewsPage />}
-          {activeView === 'tips' && <TipsPage />}
-          {activeView === 'share' && <SharePage />}
+          {activeView === 'library' && <ReadingTracker />}
+          {activeView === 'community' && <ReviewsPage />}
+          {activeView === 'more' && <TipsPage />}
         </Suspense>
       </main>
 

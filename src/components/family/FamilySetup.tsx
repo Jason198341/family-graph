@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useAuthStore } from '@/stores/authStore'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { signOut } from '@/lib/supabase'
 import InviteCode from './InviteCode'
 
@@ -37,7 +37,7 @@ export default function FamilySetup() {
 
   const createFamily = useFamilyStore((s) => s.createFamily)
   const joinByCode = useFamilyStore((s) => s.joinByCode)
-  const addPerson = useGraphStore((s) => s.addPerson)
+  const addPerson = useReadingStore((s) => s.addPerson)
   const profile = useAuthStore((s) => s.profile)
 
   const handleCreate = async (e: React.FormEvent) => {

@@ -1,4 +1,4 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import PersonAvatar from '@/components/common/PersonAvatar'
 import type { FamilyPerson } from '@/types'
 
@@ -13,9 +13,9 @@ interface RaceTrackProps {
 }
 
 export default function RaceTrack({ month }: RaceTrackProps) {
-  const persons = useGraphStore((s) => s.persons)
-  const getRaceProgress = useGraphStore((s) => s.getRaceProgress)
-  const getTotalLinesForMonth = useGraphStore((s) => s.getTotalLinesForMonth)
+  const persons = useReadingStore((s) => s.persons)
+  const getRaceProgress = useReadingStore((s) => s.getRaceProgress)
+  const getTotalLinesForMonth = useReadingStore((s) => s.getTotalLinesForMonth)
 
   // Keep input order (no competitive sorting)
   const runners: Runner[] = persons.map((p) => ({

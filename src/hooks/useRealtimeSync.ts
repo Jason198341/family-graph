@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useFamilyStore } from '@/stores/familyStore'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 const TABLE_MAP = {
@@ -83,17 +83,17 @@ function handleChange(table: TableName, payload: RealtimePostgresChangesPayload<
   if (!config) return
 
   const storeKey = config.key
-  const store = useGraphStore.getState()
+  const store = useReadingStore.getState()
 
   if (payload.eventType === 'INSERT') {
     const newItem = config.transform(payload.new)
     const current = store[storeKey] as unknown[]
     if (current.some((item: unknown) => (item as { id: string }).id === newItem.id)) return
-    useGraphStore.setState({ [storeKey]: [...current, newItem] })
+    useReadingStore.setState({ [storeKey]: [...current, newItem] })
   } else if (payload.eventType === 'UPDATE') {
     const updated = config.transform(payload.new)
     const current = store[storeKey] as unknown[]
-    useGraphStore.setState({
+    useReadingStore.setState({
       [storeKey]: current.map((item: unknown) =>
         (item as { id: string }).id === updated.id ? updated : item,
       ),
@@ -102,7 +102,7 @@ function handleChange(table: TableName, payload: RealtimePostgresChangesPayload<
     const deletedId = (payload.old as { id?: string })?.id
     if (!deletedId) return
     const current = store[storeKey] as unknown[]
-    useGraphStore.setState({
+    useReadingStore.setState({
       [storeKey]: current.filter((item: unknown) => (item as { id: string }).id !== deletedId),
     })
   }

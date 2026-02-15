@@ -1,8 +1,8 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 
 export default function Toast() {
-  const toasts = useGraphStore((s) => s.toasts)
-  const removeToast = useGraphStore((s) => s.removeToast)
+  const toasts = useReadingStore((s) => s.toasts)
+  const removeToast = useReadingStore((s) => s.removeToast)
 
   if (toasts.length === 0) return null
 

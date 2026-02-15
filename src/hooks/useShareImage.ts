@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 
 /**
  * Share hook — adopted from rundna's 3-tier pattern:
@@ -9,7 +9,7 @@ import { useGraphStore } from '@/stores/graphStore'
  */
 export function useShareImage() {
   const ref = useRef<HTMLDivElement>(null)
-  const addToast = useGraphStore((s) => s.addToast)
+  const addToast = useReadingStore((s) => s.addToast)
 
   const renderCanvas = useCallback(async (element: HTMLElement): Promise<HTMLCanvasElement> => {
     const html2canvas = (await import('html2canvas')).default

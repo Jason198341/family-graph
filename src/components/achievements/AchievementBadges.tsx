@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 
 interface AchievementBadgesProps {
   month: string
 }
 
 export default function AchievementBadges({ month }: AchievementBadgesProps) {
-  const getAchievements = useGraphStore((s) => s.getAchievements)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
+  const getAchievements = useReadingStore((s) => s.getAchievements)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
 
   const { unlocked, locked, totalLines } = useMemo(() => {
     const achievements = getAchievements(month)

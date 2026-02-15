@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 
 interface LetterFormProps {
   onClose: () => void
 }
 
 export default function LetterForm({ onClose }: LetterFormProps) {
-  const persons = useGraphStore((s) => s.persons)
-  const books = useGraphStore((s) => s.books)
-  const addLetter = useGraphStore((s) => s.addLetter)
-  const addToast = useGraphStore((s) => s.addToast)
+  const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const addLetter = useReadingStore((s) => s.addLetter)
+  const addToast = useReadingStore((s) => s.addToast)
 
   const [fromId, setFromId] = useState('')
   const [toId, setToId] = useState('')

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import UnifiedPostCard from './UnifiedPostCard'
 import ReviewForm from './ReviewForm'
 import RecommendForm from './RecommendForm'
@@ -16,11 +16,11 @@ export default function ReviewsPage() {
   const [showLetterForm, setShowLetterForm] = useState(false)
   const [selectedBook, setSelectedBook] = useState<string | null>(null)
 
-  const communityFeed = useGraphStore((s) => s.communityFeed)
-  const letters = useGraphStore((s) => s.letters)
-  const reviewCount = useGraphStore((s) => s.reviews.length)
-  const recCount = useGraphStore((s) => s.recommendations.length)
-  const loadCommunityFeed = useGraphStore((s) => s.loadCommunityFeed)
+  const communityFeed = useReadingStore((s) => s.communityFeed)
+  const letters = useReadingStore((s) => s.letters)
+  const reviewCount = useReadingStore((s) => s.reviews.length)
+  const recCount = useReadingStore((s) => s.recommendations.length)
+  const loadCommunityFeed = useReadingStore((s) => s.loadCommunityFeed)
 
   // Reload feed on mount and when reviews/recommendations change
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useShareImage } from '@/hooks/useShareImage'
 import ShareButton from './ShareButton'
@@ -22,9 +22,9 @@ function colorSortKey(hex: string): number {
 
 export default function BookShelfCard() {
   const { ref, download, share } = useShareImage()
-  const books = useGraphStore((s) => s.books)
-  const bookProgress = useGraphStore((s) => s.bookProgress)
-  const persons = useGraphStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
+  const bookProgress = useReadingStore((s) => s.bookProgress)
+  const persons = useReadingStore((s) => s.persons)
   const family = useFamilyStore((s) => s.family)
 
   const familyName = family?.name ?? '우리 가족'

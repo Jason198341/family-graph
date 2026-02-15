@@ -22,11 +22,11 @@ import { useFamilyStore } from './familyStore'
 
 const FG_KEY = 'fg_store'
 
-function loadPersistedState(): Partial<GraphState> | null {
+function loadPersistedState(): Partial<ReadingState> | null {
   try {
     const raw = localStorage.getItem(FG_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as Partial<GraphState>
+    return JSON.parse(raw) as Partial<ReadingState>
   } catch {
     return null
   }
@@ -34,13 +34,13 @@ function loadPersistedState(): Partial<GraphState> | null {
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function persistLocal(state: GraphState) {
+function persistLocal(state: ReadingState) {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    const { persons, books, bookProgress, readingLogs, readingGoals, reviews, recommendations, highlights, letters } = state
+    const { persons, books, bookProgress, readingLogs, readingGoals, reviews, recommendations, highlights, letters, lastReaderId, lastBookId } = state
     localStorage.setItem(
       FG_KEY,
-      JSON.stringify({ persons, books, bookProgress, readingLogs, readingGoals, reviews, recommendations, highlights, letters }),
+      JSON.stringify({ persons, books, bookProgress, readingLogs, readingGoals, reviews, recommendations, highlights, letters, lastReaderId, lastBookId }),
     )
   }, 1_000)
 }
@@ -56,12 +56,12 @@ function dbSync(p: PromiseLike<{ error: unknown }>) {
     .then(({ error }) => {
       if (error) {
         console.error('[db sync]', error)
-        useGraphStore.getState().addToast(`DB 동기화 실패: ${(error as { message?: string }).message ?? error}`, 'error')
+        useReadingStore.getState().addToast(`DB 동기화 실패: ${(error as { message?: string }).message ?? error}`, 'error')
       }
     })
     .catch((err) => {
       console.error('[db sync] unexpected:', err)
-      useGraphStore.getState().addToast('DB 연결 오류', 'error')
+      useReadingStore.getState().addToast('DB 연결 오류', 'error')
     })
 }
 
@@ -76,13 +76,13 @@ function dbSyncWithRollback(
       if (error) {
         console.error(`[${label}]`, error)
         rollback()
-        useGraphStore.getState().addToast(`저장 실패: ${error.message ?? '알 수 없는 오류'}`, 'error')
+        useReadingStore.getState().addToast(`저장 실패: ${error.message ?? '알 수 없는 오류'}`, 'error')
       }
     })
     .catch((err) => {
       console.error(`[${label}] unexpected:`, err)
       rollback()
-      useGraphStore.getState().addToast('DB 연결 오류', 'error')
+      useReadingStore.getState().addToast('DB 연결 오류', 'error')
     })
 }
 
@@ -113,7 +113,7 @@ interface Toast {
   type: 'success' | 'error' | 'info'
 }
 
-interface GraphState {
+interface ReadingState {
   // data
   persons: FamilyPerson[]
   books: Book[]
@@ -124,6 +124,10 @@ interface GraphState {
   recommendations: BookRecommendation[]
   highlights: DailyHighlight[]
   letters: ReadingLetter[]
+
+  // smart defaults (quick log)
+  lastReaderId: string | null
+  lastBookId: string | null
 
   // community data (cross-family)
   communityFeed: CommunityFeedPost[]
@@ -199,6 +203,9 @@ interface GraphState {
   // radar chart data
   getRadarData: (personId: string, month: string) => { label: string; value: number }[]
 
+  // family-level streak (any member reads = streak continues)
+  getFamilyStreak: () => number
+
   // toasts
   addToast: (message: string, type: Toast['type']) => void
   removeToast: (id: number) => void
@@ -220,6 +227,8 @@ function getInitialData() {
       recommendations: (p?.recommendations as BookRecommendation[]) ?? [],
       highlights: (p?.highlights as DailyHighlight[]) ?? [],
       letters: (p?.letters as ReadingLetter[]) ?? [],
+      lastReaderId: (p?.lastReaderId as string) ?? null,
+      lastBookId: (p?.lastBookId as string) ?? null,
     }
   }
   return {
@@ -232,6 +241,8 @@ function getInitialData() {
     recommendations: [] as BookRecommendation[],
     highlights: [] as DailyHighlight[],
     letters: [] as ReadingLetter[],
+    lastReaderId: null as string | null,
+    lastBookId: null as string | null,
   }
 }
 
@@ -239,9 +250,13 @@ function getInitialData() {
 
 const initial = getInitialData()
 
-export const useGraphStore = create<GraphState>()((set, get) => ({
+export const useReadingStore = create<ReadingState>()((set, get) => ({
   // ── data ──
   ...initial,
+
+  // ── smart defaults ──
+  lastReaderId: null as string | null,
+  lastBookId: null as string | null,
 
   // ── community data ──
   communityFeed: [],
@@ -249,7 +264,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   familyRank: null,
 
   // ── UI state ──
-  activeView: 'dashboard' as AppView,
+  activeView: 'home' as AppView,
   toasts: [],
   dataLoaded: false,
   fontSize: (localStorage.getItem('fg_font_size') as 'normal' | 'large' | 'xlarge') || 'normal',
@@ -451,7 +466,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     const id = genId('rlog')
     const log: ReadingLog = { ...data, id }
     set((s) => {
-      const next = { readingLogs: [...s.readingLogs, log] }
+      const next = { readingLogs: [...s.readingLogs, log], lastReaderId: data.personId, lastBookId: data.bookId }
       if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
@@ -1120,6 +1135,27 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       { label: '나눔', value: sharing },
       { label: '다양성', value: diversity },
     ]
+  },
+
+  // ── family streak (any member reads = streak continues) ──
+  getFamilyStreak: () => {
+    const s = get()
+    const allDates = [...new Set(s.readingLogs.map((l) => l.date))].sort().reverse()
+    if (allDates.length === 0) return 0
+
+    let streak = 0
+    const today = new Date()
+    for (let i = 0; i < 365; i++) {
+      const checkDate = new Date(today)
+      checkDate.setDate(checkDate.getDate() - i)
+      const dateStr = checkDate.toISOString().slice(0, 10)
+      if (allDates.includes(dateStr)) {
+        streak++
+      } else {
+        break
+      }
+    }
+    return streak
   },
 
   // ── toasts ──

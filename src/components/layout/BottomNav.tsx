@@ -1,19 +1,20 @@
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import type { AppView } from '@/types'
 
 const navItems: { view: AppView; label: string; icon: (active: boolean) => React.ReactNode }[] = [
   {
-    view: 'dashboard',
+    view: 'home',
     label: '홈',
     icon: (a) => (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
     ),
   },
   {
-    view: 'reading',
-    label: '기록',
+    view: 'library',
+    label: '서재',
     icon: (a) => (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -22,7 +23,7 @@ const navItems: { view: AppView; label: string; icon: (active: boolean) => React
     ),
   },
   {
-    view: 'reviews',
+    view: 'community',
     label: '나눔',
     icon: (a) => (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -31,33 +32,21 @@ const navItems: { view: AppView; label: string; icon: (active: boolean) => React
     ),
   },
   {
-    view: 'tips',
-    label: '코치',
+    view: 'more',
+    label: '더보기',
     icon: (a) => (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-      </svg>
-    ),
-  },
-  {
-    view: 'share',
-    label: '공유',
-    icon: (a) => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="18" cy="5" r="3" />
-        <circle cx="6" cy="12" r="3" />
-        <circle cx="18" cy="19" r="3" />
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        <circle cx="12" cy="12" r="1" />
+        <circle cx="12" cy="5" r="1" />
+        <circle cx="12" cy="19" r="1" />
       </svg>
     ),
   },
 ]
 
 export default function BottomNav() {
-  const activeView = useGraphStore((s) => s.activeView)
-  const setView = useGraphStore((s) => s.setView)
+  const activeView = useReadingStore((s) => s.activeView)
+  const setView = useReadingStore((s) => s.setView)
 
   return (
     <nav className="md:hidden bg-white/95 backdrop-blur-lg border-t border-surface-border safe-area-bottom shrink-0">

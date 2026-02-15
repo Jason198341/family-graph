@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useGraphStore } from '@/stores/graphStore'
+import { useReadingStore } from '@/stores/readingStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
@@ -20,8 +20,8 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
   const [rankings, setRankings] = useState<FamilyRanking[]>([])
   const [rpcDone, setRpcDone] = useState(false)
 
-  const persons = useGraphStore((s) => s.persons)
-  const readingLogs = useGraphStore((s) => s.readingLogs)
+  const persons = useReadingStore((s) => s.persons)
+  const readingLogs = useReadingStore((s) => s.readingLogs)
   const activeFamilyId = useFamilyStore((s) => s.activeFamilyId)
 
   const localRanking = useMemo((): FamilyRanking => {
