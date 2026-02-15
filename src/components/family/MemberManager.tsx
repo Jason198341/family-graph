@@ -5,6 +5,8 @@ import { resizeImage } from '@/lib/resizeImage'
 import PersonAvatar from '@/components/common/PersonAvatar'
 import InviteCode from './InviteCode'
 
+const FAMILY_EMOJIS = ['👨‍👩‍👧‍👦', '👨‍👩‍👦', '👨‍👩‍👧', '👩‍👧‍👦', '👨‍👧‍👦', '🏠', '🌳', '💝', '📚', '🎄']
+
 const ROLE_PRESETS = [
   { role: '아빠', emoji: '👨', color: '#3b82f6' },
   { role: '엄마', emoji: '👩', color: '#ec4899' },
@@ -29,6 +31,7 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
   const approveMember = useFamilyStore((s) => s.approveMember)
   const rejectMember = useFamilyStore((s) => s.rejectMember)
   const regenerateInviteCode = useFamilyStore((s) => s.regenerateInviteCode)
+  const updateFamily = useFamilyStore((s) => s.updateFamily)
 
   const persons = useGraphStore((s) => s.persons)
   const addPerson = useGraphStore((s) => s.addPerson)
@@ -42,6 +45,7 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
   const [newColor, setNewColor] = useState('#3b82f6')
   const [newAvatarUrl, setNewAvatarUrl] = useState('')
   const addFileRef = useRef<HTMLInputElement>(null)
+  const familyFileRef = useRef<HTMLInputElement>(null)
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -128,11 +132,86 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
 
   return (
     <div className="space-y-6">
-      {/* Family info + invite code */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <span>{family.emoji}</span> {family.name}
-        </h3>
+      {/* Family info + photo + invite code */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          {/* Family avatar — clickable to upload photo */}
+          <button
+            type="button"
+            onClick={() => familyFileRef.current?.click()}
+            className="relative group/fam-avatar shrink-0 cursor-pointer"
+            title="가족 사진 변경"
+          >
+            {family.avatarUrl ? (
+              <img
+                src={family.avatarUrl}
+                alt={family.name}
+                className="w-14 h-14 rounded-xl object-cover border-2 border-amber-500/30"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/20">
+                {family.emoji}
+              </div>
+            )}
+            <div className="absolute inset-0 rounded-xl bg-black/40 opacity-0 group-hover/fam-avatar:opacity-100 transition-opacity flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+          </button>
+          <input
+            ref={familyFileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                try {
+                  const dataUrl = await resizeImage(file)
+                  await updateFamily({ avatarUrl: dataUrl })
+                  addToast('가족 사진 업데이트 완료', 'success')
+                } catch {
+                  addToast('사진 처리 실패', 'error')
+                }
+              }
+              e.target.value = ''
+            }}
+          />
+
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-gray-900">{family.name}</h3>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {FAMILY_EMOJIS.map((em) => (
+                <button
+                  key={em}
+                  type="button"
+                  onClick={() => updateFamily({ emoji: em })}
+                  className={`w-6 h-6 rounded flex items-center justify-center text-sm transition-all cursor-pointer ${
+                    family.emoji === em
+                      ? 'bg-amber-100 border border-amber-300 scale-110'
+                      : 'hover:bg-gray-100'
+                  }`}
+                >
+                  {em}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {family.avatarUrl && (
+            <button
+              type="button"
+              onClick={() => updateFamily({ avatarUrl: undefined })}
+              className="text-xs text-red-400 hover:text-red-600 cursor-pointer shrink-0"
+              title="사진 삭제"
+            >
+              삭제
+            </button>
+          )}
+        </div>
+
         {isAdmin && (
           <InviteCode code={family.inviteCode} onRegenerate={regenerateInviteCode} />
         )}

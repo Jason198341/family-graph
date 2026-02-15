@@ -40,6 +40,7 @@ interface FamilyState {
   rejectMember: (memberId: string) => Promise<void>
   regenerateInviteCode: () => Promise<string | null>
   leaveFamily: () => Promise<void>
+  updateFamily: (updates: Partial<Pick<Family, 'name' | 'emoji' | 'avatarUrl'>>) => Promise<void>
 }
 
 export const useFamilyStore = create<FamilyState>((set, get) => ({
@@ -151,6 +152,7 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       inviteCode: fam.invite_code,
       createdBy: fam.created_by,
       createdAt: fam.created_at,
+      avatarUrl: fam.avatar_url ?? undefined,
     }
 
     set({
@@ -232,5 +234,24 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
     await supabase.from('family_members').delete().eq('id', myMembership.id)
     set({ family: null, members: [], myMembership: null, activeFamilyId: null, status: 'no-family' })
+  },
+
+  updateFamily: async (updates) => {
+    const { family } = get()
+    if (!family) return
+
+    // Update local state immediately
+    set({ family: { ...family, ...updates } })
+
+    if (!isSupabaseConfigured) return
+
+    const dbUpdates: Record<string, unknown> = {}
+    if (updates.name !== undefined) dbUpdates.name = updates.name
+    if (updates.emoji !== undefined) dbUpdates.emoji = updates.emoji
+    if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl
+
+    if (Object.keys(dbUpdates).length > 0) {
+      await supabase.from('families').update(dbUpdates).eq('id', family.id)
+    }
   },
 }))

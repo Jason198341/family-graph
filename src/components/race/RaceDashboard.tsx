@@ -6,6 +6,7 @@ import FamilyLeaderboard from './FamilyLeaderboard'
 import HighlightTimeline from '@/components/highlights/HighlightTimeline'
 import AchievementBadges from '@/components/achievements/AchievementBadges'
 import RadarChart from '@/components/charts/RadarChart'
+import PersonAvatar from '@/components/common/PersonAvatar'
 
 function getMonthStr(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -89,7 +90,7 @@ export default function RaceDashboard() {
                 <div key={person.id} className="flex flex-col items-center">
                   <RadarChart data={data} color={person.color} size={130} />
                   <div className="flex items-center gap-1.5 mt-2">
-                    <span className="text-base">{person.emoji}</span>
+                    <PersonAvatar person={person} size={24} />
                     <span className="text-xs font-semibold text-cream-100">{person.name}</span>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-1 justify-center">

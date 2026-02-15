@@ -98,9 +98,9 @@ export default function RaceStats({ month }: RaceStatsProps) {
               const pct = maxLines > 0 ? (totalLines / maxLines) * 100 : 0
               return (
                 <div key={person.id} className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 w-20 shrink-0">
-                    <span className="text-sm">{person.emoji}</span>
-                    <span className="text-xs text-cream-100 font-medium">{person.name}</span>
+                  <div className="flex items-center gap-2 w-24 shrink-0">
+                    <PersonAvatar person={person} size={22} />
+                    <span className="text-xs text-cream-100 font-medium truncate">{person.name}</span>
                   </div>
                   <div className="flex-1 h-5 bg-surface rounded-full overflow-hidden">
                     <div

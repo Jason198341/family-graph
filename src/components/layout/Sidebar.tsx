@@ -74,11 +74,19 @@ export default function Sidebar() {
       <div className="group/sidebar h-full w-16 hover:w-64 transition-all duration-300 ease-in-out bg-surface-light border-r border-surface-border flex flex-col shrink-0 overflow-hidden z-40">
         {/* Logo + Family name */}
         <div className="flex items-center gap-3 px-3 py-5 border-b border-surface-border min-h-[72px]">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
-            <span className="text-white font-bold text-sm tracking-tight">
-              {family?.emoji ?? '📚'}
-            </span>
-          </div>
+          {family?.avatarUrl ? (
+            <img
+              src={family.avatarUrl}
+              alt={family.name}
+              className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-lg shadow-amber-500/20 border-2 border-amber-500/30"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+              <span className="text-white font-bold text-sm tracking-tight">
+                {family?.emoji ?? '📚'}
+              </span>
+            </div>
+          )}
           <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
             <h1 className="text-sm font-bold text-cream-100">{family?.name ?? '가족 독서'}</h1>
             <p className="text-xs text-espresso-300">가족 독서 여정</p>

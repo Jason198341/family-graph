@@ -1,10 +1,9 @@
 import { useGraphStore } from '@/stores/graphStore'
+import PersonAvatar from '@/components/common/PersonAvatar'
+import type { FamilyPerson } from '@/types'
 
 interface Runner {
-  personId: string
-  name: string
-  emoji: string
-  color: string
+  person: FamilyPerson
   percent: number
   totalLines: number
 }
@@ -20,10 +19,7 @@ export default function RaceTrack({ month }: RaceTrackProps) {
 
   // Keep input order (no competitive sorting)
   const runners: Runner[] = persons.map((p) => ({
-    personId: p.id,
-    name: p.name,
-    emoji: p.emoji,
-    color: p.color,
+    person: p,
     percent: getRaceProgress(p.id, month),
     totalLines: getTotalLinesForMonth(p.id, month),
   }))
@@ -33,17 +29,18 @@ export default function RaceTrack({ month }: RaceTrackProps) {
   return (
     <div className="space-y-3">
       {runners.map((runner) => {
+        const { person } = runner
         const isFinished = runner.percent >= 100
 
         return (
-          <div key={runner.personId} className="relative">
+          <div key={person.id} className="relative">
             <div className="relative h-14 bg-surface-lighter rounded-xl border border-surface-border overflow-hidden">
               {/* Track gradient fill */}
               <div
                 className="absolute inset-y-0 left-0 rounded-xl transition-all duration-1000 ease-out"
                 style={{
                   width: `${Math.min(100, runner.percent)}%`,
-                  background: `linear-gradient(90deg, ${runner.color}20, ${runner.color}40)`,
+                  background: `linear-gradient(90deg, ${person.color}20, ${person.color}40)`,
                 }}
               />
 
@@ -68,25 +65,20 @@ export default function RaceTrack({ month }: RaceTrackProps) {
 
               {/* Runner */}
               <div
-                className="absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-all duration-1000 ease-out"
+                className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-all duration-1000 ease-out ${isFinished ? 'animate-finish-pulse' : 'animate-runner-bounce'}`}
                 style={{ left: `${Math.min(95, Math.max(2, runner.percent - 3))}%` }}
               >
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xl border-2 bg-surface-light shadow-lg ${isFinished ? 'animate-finish-pulse' : 'animate-runner-bounce'}`}
-                  style={{ borderColor: runner.color }}
-                >
-                  {runner.emoji}
-                </div>
+                <PersonAvatar person={person} size={40} className="shadow-lg" />
               </div>
 
               {/* Name label */}
               <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <span className="text-xs font-bold text-cream-100">{runner.name}</span>
+                <span className="text-xs font-bold text-cream-100">{person.name}</span>
               </div>
 
               {/* Percent + Lines label */}
               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-right">
-                <span className="text-sm font-bold tabular-nums" style={{ color: runner.color }}>
+                <span className="text-sm font-bold tabular-nums" style={{ color: person.color }}>
                   {runner.percent}%
                 </span>
                 <span className="text-xs text-espresso-300 ml-1.5">

@@ -25,6 +25,7 @@ export interface Family {
   inviteCode: string
   createdBy: string
   createdAt: string
+  avatarUrl?: string    // family photo (base64 data URL)
 }
 
 export interface FamilyMember {
