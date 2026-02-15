@@ -60,7 +60,7 @@ export default function BottomNav() {
   const setView = useGraphStore((s) => s.setView)
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-surface-border safe-area-bottom">
+    <nav className="md:hidden bg-white/95 backdrop-blur-lg border-t border-surface-border safe-area-bottom shrink-0">
       <div className="flex items-center justify-around h-14">
         {navItems.map(({ view, label, icon }) => {
           const isActive = activeView === view
