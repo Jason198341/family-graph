@@ -451,8 +451,7 @@ export const useReadingStore = create<ReadingState>()((set, get) => ({
   },
 
   updateBook: (id, updates) => {
-    const prev = get().books.find((b) => b.id === id)
-    if (!prev) return
+    if (!get().books.find((b) => b.id === id)) return
     set((s) => {
       const next = { books: s.books.map((b) => (b.id === id ? { ...b, ...updates } : b)) }
       if (useLocalMode()) persistLocal({ ...s, ...next })
@@ -467,11 +466,7 @@ export const useReadingStore = create<ReadingState>()((set, get) => ({
       if (updates.emoji !== undefined) dbUpdates.emoji = updates.emoji
       if (updates.color !== undefined) dbUpdates.color = updates.color
       if (updates.coverUrl !== undefined) dbUpdates.cover_url = updates.coverUrl ?? null
-      dbSyncWithRollback(
-        supabase.from('books').update(dbUpdates).eq('id', id),
-        () => set((s) => ({ books: s.books.map((b) => (b.id === id ? prev : b)) })),
-        'updateBook',
-      )
+      dbSync(supabase.from('books').update(dbUpdates).eq('id', id))
     }
   },
 
