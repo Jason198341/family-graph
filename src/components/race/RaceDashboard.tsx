@@ -48,19 +48,14 @@ function tempEmoji(temp: number): string {
   return '💤'
 }
 
-const PAGE_SIZE = 10
-
 export default function RaceDashboard() {
   const [month, setMonth] = useState(() => getMonthStr(new Date()))
   const [showShare, setShowShare] = useState(false)
-  const [logPage, setLogPage] = useState(0)
 
   const loadFamilyRank = useReadingStore((s) => s.loadFamilyRank)
   const persons = useReadingStore((s) => s.persons)
   const books = useReadingStore((s) => s.books)
   const readingLogs = useReadingStore((s) => s.readingLogs)
-  const removeReadingLog = useReadingStore((s) => s.removeReadingLog)
-  const addToast = useReadingStore((s) => s.addToast)
   const getFamilyStreak = useReadingStore((s) => s.getFamilyStreak)
   const getTotalLinesForMonth = useReadingStore((s) => s.getTotalLinesForMonth)
   const family = useFamilyStore((s) => s.family)
@@ -91,14 +86,6 @@ export default function RaceDashboard() {
   }, [readingLogs, month])
 
   const temperature = calcTemperature(familyTotalLines, familyStreak, activeMembers)
-
-  // All logs sorted (paginated in render)
-  const allSortedLogs = useMemo(() => {
-    return [...readingLogs].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
-  }, [readingLogs])
-  const totalPages = Math.max(1, Math.ceil(allSortedLogs.length / PAGE_SIZE))
-  const safeLogPage = Math.min(logPage, totalPages - 1)
-  const pagedLogs = allSortedLogs.slice(safeLogPage * PAGE_SIZE, (safeLogPage + 1) * PAGE_SIZE)
 
   // Books being read this month (with covers)
   const monthBooks = useMemo(() => {
@@ -260,72 +247,6 @@ export default function RaceDashboard() {
               )
             })}
           </div>
-        </div>
-      )}
-
-      {/* ── Recent logs with pagination ── */}
-      {allSortedLogs.length > 0 && (
-        <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '190ms' }}>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-bold text-stone-700">최근 기록</h2>
-            <span className="text-[10px] text-stone-400">총 {allSortedLogs.length}건</span>
-          </div>
-          <div className="space-y-1.5">
-            {pagedLogs.map((log) => {
-              const person = persons.find((p) => p.id === log.personId)
-              const book = books.find((b) => b.id === log.bookId)
-              if (!person || !book) return null
-              return (
-                <div key={log.id} className="group flex items-center gap-2.5 bg-white rounded-xl px-3 py-2.5 border border-stone-100 transition-all">
-                  {book.coverUrl ? (
-                    <img key={book.coverUrl} src={book.coverUrl} alt="" className="w-7 h-10 object-cover rounded shadow-sm shrink-0" />
-                  ) : (
-                    <span className="text-lg shrink-0">{book.emoji}</span>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-stone-700 truncate">{book.title}</p>
-                    <p className="text-[10px] text-stone-400 truncate">
-                      {person.emoji} {person.name} · {log.date.slice(5)}
-                    </p>
-                  </div>
-                  <p className="text-xs font-bold text-amber-600 shrink-0">{log.linesRead.toLocaleString()}줄</p>
-                  <button
-                    onClick={() => {
-                      removeReadingLog(log.id)
-                      addToast('기록이 삭제되었습니다', 'info')
-                    }}
-                    className="text-stone-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer shrink-0 ml-1"
-                    title="삭제"
-                  >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-3">
-              <button
-                onClick={() => setLogPage((p) => Math.max(0, p - 1))}
-                disabled={safeLogPage === 0}
-                className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="15 18 9 12 15 6"/></svg>
-              </button>
-              <span className="text-xs text-stone-500 tabular-nums min-w-[60px] text-center">
-                {safeLogPage + 1} / {totalPages}
-              </span>
-              <button
-                onClick={() => setLogPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={safeLogPage >= totalPages - 1}
-                className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-            </div>
-          )}
         </div>
       )}
 

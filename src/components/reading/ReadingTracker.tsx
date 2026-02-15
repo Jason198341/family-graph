@@ -75,25 +75,7 @@ export default function ReadingTracker() {
       const targetLines = goal?.targetLines ?? 0
       const progress = targetLines > 0 ? Math.min(100, Math.round((totalLines / targetLines) * 100)) : 0
 
-      const lastLog = [...monthLogs].sort((a, b) => b.date.localeCompare(a.date))[0]
-      const currentBook = lastLog ? books.find((b) => b.id === lastLog.bookId) : null
-
-      const today = todayStr()
-      const readToday = monthLogs.some((l) => l.date === today)
-
-      const allLogs = readingLogs.filter((l) => l.personId === person.id)
-      const uniqueDates = [...new Set(allLogs.map((l) => l.date))].sort().reverse()
-      let streak = 0
-      const now = new Date()
-      for (let i = 0; i < uniqueDates.length; i++) {
-        const checkDate = new Date(now)
-        checkDate.setDate(checkDate.getDate() - i)
-        if (uniqueDates.includes(checkDate.toISOString().slice(0, 10))) {
-          streak++
-        } else break
-      }
-
-      return { person, totalLines, targetLines, progress, currentBook, readToday, streak, logCount: monthLogs.length }
+      return { person, totalLines, targetLines, progress, logCount: monthLogs.length }
     })
   }, [persons, readingLogs, readingGoals, books, selectedMonth])
 
@@ -306,14 +288,12 @@ export default function ReadingTracker() {
 
         {/* Per-member rows */}
         <div className="space-y-2">
-          {familyStats.map(({ person, totalLines, targetLines, progress, readToday, streak }) => (
+          {familyStats.map(({ person, totalLines, targetLines, progress }) => (
             <div key={person.id} className="flex items-center gap-2.5">
               <PersonAvatar person={person} size={26} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="text-xs font-medium text-stone-700">{person.name}</span>
-                  {readToday && <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-600 rounded-full">완료</span>}
-                  {streak > 0 && <span className="text-[10px] text-amber-600">🔥{streak}</span>}
                 </div>
                 <div className="h-1 bg-stone-100 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progress}%`, backgroundColor: person.color }} />
