@@ -446,11 +446,10 @@ export default function ReadingTracker() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {books.map((book) => {
-            const totalBookLines = book.totalPages * book.linesPerPage
-            const readLines = readingLogs
-              .filter((l) => l.bookId === book.id)
-              .reduce((s, l) => s + l.linesRead, 0)
-            const bookProgress = Math.min(100, Math.round((readLines / totalBookLines) * 100))
+            const currentPage = book.currentPage ?? 0
+            const bookProgress = book.totalPages > 0
+              ? Math.min(100, Math.round((currentPage / book.totalPages) * 100))
+              : 0
             const readers = [...new Set(readingLogs.filter((l) => l.bookId === book.id).map((l) => l.personId))]
               .map((pid) => persons.find((p) => p.id === pid))
               .filter(Boolean)
@@ -466,6 +465,7 @@ export default function ReadingTracker() {
                     <p className="text-sm font-bold text-cream-100 truncate">{book.title}</p>
                     <p className="text-xs text-espresso-400">{book.author} · {book.totalPages}p</p>
                   </div>
+                  {book.completed && <span className="text-xs text-success-400 shrink-0">✅ 완독</span>}
                 </div>
                 <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden">
                   <div
@@ -474,7 +474,7 @@ export default function ReadingTracker() {
                   />
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-xs text-espresso-400">{readLines.toLocaleString()} / {totalBookLines.toLocaleString()}줄 ({bookProgress}%)</span>
+                  <span className="text-xs text-espresso-400">{currentPage} / {book.totalPages}p ({bookProgress}%)</span>
                   <div className="flex -space-x-1">
                     {readers.map((p) => (
                       <span key={p!.id} className="text-xs" title={p!.name}>{p!.emoji}</span>
