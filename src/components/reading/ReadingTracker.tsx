@@ -369,14 +369,14 @@ export default function ReadingTracker() {
           <div className="bg-white rounded-2xl p-4 border border-amber-200 shadow-sm space-y-3">
             {/* Search input */}
             <div className="relative">
-              <label className="text-xs text-stone-500 block mb-1">책 검색</label>
+              <label className="text-xs text-stone-500 block mb-1">제목 <span className="text-stone-300">(검색 또는 직접 입력)</span></label>
               <input
                 value={newBook.title}
                 onChange={(e) => {
                   setNewBook((p) => ({ ...p, title: e.target.value }))
                   searchGoogleBooks(e.target.value)
                 }}
-                placeholder="책 제목을 입력하면 자동 검색..."
+                placeholder="책 제목 입력..."
                 className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400"
               />
               {searchingBooks && <span className="absolute right-3 top-7 text-[10px] text-stone-400">검색 중...</span>}
@@ -386,7 +386,7 @@ export default function ReadingTracker() {
                     <button
                       key={i}
                       onClick={() => selectSearchResult(r)}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-amber-50 transition-colors cursor-pointer border-b border-stone-50 last:border-b-0"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-amber-50 transition-colors cursor-pointer border-b border-stone-50"
                     >
                       {r.cover ? (
                         <img src={r.cover} alt="" className="w-8 h-11 object-cover rounded shadow-sm shrink-0" />
@@ -399,6 +399,12 @@ export default function ReadingTracker() {
                       </div>
                     </button>
                   ))}
+                  <button
+                    onClick={() => setBookSearchResults([])}
+                    className="w-full px-3 py-2.5 text-left text-xs text-amber-600 font-medium hover:bg-stone-50 transition-colors cursor-pointer border-t border-stone-100"
+                  >
+                    ✏️ 검색 결과에 없어요 — 직접 입력
+                  </button>
                 </div>
               )}
             </div>

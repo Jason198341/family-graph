@@ -75,7 +75,7 @@ export default function ShareCard({ month, onClose }: Props) {
             overflow: 'hidden',
           }}
         >
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ padding: '28px 24px 32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
               <p style={{ fontSize: '12px', color: '#b45309', fontWeight: 500 }}>{displayMonth} 독서 리포트</p>
@@ -101,12 +101,12 @@ export default function ShareCard({ month, onClose }: Props) {
             </div>
 
             {/* Member ranking */}
-            <div style={{ background: 'rgba(255,255,255,0.5)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.5)', borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {memberStats.map((member, i) => {
                 const maxLines = memberStats[0]?.lines || 1
                 const pct = Math.round((member.lines / maxLines) * 100)
                 return (
-                  <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '24px' }}>
                     <span style={{ fontSize: '14px', width: '20px', textAlign: 'center' }}>
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
                     </span>
