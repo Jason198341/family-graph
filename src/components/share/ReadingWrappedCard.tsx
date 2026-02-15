@@ -210,10 +210,9 @@ export default function ReadingWrappedCard() {
 
   return (
     <div className="space-y-3">
-      {/* Card — shorter on mobile, original ratio on desktop */}
-      <div ref={ref} className="w-full max-w-[540px] h-[360px] md:h-auto md:aspect-[540/680] mx-auto rounded-xl md:rounded-3xl overflow-hidden shadow-xl border border-slate-200 relative">
-        <div className="absolute inset-0" style={{ background: currentSlide.bg }} />
-        <div className="relative z-10 h-full flex flex-col">
+      {/* Card — gradient directly on ref (same pattern as Tree/Race/Shelf) */}
+      <div ref={ref} className="w-full max-w-[540px] h-[360px] md:h-auto md:aspect-[540/680] mx-auto rounded-xl md:rounded-3xl overflow-hidden shadow-xl border border-slate-200" style={{ background: currentSlide.bg }}>
+        <div className="h-full flex flex-col">
           <div className="flex-1 flex flex-col">
             {currentSlide.render()}
           </div>
