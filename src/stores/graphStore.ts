@@ -261,13 +261,15 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     loadingFamilyId = familyId
 
     try {
-      const [persons, books, readingLogs, readingGoals, reviewsRes, recommendationsRes] = await Promise.all([
+      const [persons, books, readingLogs, readingGoals, reviewsRes, recommendationsRes, highlightsRes, lettersRes] = await Promise.all([
         supabase.from('persons').select('*').eq('family_id', familyId),
         supabase.from('books').select('*').eq('family_id', familyId),
         supabase.from('reading_logs').select('*').eq('family_id', familyId),
         supabase.from('reading_goals').select('*').eq('family_id', familyId),
         supabase.from('book_reviews').select('*').eq('family_id', familyId),
         supabase.from('book_recommendations').select('*').eq('family_id', familyId),
+        supabase.from('daily_highlights').select('*').eq('family_id', familyId),
+        supabase.from('reading_letters').select('*').eq('family_id', familyId),
       ])
 
       set({
@@ -300,6 +302,16 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
           bookTitle: r.book_title as string, author: r.author as string,
           reason: r.reason as string, emoji: r.emoji as string,
           createdAt: r.created_at as string,
+        })),
+        highlights: (highlightsRes.data ?? []).map((r: Record<string, unknown>) => ({
+          id: r.id as string, personId: r.person_id as string, bookId: r.book_id as string,
+          content: r.content as string, date: r.date as string,
+          createdAt: r.created_at as string,
+        })),
+        letters: (lettersRes.data ?? []).map((r: Record<string, unknown>) => ({
+          id: r.id as string, fromPersonId: r.from_person_id as string,
+          toPersonId: r.to_person_id as string, bookId: r.book_id as string | undefined,
+          content: r.content as string, createdAt: r.created_at as string,
         })),
         dataLoaded: true,
       })

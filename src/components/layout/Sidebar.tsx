@@ -63,6 +63,8 @@ export default function Sidebar() {
   const [initialEditId, setInitialEditId] = useState<string | null>(null)
 
   const handleLogout = async () => {
+    localStorage.removeItem('fg_store')
+    localStorage.removeItem('fg_font_size')
     await signOut()
     window.location.reload()
   }
@@ -213,12 +215,21 @@ export default function Sidebar() {
                   if (!confirm('정말 가족을 탈퇴하시겠습니까?\n가족 데이터가 모두 삭제됩니다.')) return
                   const fid = useFamilyStore.getState().activeFamilyId
                   if (fid) {
-                    const tables = ['book_reviews','book_recommendations','reading_goals','reading_logs','books','persons','family_members']
+                    // Delete in dependency order (children first)
+                    const tables = [
+                      'reading_letters', 'daily_highlights',
+                      'book_reviews', 'book_recommendations',
+                      'reading_goals', 'reading_logs',
+                      'books', 'persons', 'family_members',
+                    ]
                     for (const t of tables) {
                       await supabase.from(t).delete().eq('family_id', fid)
                     }
                     await supabase.from('families').delete().eq('id', fid)
                   }
+                  // Clear localStorage
+                  localStorage.removeItem('fg_store')
+                  localStorage.removeItem('fg_font_size')
                   window.location.reload()
                 }}
                 className="w-full py-2.5 bg-rose-500/5 text-rose-400/70 border border-rose-500/10 rounded-lg text-xs hover:bg-rose-500/15 hover:text-rose-400 transition-colors cursor-pointer"

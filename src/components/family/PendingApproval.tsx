@@ -7,7 +7,12 @@ export default function PendingApproval() {
   const loadFamily = useFamilyStore((s) => s.loadFamily)
 
   const handleRefresh = () => { loadFamily() }
-  const handleLogout = async () => { await signOut() }
+  const handleLogout = async () => {
+    localStorage.removeItem('fg_store')
+    localStorage.removeItem('fg_font_size')
+    await signOut()
+    window.location.reload()
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-surface">
