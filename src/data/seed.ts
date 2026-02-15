@@ -209,15 +209,53 @@ export const seedBooks: Book[] = [
 // ─── 독서 목표 ──────────────────────────────
 
 export const seedReadingGoals: ReadingGoal[] = [
-  { id: 'rg-1', personId: 'person-dad', month: '2026-02', targetLines: 20000 },
-  { id: 'rg-2', personId: 'person-mom', month: '2026-02', targetLines: 15000 },
-  { id: 'rg-3', personId: 'person-child1', month: '2026-02', targetLines: 10000 },
-  { id: 'rg-4', personId: 'person-child2', month: '2026-02', targetLines: 5000 },
+  // 1월 목표
+  { id: 'rg-jan-1', personId: 'person-dad', month: '2026-01', targetLines: 20000 },
+  { id: 'rg-jan-2', personId: 'person-mom', month: '2026-01', targetLines: 10000 },
+  { id: 'rg-jan-3', personId: 'person-child1', month: '2026-01', targetLines: 20000 },
+  { id: 'rg-jan-4', personId: 'person-child2', month: '2026-01', targetLines: 10000 },
+  // 2월 목표 (1월 성취 기준)
+  { id: 'rg-1', personId: 'person-dad', month: '2026-02', targetLines: 19259 },
+  { id: 'rg-2', personId: 'person-mom', month: '2026-02', targetLines: 3400 },
+  { id: 'rg-3', personId: 'person-child1', month: '2026-02', targetLines: 19260 },
+  { id: 'rg-4', personId: 'person-child2', month: '2026-02', targetLines: 7800 },
 ]
 
 // ─── 독서 기록 ──────────────────────────────
 
+// 1월 독서 기록 생성 헬퍼
+function generateJanLogs(): ReadingLog[] {
+  const logs: ReadingLog[] = []
+  let idx = 100
+
+  // 아빠 (현규): 1월 총 19,259줄 (28일, 688줄/일 + 마지막날 683줄)
+  for (let d = 1; d <= 28; d++) {
+    logs.push({ id: `rl-jan-${idx++}`, personId: 'person-dad', bookId: 'book-1', date: `2026-01-${String(d).padStart(2, '0')}`, linesRead: d < 28 ? 688 : 683 })
+  }
+
+  // 엄마 (선미): 1월 총 3,400줄 (11일, 310줄/일 + 마지막날 300줄)
+  const momDays = [2, 5, 7, 9, 12, 15, 17, 20, 23, 26, 28]
+  momDays.forEach((d, i) => {
+    logs.push({ id: `rl-jan-${idx++}`, personId: 'person-mom', bookId: 'book-2', date: `2026-01-${String(d).padStart(2, '0')}`, linesRead: i < 10 ? 310 : 300 })
+  })
+
+  // 세연 (첫째): 1월 총 19,260줄 (28일, 688줄/일 + 마지막날 684줄)
+  for (let d = 1; d <= 28; d++) {
+    logs.push({ id: `rl-jan-${idx++}`, personId: 'person-child1', bookId: 'book-3', date: `2026-01-${String(d).padStart(2, '0')}`, linesRead: d < 28 ? 688 : 684 })
+  }
+
+  // 성후 (둘째): 1월 총 7,800줄 (28일, 279줄/일 + 마지막날 267줄)
+  for (let d = 1; d <= 28; d++) {
+    logs.push({ id: `rl-jan-${idx++}`, personId: 'person-child2', bookId: 'book-3', date: `2026-01-${String(d).padStart(2, '0')}`, linesRead: d < 28 ? 279 : 267 })
+  }
+
+  return logs
+}
+
 export const seedReadingLogs: ReadingLog[] = [
+  // 1월 기록
+  ...generateJanLogs(),
+  // 2월 기록
   { id: 'rl-1', personId: 'person-dad', bookId: 'book-1', date: '2026-02-01', linesRead: 750 },
   { id: 'rl-2', personId: 'person-dad', bookId: 'book-1', date: '2026-02-02', linesRead: 500 },
   { id: 'rl-3', personId: 'person-mom', bookId: 'book-2', date: '2026-02-01', linesRead: 420 },

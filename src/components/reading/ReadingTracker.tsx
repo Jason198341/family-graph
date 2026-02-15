@@ -28,6 +28,8 @@ export default function ReadingTracker() {
   const readingLogs = useGraphStore((s) => s.readingLogs)
   const readingGoals = useGraphStore((s) => s.readingGoals)
   const addReadingLog = useGraphStore((s) => s.addReadingLog)
+  const addReadingGoal = useGraphStore((s) => s.addReadingGoal)
+  const updateReadingGoal = useGraphStore((s) => s.updateReadingGoal)
   const addBook = useGraphStore((s) => s.addBook)
   const addRelation = useGraphStore((s) => s.addRelation)
   const addToast = useGraphStore((s) => s.addToast)
@@ -38,6 +40,7 @@ export default function ReadingTracker() {
   const [formPages, setFormPages] = useState('')
   const [formDate, setFormDate] = useState(todayStr)
   const [pageMode, setPageMode] = useState<'delta' | 'absolute'>('delta')
+  const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [showAddBook, setShowAddBook] = useState(false)
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#a855f7' })
 
@@ -185,7 +188,58 @@ export default function ReadingTracker() {
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
         </button>
+        <button
+          onClick={() => setShowGoalEditor(!showGoalEditor)}
+          className="ml-auto text-[10px] px-3 py-1.5 bg-surface-lighter border border-surface-border rounded-lg text-gray-400 hover:text-white hover:border-primary-500/50 transition-all cursor-pointer"
+        >
+          🎯 목표 설정
+        </button>
       </div>
+
+      {/* Goal editor */}
+      {showGoalEditor && (
+        <div className="bg-surface-light/80 backdrop-blur-md border border-primary-500/30 rounded-2xl p-5 space-y-3 animate-fade-in-up">
+          <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
+            {formatMonth(selectedMonth)} 개인별 독서 목표
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {persons.map((person) => {
+              const goal = readingGoals.find(
+                (g) => g.personId === person.id && g.month === selectedMonth,
+              )
+              return (
+                <div key={person.id} className="flex items-center gap-3">
+                  <span className="text-lg">{person.emoji}</span>
+                  <span className="text-xs font-medium text-gray-300 w-12">{person.name}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1000}
+                    defaultValue={goal?.targetLines ?? 0}
+                    onBlur={(e) => {
+                      const val = parseInt(e.target.value, 10)
+                      if (isNaN(val) || val < 0) return
+                      if (goal) {
+                        updateReadingGoal(goal.id, val)
+                        addToast(`${person.name} 목표: ${val.toLocaleString()}줄`, 'success')
+                      } else {
+                        addReadingGoal({ personId: person.id, month: selectedMonth, targetLines: val })
+                        addToast(`${person.name} 목표 생성: ${val.toLocaleString()}줄`, 'success')
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                    }}
+                    className="flex-1 bg-surface border border-surface-border rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-primary-500 tabular-nums"
+                  />
+                  <span className="text-[10px] text-gray-600">줄</span>
+                </div>
+              )
+            })}
+          </div>
+          <p className="text-[9px] text-gray-600">숫자 입력 후 Enter 또는 바깥 클릭으로 저장됩니다</p>
+        </div>
+      )}
 
       {/* Family overview stats */}
       <div className="grid grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
