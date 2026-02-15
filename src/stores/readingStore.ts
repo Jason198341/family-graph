@@ -155,6 +155,7 @@ interface ReadingState {
 
   // book / reading mutations
   addBook: (data: Omit<Book, 'id'>) => Book
+  updateBook: (id: string, updates: Partial<Omit<Book, 'id'>>) => void
   removeBook: (id: string) => void
   addReadingLog: (data: Omit<ReadingLog, 'id'>) => ReadingLog
   removeReadingLog: (id: string) => void
@@ -447,6 +448,31 @@ export const useReadingStore = create<ReadingState>()((set, get) => ({
       )
     }
     return book
+  },
+
+  updateBook: (id, updates) => {
+    const prev = get().books.find((b) => b.id === id)
+    if (!prev) return
+    set((s) => {
+      const next = { books: s.books.map((b) => (b.id === id ? { ...b, ...updates } : b)) }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      const dbUpdates: Record<string, unknown> = {}
+      if (updates.title !== undefined) dbUpdates.title = updates.title
+      if (updates.author !== undefined) dbUpdates.author = updates.author
+      if (updates.totalPages !== undefined) dbUpdates.total_pages = updates.totalPages
+      if (updates.linesPerPage !== undefined) dbUpdates.lines_per_page = updates.linesPerPage
+      if (updates.emoji !== undefined) dbUpdates.emoji = updates.emoji
+      if (updates.color !== undefined) dbUpdates.color = updates.color
+      if (updates.coverUrl !== undefined) dbUpdates.cover_url = updates.coverUrl ?? null
+      dbSyncWithRollback(
+        supabase.from('books').update(dbUpdates).eq('id', id),
+        () => set((s) => ({ books: s.books.map((b) => (b.id === id ? prev : b)) })),
+        'updateBook',
+      )
+    }
   },
 
   removeBook: (id) => {

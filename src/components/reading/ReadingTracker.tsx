@@ -35,6 +35,7 @@ export default function ReadingTracker() {
   const addReadingGoal = useReadingStore((s) => s.addReadingGoal)
   const updateReadingGoal = useReadingStore((s) => s.updateReadingGoal)
   const addBook = useReadingStore((s) => s.addBook)
+  const updateBook = useReadingStore((s) => s.updateBook)
   const addToast = useReadingStore((s) => s.addToast)
   const updateBookProgress = useReadingStore((s) => s.updateBookProgress)
   const getBookProgress = useReadingStore((s) => s.getBookProgress)
@@ -55,6 +56,10 @@ export default function ReadingTracker() {
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#d97706', coverUrl: '' })
   const [bookSearchResults, setBookSearchResults] = useState<{ title: string; author: string; pages: number; cover: string }[]>([])
   const [searchingBooks, setSearchingBooks] = useState(false)
+  const [editingCoverBookId, setEditingCoverBookId] = useState<string | null>(null)
+  const [coverSearchResults, setCoverSearchResults] = useState<{ cover: string; title: string }[]>([])
+  const [searchingCovers, setSearchingCovers] = useState(false)
+  const [manualCoverUrl, setManualCoverUrl] = useState('')
 
   // ── Computed data ──
   const familyStats = useMemo(() => {
@@ -147,6 +152,38 @@ export default function ReadingTracker() {
       coverUrl: result.cover,
     }))
     setBookSearchResults([])
+  }
+
+  const searchCoverForBook = async (bookId: string) => {
+    const book = books.find((b) => b.id === bookId)
+    if (!book) return
+    setEditingCoverBookId(bookId)
+    setManualCoverUrl('')
+    setSearchingCovers(true)
+    try {
+      const q = `${book.title} ${book.author}`.trim()
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5&langRestrict=ko`)
+      const data = await res.json()
+      const results = (data.items ?? [])
+        .map((item: any) => ({
+          cover: item.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:') ?? '',
+          title: item.volumeInfo?.title ?? '',
+        }))
+        .filter((r: { cover: string }) => r.cover)
+      setCoverSearchResults(results)
+    } catch {
+      setCoverSearchResults([])
+    } finally {
+      setSearchingCovers(false)
+    }
+  }
+
+  const selectCoverForBook = (bookId: string, coverUrl: string) => {
+    updateBook(bookId, { coverUrl })
+    addToast('표지가 저장되었습니다!', 'success')
+    setEditingCoverBookId(null)
+    setCoverSearchResults([])
+    setManualCoverUrl('')
   }
 
   const handleAddBook = () => {
@@ -472,20 +509,85 @@ export default function ReadingTracker() {
               .filter(Boolean) as { person: typeof persons[0]; progress: BookProgress | undefined }[]
             const anyCompleted = bookProgresses.some((bp) => bp.completed)
 
+            const isEditingCover = editingCoverBookId === book.id
+
             return (
               <div key={book.id} className="bg-white rounded-xl p-3 border border-stone-200/60 shadow-sm">
                 <div className="flex items-start gap-3">
                   {book.coverUrl ? (
-                    <img src={book.coverUrl} alt="" className="w-10 h-14 object-cover rounded shadow-sm shrink-0" />
+                    <button onClick={() => searchCoverForBook(book.id)} className="relative group cursor-pointer shrink-0">
+                      <img src={book.coverUrl} alt="" className="w-10 h-14 object-cover rounded shadow-sm" />
+                      <div className="absolute inset-0 bg-black/40 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-[8px]">변경</span>
+                      </div>
+                    </button>
                   ) : (
-                    <span className="text-2xl">{book.emoji}</span>
+                    <button onClick={() => searchCoverForBook(book.id)} className="text-2xl cursor-pointer hover:scale-110 transition-transform shrink-0" title="표지 추가">
+                      {book.emoji}
+                    </button>
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-stone-800 truncate">{book.title}</p>
                     <p className="text-xs text-stone-400">{book.author} · {book.totalPages}p</p>
                   </div>
-                  {anyCompleted && <span className="text-xs text-green-500 shrink-0">✅</span>}
+                  <div className="flex items-center gap-1 shrink-0">
+                    {anyCompleted && <span className="text-xs text-green-500">✅</span>}
+                    {!book.coverUrl && (
+                      <button
+                        onClick={() => searchCoverForBook(book.id)}
+                        className="text-[10px] text-amber-500 hover:text-amber-600 transition-colors cursor-pointer"
+                      >
+                        표지
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {/* Cover picker inline */}
+                {isEditingCover && (
+                  <div className="mt-2 p-2.5 bg-stone-50 rounded-lg border border-stone-200 space-y-2">
+                    {searchingCovers && <p className="text-[10px] text-stone-400 text-center">표지 검색 중...</p>}
+                    {coverSearchResults.length > 0 && (
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {coverSearchResults.map((r, i) => (
+                          <button
+                            key={i}
+                            onClick={() => selectCoverForBook(book.id, r.cover)}
+                            className="shrink-0 cursor-pointer hover:ring-2 hover:ring-amber-400 rounded-lg transition-all"
+                          >
+                            <img src={r.cover} alt={r.title} className="w-12 h-16 object-cover rounded-lg shadow-sm" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {!searchingCovers && coverSearchResults.length === 0 && (
+                      <p className="text-[10px] text-stone-400 text-center">검색 결과가 없습니다</p>
+                    )}
+                    <div className="flex gap-1.5">
+                      <input
+                        value={manualCoverUrl}
+                        onChange={(e) => setManualCoverUrl(e.target.value)}
+                        placeholder="이미지 URL 직접 입력..."
+                        className="flex-1 bg-white border border-stone-200 rounded-lg px-2 py-1.5 text-[11px] text-stone-700 outline-none focus:border-amber-400"
+                      />
+                      <button
+                        onClick={() => {
+                          if (manualCoverUrl.trim()) selectCoverForBook(book.id, manualCoverUrl.trim())
+                        }}
+                        disabled={!manualCoverUrl.trim()}
+                        className="px-2.5 py-1.5 bg-amber-500 text-white text-[10px] font-bold rounded-lg hover:bg-amber-600 disabled:opacity-40 cursor-pointer transition-colors shrink-0"
+                      >
+                        저장
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => { setEditingCoverBookId(null); setCoverSearchResults([]); setManualCoverUrl('') }}
+                      className="w-full text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer transition-colors"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                )}
                 {readers.length > 0 && (
                   <div className="mt-2.5 space-y-1.5">
                     {readers.map(({ person, progress }) => {
