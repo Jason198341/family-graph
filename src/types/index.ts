@@ -9,6 +9,10 @@ export interface FamilyPerson {
   emoji: string         // avatar emoji
   bio: string
   color: string         // hex color for graph node
+  birthYear?: number
+  goalLines?: number           // 연간 독서 목표 줄 수
+  goalWritingCount?: number    // 연간 글쓰기 목표 편수
+  goalWritingAvg?: number      // 연간 글쓰기 목표 평균 점수
 }
 
 export interface Interest {
@@ -129,7 +133,7 @@ export interface ChatMessage {
 
 // ─── View State ────────────────────────────
 
-export type AppView = 'dashboard' | 'graph' | 'chat' | 'extract' | 'timeline' | 'reading'
+export type AppView = 'dashboard' | 'graph' | 'chat' | 'extract' | 'timeline' | 'reading' | 'writing'
 
 // ─── Family / Auth Types (Supabase) ────────
 
@@ -172,6 +176,9 @@ export interface Book {
   linesPerPage: number
   emoji: string
   color: string
+  currentPage?: number
+  completed?: boolean
+  completedDate?: string
 }
 
 export interface ReadingLog {
@@ -187,4 +194,48 @@ export interface ReadingGoal {
   personId: string
   month: string           // YYYY-MM
   targetLines: number
+}
+
+// ─── Writing Types ───────────────────────────
+
+export interface WritingScores {
+  content: number       // 0-20 내용 충실도
+  logic: number         // 0-20 논리적 구성
+  depth: number         // 0-20 사고의 깊이
+  specificity: number   // 0-20 구체적 표현
+  clarity: number       // 0-20 문장 명확성
+}
+
+export interface WritingFeedback {
+  content: string
+  logic: string
+  depth: string
+  specificity: string
+  clarity: string
+  overall: string
+}
+
+export type WritingGrade = 'S' | 'A' | 'B' | 'C' | 'D'
+
+export interface WritingEntry {
+  id: string
+  personId: string
+  date: string            // YYYY-MM-DD
+  title: string
+  content: string
+  charCount: number
+  wordCount: number
+  scores: WritingScores
+  totalScore: number      // 0-100
+  grade: WritingGrade
+  feedback: WritingFeedback
+  badges: string[]
+}
+
+export interface WritingGoal {
+  id: string
+  personId: string
+  year: number
+  targetCount: number
+  targetAvgScore: number
 }

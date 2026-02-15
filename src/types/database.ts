@@ -75,6 +75,10 @@ export interface Database {
           emoji: string
           bio: string
           color: string
+          birth_year: number | null
+          goal_lines: number | null
+          goal_writing_count: number | null
+          goal_writing_avg: number | null
           created_at: string
           updated_at: string
         }
@@ -86,6 +90,10 @@ export interface Database {
           emoji?: string
           bio?: string
           color?: string
+          birth_year?: number
+          goal_lines?: number
+          goal_writing_count?: number
+          goal_writing_avg?: number
         }
         Update: {
           name?: string
@@ -93,6 +101,10 @@ export interface Database {
           emoji?: string
           bio?: string
           color?: string
+          birth_year?: number
+          goal_lines?: number
+          goal_writing_count?: number
+          goal_writing_avg?: number
         }
       }
       interests: {
@@ -221,6 +233,9 @@ export interface Database {
           lines_per_page: number
           emoji: string
           color: string
+          current_page: number
+          completed: boolean
+          completed_date: string | null
           created_at: string
           updated_at: string
         }
@@ -233,6 +248,9 @@ export interface Database {
           lines_per_page?: number
           emoji?: string
           color?: string
+          current_page?: number
+          completed?: boolean
+          completed_date?: string
         }
         Update: {
           title?: string
@@ -241,6 +259,9 @@ export interface Database {
           lines_per_page?: number
           emoji?: string
           color?: string
+          current_page?: number
+          completed?: boolean
+          completed_date?: string
         }
       }
       reading_logs: {
@@ -361,6 +382,73 @@ export interface Database {
           content?: string
         }
       }
+      writing_entries: {
+        Row: {
+          id: string
+          family_id: string
+          person_id: string
+          date: string
+          title: string
+          content: string
+          char_count: number
+          word_count: number
+          scores: { content: number; logic: number; depth: number; specificity: number; clarity: number }
+          total_score: number
+          grade: string
+          feedback: { content: string; logic: string; depth: string; specificity: string; clarity: string; overall: string }
+          badges: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          family_id: string
+          person_id: string
+          date?: string
+          title: string
+          content: string
+          char_count?: number
+          word_count?: number
+          scores?: Record<string, number>
+          total_score?: number
+          grade?: string
+          feedback?: Record<string, string>
+          badges?: string[]
+        }
+        Update: {
+          title?: string
+          content?: string
+          scores?: Record<string, number>
+          total_score?: number
+          grade?: string
+          feedback?: Record<string, string>
+          badges?: string[]
+        }
+      }
+      writing_goals: {
+        Row: {
+          id: string
+          family_id: string
+          person_id: string
+          year: number
+          target_count: number
+          target_avg_score: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          family_id: string
+          person_id: string
+          year: number
+          target_count?: number
+          target_avg_score?: number
+        }
+        Update: {
+          target_count?: number
+          target_avg_score?: number
+        }
+      }
     }
     Functions: {
       my_family_ids: { Args: Record<string, never>; Returns: string[] }
@@ -390,3 +478,5 @@ export type ReadingGoalRow = Database['public']['Tables']['reading_goals']['Row'
 export type GraphRelationRow = Database['public']['Tables']['graph_relations']['Row']
 export type InsightRow = Database['public']['Tables']['insights']['Row']
 export type ChatMessageRow = Database['public']['Tables']['chat_messages']['Row']
+export type WritingEntryRow = Database['public']['Tables']['writing_entries']['Row']
+export type WritingGoalRow = Database['public']['Tables']['writing_goals']['Row']

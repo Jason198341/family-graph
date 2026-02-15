@@ -37,6 +37,7 @@ export default function ReadingTracker() {
   const [formBookId, setFormBookId] = useState(books[0]?.id ?? '')
   const [formPages, setFormPages] = useState('')
   const [formDate, setFormDate] = useState(todayStr)
+  const [pageMode, setPageMode] = useState<'delta' | 'absolute'>('delta')
   const [showAddBook, setShowAddBook] = useState(false)
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#a855f7' })
 
@@ -85,15 +86,43 @@ export default function ReadingTracker() {
   // ── Derived: selected book's linesPerPage ──
   const selectedBook = books.find((b) => b.id === formBookId)
   const linesPerPage = selectedBook?.linesPerPage ?? 25
-  const calculatedLines = Math.round((parseInt(formPages, 10) || 0) * linesPerPage)
+  const updateBookProgress = useGraphStore((s) => s.updateBookProgress)
+
+  const calculatedLines = useMemo(() => {
+    const val = parseInt(formPages, 10) || 0
+    if (pageMode === 'absolute' && selectedBook) {
+      const prevPage = selectedBook.currentPage ?? 0
+      const delta = Math.max(0, val - prevPage)
+      return Math.round(delta * linesPerPage)
+    }
+    return Math.round(val * linesPerPage)
+  }, [formPages, pageMode, selectedBook, linesPerPage])
 
   // ── Handlers ──
   const handleAddLog = () => {
-    const pages = parseInt(formPages, 10)
-    if (!formPersonId || !formBookId || isNaN(pages) || pages <= 0) {
+    const val = parseInt(formPages, 10)
+    if (!formPersonId || !formBookId || isNaN(val) || val <= 0) {
       addToast('사람, 책, 페이지 수를 확인하세요', 'error')
       return
     }
+
+    let pages: number
+    if (pageMode === 'absolute' && selectedBook) {
+      const prevPage = selectedBook.currentPage ?? 0
+      pages = Math.max(0, val - prevPage)
+      if (pages <= 0) {
+        addToast('현재 페이지가 이전 기록보다 작습니다', 'error')
+        return
+      }
+      updateBookProgress(formBookId, val)
+    } else {
+      pages = val
+      if (selectedBook) {
+        const newPage = (selectedBook.currentPage ?? 0) + pages
+        updateBookProgress(formBookId, newPage)
+      }
+    }
+
     const lines = Math.round(pages * linesPerPage)
     addReadingLog({ personId: formPersonId, bookId: formBookId, date: formDate, linesRead: lines })
     addToast(`${pages}p × ${linesPerPage}줄 = ${lines.toLocaleString()}줄 기록!`, 'success')
@@ -265,18 +294,34 @@ export default function ReadingTracker() {
 
           {/* Pages read */}
           <div>
-            <label className="text-[10px] text-gray-500 block mb-1">읽은 페이지 수</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[10px] text-gray-500">
+                {pageMode === 'absolute' ? '현재 페이지 번호' : '읽은 페이지 수'}
+              </label>
+              <button
+                onClick={() => setPageMode(pageMode === 'delta' ? 'absolute' : 'delta')}
+                className="text-[9px] text-primary-400 hover:text-primary-300 transition-colors cursor-pointer"
+              >
+                {pageMode === 'delta' ? '→ 페이지 번호 입력' : '→ 읽은 수 입력'}
+              </button>
+            </div>
             <input
               type="number"
               min={1}
               value={formPages}
               onChange={(e) => setFormPages(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddLog()}
-              placeholder="20"
+              placeholder={pageMode === 'absolute' ? `${(selectedBook?.currentPage ?? 0) + 1}` : '20'}
               className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary-500"
             />
             {calculatedLines > 0 && (
               <p className="text-[10px] text-primary-400 mt-0.5">= {calculatedLines.toLocaleString()}줄 ({linesPerPage}줄/p)</p>
+            )}
+            {selectedBook && (
+              <p className="text-[9px] text-gray-600 mt-0.5">
+                진행: {selectedBook.currentPage ?? 0}/{selectedBook.totalPages}p
+                {selectedBook.completed && ' ✅ 완독'}
+              </p>
             )}
           </div>
 

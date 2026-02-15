@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import Sidebar from '@/components/layout/Sidebar'
 import NodeDetail from '@/components/layout/NodeDetail'
-import Dashboard from '@/components/dashboard/Dashboard'
+import RaceDashboard from '@/components/race/RaceDashboard'
 import Toast from '@/components/common/Toast'
 import LoginPage from '@/components/auth/LoginPage'
 import FamilySetup from '@/components/family/FamilySetup'
@@ -17,6 +17,7 @@ const KnowledgeGraph = lazy(() => import('@/components/graph/KnowledgeGraph'))
 const GrowthChat = lazy(() => import('@/components/chat/GrowthChat'))
 const ExtractPanel = lazy(() => import('@/components/chat/ExtractPanel'))
 const ReadingTracker = lazy(() => import('@/components/reading/ReadingTracker'))
+const WritingPage = lazy(() => import('@/components/writing/WritingPage'))
 
 function ViewLoader() {
   return (
@@ -154,13 +155,14 @@ function MainApp() {
       <Sidebar />
 
       <main className="flex-1 flex overflow-hidden relative">
-        {activeView === 'dashboard' && <Dashboard />}
+        {activeView === 'dashboard' && <RaceDashboard />}
         {activeView === 'timeline' && <TimelineView />}
         <Suspense fallback={<ViewLoader />}>
           {activeView === 'graph' && <KnowledgeGraph />}
           {activeView === 'chat' && <GrowthChat />}
           {activeView === 'extract' && <ExtractPanel />}
           {activeView === 'reading' && <ReadingTracker />}
+          {activeView === 'writing' && <WritingPage />}
         </Suspense>
       </main>
 

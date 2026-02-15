@@ -38,6 +38,14 @@
   --color-growth-500: #22c55e;
   --color-growth-600: #16a34a;
 
+  --color-race-50: #fffbeb;
+  --color-race-100: #fef3c7;
+  --color-race-200: #fde68a;
+  --color-race-300: #fcd34d;
+  --color-race-400: #fbbf24;
+  --color-race-500: #f59e0b;
+  --color-race-600: #d97706;
+
   --color-surface: #06080f;
   --color-surface-light: #0f1420;
   --color-surface-lighter: #1a2033;
@@ -97,3 +105,31 @@ body {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+@keyframes runnerBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-runner-bounce { animation: runnerBounce 0.6s ease-in-out infinite; }
+
+@keyframes finishPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 16px 4px rgba(245, 158, 11, 0.6); }
+}
+.animate-finish-pulse { animation: finishPulse 2s ease-in-out infinite; }
+
+@keyframes gradeGlow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+}
+.animate-grade-glow { animation: gradeGlow 2s ease-in-out infinite; }
+
+.stagger-fade > * {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+.stagger-fade > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-fade > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-fade > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-fade > *:nth-child(5) { animation-delay: 320ms; }

@@ -9,7 +9,7 @@ const LS_KEY = 'fg_ai_usage'
 /** Emails with unlimited AI usage (no daily cap) */
 const UNLIMITED_EMAILS = ['skypeople41@gmail.com']
 
-type AiFeature = 'chat' | 'extract'
+type AiFeature = 'chat' | 'extract' | 'writing'
 
 interface AiUsageState {
   todayCount: number

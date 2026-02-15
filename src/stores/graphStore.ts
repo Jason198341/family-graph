@@ -16,6 +16,8 @@ import type {
   Book,
   ReadingLog,
   ReadingGoal,
+  WritingEntry,
+  WritingGoal,
 } from '@/types'
 import {
   seedPersons,
@@ -27,6 +29,8 @@ import {
   seedBooks,
   seedReadingLogs,
   seedReadingGoals,
+  seedWritingEntries,
+  seedWritingGoals,
 } from '@/data/seed'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useFamilyStore } from './familyStore'
@@ -53,10 +57,11 @@ function persistLocal(state: GraphState) {
     const {
       persons, interests, values, events, goals, relations,
       insights, chatMessages, books, readingLogs, readingGoals,
+      writingEntries, writingGoals,
     } = state
     localStorage.setItem(
       FG_KEY,
-      JSON.stringify({ persons, interests, values, events, goals, relations, insights, chatMessages, books, readingLogs, readingGoals }),
+      JSON.stringify({ persons, interests, values, events, goals, relations, insights, chatMessages, books, readingLogs, readingGoals, writingEntries, writingGoals }),
     )
   }, 1_000)
 }
@@ -141,6 +146,12 @@ interface Toast {
   type: 'success' | 'error' | 'info'
 }
 
+interface RaceProgress {
+  readingPercent: number
+  writingPercent: number
+  combinedPercent: number
+}
+
 interface GraphState {
   // data
   persons: FamilyPerson[]
@@ -154,6 +165,8 @@ interface GraphState {
   books: Book[]
   readingLogs: ReadingLog[]
   readingGoals: ReadingGoal[]
+  writingEntries: WritingEntry[]
+  writingGoals: WritingGoal[]
 
   // ui
   activeView: AppView
@@ -194,12 +207,28 @@ interface GraphState {
   addReadingLog: (data: Omit<ReadingLog, 'id'>) => ReadingLog
   addReadingGoal: (data: Omit<ReadingGoal, 'id'>) => ReadingGoal
   updateReadingGoal: (id: string, targetLines: number) => void
+  updateBookProgress: (bookId: string, currentPage: number) => void
+  updatePersonGoals: (personId: string, goals: { goalLines?: number; goalWritingCount?: number; goalWritingAvg?: number }) => void
+
+  // writing mutations
+  addWritingEntry: (data: Omit<WritingEntry, 'id'>) => WritingEntry
+  removeWritingEntry: (id: string) => void
+  addWritingGoal: (data: Omit<WritingGoal, 'id'>) => WritingGoal
+  updateWritingGoal: (id: string, updates: Partial<Pick<WritingGoal, 'targetCount' | 'targetAvgScore'>>) => void
 
   // reading queries
   getReadingLogsForMonth: (personId: string, month: string) => ReadingLog[]
   getReadingGoalForMonth: (personId: string, month: string) => ReadingGoal | undefined
   getTotalLinesForMonth: (personId: string, month: string) => number
   getStreakDays: (personId: string) => number
+
+  // writing queries
+  getWritingsForPerson: (personId: string) => WritingEntry[]
+  getWritingsForYear: (personId: string, year: number) => WritingEntry[]
+  getAvgWritingScore: (personId: string, year: number) => number
+
+  // race queries
+  getRaceProgress: (personId: string, year: number) => RaceProgress
 
   // AI helpers
   addInsight: (insight: Omit<GrowthInsight, 'id' | 'createdAt'>) => void
@@ -241,6 +270,8 @@ function getInitialData() {
       books: persisted.books ?? seedBooks,
       readingLogs: persisted.readingLogs ?? seedReadingLogs,
       readingGoals: persisted.readingGoals ?? seedReadingGoals,
+      writingEntries: (persisted as Record<string, unknown>).writingEntries as WritingEntry[] ?? seedWritingEntries,
+      writingGoals: (persisted as Record<string, unknown>).writingGoals as WritingGoal[] ?? seedWritingGoals,
     }
   }
   return {
@@ -255,6 +286,8 @@ function getInitialData() {
     books: seedBooks,
     readingLogs: seedReadingLogs,
     readingGoals: seedReadingGoals,
+    writingEntries: seedWritingEntries,
+    writingGoals: seedWritingGoals,
   }
 }
 
@@ -359,7 +392,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     loadingFamilyId = familyId
 
     try {
-    const [persons, interests, values, events, goals, books, readingLogs, readingGoals, relations, insights, chatMessages] = await Promise.all([
+    const [persons, interests, values, events, goals, books, readingLogs, readingGoals, relations, insights, chatMessages, writingEntriesRes, writingGoalsRes] = await Promise.all([
       supabase.from('persons').select('*').eq('family_id', familyId),
       supabase.from('interests').select('*').eq('family_id', familyId),
       supabase.from('family_values').select('*').eq('family_id', familyId),
@@ -371,11 +404,17 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       supabase.from('graph_relations').select('*').eq('family_id', familyId),
       supabase.from('insights').select('*').eq('family_id', familyId),
       supabase.from('chat_messages').select('*').eq('family_id', familyId).order('created_at'),
+      supabase.from('writing_entries').select('*').eq('family_id', familyId),
+      supabase.from('writing_goals').select('*').eq('family_id', familyId),
     ])
 
     set({
       persons: (persons.data ?? []).map((r) => ({
         id: r.id, name: r.name, role: r.role, emoji: r.emoji, bio: r.bio, color: r.color,
+        birthYear: (r as Record<string, unknown>).birth_year as number | undefined,
+        goalLines: (r as Record<string, unknown>).goal_lines as number | undefined,
+        goalWritingCount: (r as Record<string, unknown>).goal_writing_count as number | undefined,
+        goalWritingAvg: (r as Record<string, unknown>).goal_writing_avg as number | undefined,
       })),
       interests: (interests.data ?? []).map((r) => ({
         id: r.id, name: r.name, category: r.category as Interest['category'], emoji: r.emoji, description: r.description,
@@ -395,6 +434,9 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       books: (books.data ?? []).map((r) => ({
         id: r.id, title: r.title, author: r.author, totalPages: r.total_pages,
         linesPerPage: r.lines_per_page, emoji: r.emoji, color: r.color,
+        currentPage: (r as Record<string, unknown>).current_page as number | undefined,
+        completed: (r as Record<string, unknown>).completed as boolean | undefined,
+        completedDate: (r as Record<string, unknown>).completed_date as string | undefined,
       })),
       readingLogs: (readingLogs.data ?? []).map((r) => ({
         id: r.id, personId: r.person_id, bookId: r.book_id, date: r.date, linesRead: r.lines_read,
@@ -415,6 +457,20 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       chatMessages: (chatMessages.data ?? []).map((r) => ({
         id: r.id, role: r.role as ChatMessage['role'], content: r.content,
         timestamp: new Date(r.created_at).getTime(), relatedNodeIds: r.related_node_ids ?? [],
+      })),
+      writingEntries: (writingEntriesRes.data ?? []).map((r: Record<string, unknown>) => ({
+        id: r.id as string, personId: r.person_id as string, date: r.date as string,
+        title: r.title as string, content: r.content as string,
+        charCount: r.char_count as number, wordCount: r.word_count as number,
+        scores: r.scores as WritingEntry['scores'],
+        totalScore: r.total_score as number, grade: r.grade as WritingEntry['grade'],
+        feedback: r.feedback as WritingEntry['feedback'],
+        badges: (r.badges as string[]) ?? [],
+      })),
+      writingGoals: (writingGoalsRes.data ?? []).map((r: Record<string, unknown>) => ({
+        id: r.id as string, personId: r.person_id as string,
+        year: r.year as number, targetCount: r.target_count as number,
+        targetAvgScore: r.target_avg_score as number,
       })),
       dataLoaded: true,
     })
@@ -793,6 +849,123 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     }
   },
 
+  updateBookProgress: (bookId, currentPage) => {
+    set((s) => {
+      const book = s.books.find((b) => b.id === bookId)
+      if (!book) return {}
+      const completed = currentPage >= book.totalPages
+      const next = {
+        books: s.books.map((b) =>
+          b.id === bookId
+            ? { ...b, currentPage, completed, completedDate: completed ? new Date().toISOString().slice(0, 10) : b.completedDate }
+            : b,
+        ),
+      }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      const book = get().books.find((b) => b.id === bookId)
+      const completed = book ? currentPage >= book.totalPages : false
+      dbSync(supabase.from('books').update({
+        current_page: currentPage,
+        completed,
+        completed_date: completed ? new Date().toISOString().slice(0, 10) : null,
+      }).eq('id', bookId))
+    }
+  },
+
+  updatePersonGoals: (personId, goals) => {
+    set((s) => {
+      const next = {
+        persons: s.persons.map((p) => p.id === personId ? { ...p, ...goals } : p),
+      }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      const snakeUpdates: Record<string, unknown> = {}
+      if (goals.goalLines !== undefined) snakeUpdates.goal_lines = goals.goalLines
+      if (goals.goalWritingCount !== undefined) snakeUpdates.goal_writing_count = goals.goalWritingCount
+      if (goals.goalWritingAvg !== undefined) snakeUpdates.goal_writing_avg = goals.goalWritingAvg
+      dbSync(supabase.from('persons').update(snakeUpdates).eq('id', personId))
+    }
+  },
+
+  // ── writing mutations ──
+  addWritingEntry: (data) => {
+    const id = genId('wentry')
+    const entry: WritingEntry = { ...data, id }
+    set((s) => {
+      const next = { writingEntries: [...s.writingEntries, entry] }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSyncWithRollback(
+        supabase.from('writing_entries').insert({
+          id, family_id: getFamilyId(), person_id: data.personId,
+          date: data.date, title: data.title, content: data.content,
+          char_count: data.charCount, word_count: data.wordCount,
+          scores: data.scores, total_score: data.totalScore,
+          grade: data.grade, feedback: data.feedback, badges: data.badges,
+        }),
+        () => set((s) => ({ writingEntries: s.writingEntries.filter((e) => e.id !== id) })),
+        'addWritingEntry',
+      )
+    }
+    return entry
+  },
+
+  removeWritingEntry: (id) => {
+    set((s) => {
+      const next = { writingEntries: s.writingEntries.filter((e) => e.id !== id) }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSync(supabase.from('writing_entries').delete().eq('id', id))
+    }
+  },
+
+  addWritingGoal: (data) => {
+    const id = genId('wgoal')
+    const goal: WritingGoal = { ...data, id }
+    set((s) => {
+      const next = { writingGoals: [...s.writingGoals, goal] }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSyncWithRollback(
+        supabase.from('writing_goals').insert({
+          id, family_id: getFamilyId(), person_id: data.personId,
+          year: data.year, target_count: data.targetCount,
+          target_avg_score: data.targetAvgScore,
+        }),
+        () => set((s) => ({ writingGoals: s.writingGoals.filter((g) => g.id !== id) })),
+        'addWritingGoal',
+      )
+    }
+    return goal
+  },
+
+  updateWritingGoal: (id, updates) => {
+    set((s) => {
+      const next = {
+        writingGoals: s.writingGoals.map((g) => g.id === id ? { ...g, ...updates } : g),
+      }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      const snakeUpdates: Record<string, unknown> = {}
+      if (updates.targetCount !== undefined) snakeUpdates.target_count = updates.targetCount
+      if (updates.targetAvgScore !== undefined) snakeUpdates.target_avg_score = updates.targetAvgScore
+      dbSync(supabase.from('writing_goals').update(snakeUpdates).eq('id', id))
+    }
+  },
+
   // ── reading queries ──
   getReadingLogsForMonth: (personId, month) => {
     const s = get()
@@ -830,6 +1003,60 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       }
     }
     return streak
+  },
+
+  // ── writing queries ──
+  getWritingsForPerson: (personId) => {
+    return get().writingEntries.filter((e) => e.personId === personId)
+  },
+
+  getWritingsForYear: (personId, year) => {
+    const prefix = String(year)
+    return get().writingEntries.filter((e) => e.personId === personId && e.date.startsWith(prefix))
+  },
+
+  getAvgWritingScore: (personId, year) => {
+    const entries = get().writingEntries.filter(
+      (e) => e.personId === personId && e.date.startsWith(String(year)),
+    )
+    if (entries.length === 0) return 0
+    return Math.round(entries.reduce((s, e) => s + e.totalScore, 0) / entries.length)
+  },
+
+  // ── race progress ──
+  getRaceProgress: (personId, year) => {
+    const s = get()
+    const person = s.persons.find((p) => p.id === personId)
+    if (!person) return { readingPercent: 0, writingPercent: 0, combinedPercent: 0 }
+
+    // Reading: total lines this year / goalLines
+    const yearPrefix = String(year)
+    const yearLines = s.readingLogs
+      .filter((l) => l.personId === personId && l.date.startsWith(yearPrefix))
+      .reduce((sum, l) => sum + l.linesRead, 0)
+    const readingPercent = person.goalLines && person.goalLines > 0
+      ? Math.min(100, Math.round((yearLines / person.goalLines) * 100))
+      : 0
+
+    // Writing: min(count/goalCount, avgScore/goalAvgScore)
+    const yearWritings = s.writingEntries.filter(
+      (e) => e.personId === personId && e.date.startsWith(yearPrefix),
+    )
+    const writtenCount = yearWritings.length
+    const avgScore = writtenCount > 0
+      ? yearWritings.reduce((sum, e) => sum + e.totalScore, 0) / writtenCount
+      : 0
+    const goalCount = person.goalWritingCount ?? 0
+    const goalAvg = person.goalWritingAvg ?? 0
+    const countRatio = goalCount > 0 ? writtenCount / goalCount : 0
+    const scoreRatio = goalAvg > 0 ? avgScore / goalAvg : 0
+    const writingPercent = goalCount > 0
+      ? Math.min(100, Math.round(Math.min(countRatio, scoreRatio) * 100))
+      : 0
+
+    const combinedPercent = Math.round((readingPercent * 0.5) + (writingPercent * 0.5))
+
+    return { readingPercent, writingPercent, combinedPercent }
   },
 
   // ── AI state ──

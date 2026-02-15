@@ -9,13 +9,10 @@ import MemberManager from '@/components/family/MemberManager'
 const navItems: { view: AppView; label: string; icon: ReactNode }[] = [
   {
     view: 'dashboard',
-    label: '대시보드',
+    label: '레이스',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
       </svg>
     ),
   },
@@ -64,6 +61,16 @@ const navItems: { view: AppView; label: string; icon: ReactNode }[] = [
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
         <line x1="8" y1="7" x2="16" y2="7" />
         <line x1="8" y1="11" x2="13" y2="11" />
+      </svg>
+    ),
+  },
+  {
+    view: 'writing',
+    label: '글쓰기',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        <path d="M15 5l4 4" />
       </svg>
     ),
   },

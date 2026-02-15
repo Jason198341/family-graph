@@ -1,4 +1,4 @@
-import type { FamilyPerson, Interest, FamilyValue, LifeEvent, GrowthGoal, GraphRelation, Book, ReadingLog, ReadingGoal } from '@/types'
+import type { FamilyPerson, Interest, FamilyValue, LifeEvent, GrowthGoal, GraphRelation, Book, ReadingLog, ReadingGoal, WritingEntry, WritingGoal } from '@/types'
 
 // ─── 가족 구성원 ────────────────────────────
 
@@ -10,6 +10,10 @@ export const seedPersons: FamilyPerson[] = [
     emoji: '👨‍💼',
     bio: '자동차 공학 전문가. 마라톤과 자기계발에 열정적인 가장.',
     color: '#3b82f6',
+    birthYear: 1985,
+    goalLines: 200000,
+    goalWritingCount: 24,
+    goalWritingAvg: 75,
   },
   {
     id: 'person-mom',
@@ -18,6 +22,10 @@ export const seedPersons: FamilyPerson[] = [
     emoji: '👩‍🍳',
     bio: '가족의 건강과 정서를 챙기는 따뜻한 중심축.',
     color: '#e879f9',
+    birthYear: 1987,
+    goalLines: 150000,
+    goalWritingCount: 12,
+    goalWritingAvg: 70,
   },
   {
     id: 'person-child1',
@@ -26,6 +34,10 @@ export const seedPersons: FamilyPerson[] = [
     emoji: '👧',
     bio: '호기심 많은 학생. 독서와 그림 그리기를 좋아함.',
     color: '#fb923c',
+    birthYear: 2015,
+    goalLines: 100000,
+    goalWritingCount: 24,
+    goalWritingAvg: 65,
   },
   {
     id: 'person-child2',
@@ -34,6 +46,10 @@ export const seedPersons: FamilyPerson[] = [
     emoji: '👦',
     bio: '활발하고 에너지 넘치는 둘째.',
     color: '#4ade80',
+    birthYear: 2018,
+    goalLines: 50000,
+    goalWritingCount: 12,
+    goalWritingAvg: 60,
   },
 ]
 
@@ -319,5 +335,61 @@ export const seedRelations: GraphRelation[] = [
     id: 'rel-reads-3', sourceId: 'person-child1', targetId: 'book-3',
     sourceType: 'person', targetType: 'book',
     relationType: 'reads', label: '읽는 중', strength: 6, createdAt: Date.now(),
+  },
+]
+
+// ─── 글쓰기 목표 ──────────────────────────────
+
+export const seedWritingGoals: WritingGoal[] = [
+  { id: 'wg-1', personId: 'person-dad', year: 2026, targetCount: 24, targetAvgScore: 75 },
+  { id: 'wg-2', personId: 'person-mom', year: 2026, targetCount: 12, targetAvgScore: 70 },
+  { id: 'wg-3', personId: 'person-child1', year: 2026, targetCount: 24, targetAvgScore: 65 },
+  { id: 'wg-4', personId: 'person-child2', year: 2026, targetCount: 12, targetAvgScore: 60 },
+]
+
+// ─── 글쓰기 기록 (샘플) ──────────────────────
+
+export const seedWritingEntries: WritingEntry[] = [
+  {
+    id: 'we-1',
+    personId: 'person-dad',
+    date: '2026-02-10',
+    title: '마라톤을 통해 배운 것',
+    content: '마라톤을 시작한 지 3개월이 되었다. 처음에는 5km도 힘들었지만 지금은 15km를 뛸 수 있게 되었다. 가장 큰 배움은 꾸준함의 힘이다.',
+    charCount: 78,
+    wordCount: 32,
+    scores: { content: 16, logic: 15, depth: 14, specificity: 13, clarity: 16 },
+    totalScore: 74,
+    grade: 'B',
+    feedback: {
+      content: '개인적 경험을 잘 담았습니다.',
+      logic: '시간순으로 잘 구성했어요.',
+      depth: '깨달음을 더 구체적으로 풀어보세요.',
+      specificity: '구체적인 에피소드를 추가하면 좋겠어요.',
+      clarity: '문장이 명확하고 읽기 좋습니다.',
+      overall: '꾸준함에 대한 진솔한 글입니다. 구체적인 순간의 묘사를 추가하면 더 풍부해질 거예요.',
+    },
+    badges: ['첫걸음'],
+  },
+  {
+    id: 'we-2',
+    personId: 'person-child1',
+    date: '2026-02-12',
+    title: '내가 좋아하는 계절',
+    content: '나는 가을이 좋다. 단풍이 빨갛고 노란 색으로 물드는 게 예쁘다. 시원한 바람도 좋고 감도 맛있다.',
+    charCount: 52,
+    wordCount: 22,
+    scores: { content: 14, logic: 12, depth: 11, specificity: 15, clarity: 14 },
+    totalScore: 66,
+    grade: 'C',
+    feedback: {
+      content: '좋아하는 이유를 잘 설명했어요.',
+      logic: '생각을 더 연결해보세요.',
+      depth: '왜 가을이 특별한지 더 생각해볼까요?',
+      specificity: '감각적 표현이 좋아요!',
+      clarity: '짧고 명확한 문장이에요.',
+      overall: '감각적인 표현이 좋습니다! 가을과 관련된 특별한 추억을 하나 더 써보면 어떨까요?',
+    },
+    badges: ['첫걸음', '구체적표현'],
   },
 ]
