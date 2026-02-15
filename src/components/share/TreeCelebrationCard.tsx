@@ -37,7 +37,7 @@ export default function TreeCelebrationCard() {
   return (
     <div className="space-y-4">
       {/* Shareable card */}
-      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #ecfdf5, #ffffff, #fffbeb)', borderColor: '#a7f3d0' }}>
+      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #ecfdf5, #ffffff, #fffbeb)', borderColor: '#a7f3d0' }}>
         <div className="p-8 text-center">
           {/* Header */}
           <p className="text-sm text-emerald-600 font-bold tracking-wider uppercase mb-2">🎉 축하합니다!</p>

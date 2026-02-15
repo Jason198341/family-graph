@@ -5,6 +5,7 @@ import { useFamilyStore } from '@/stores/familyStore'
 import { useAuth } from '@/hooks/useAuth'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import Sidebar from '@/components/layout/Sidebar'
+import BottomNav from '@/components/layout/BottomNav'
 import RaceDashboard from '@/components/race/RaceDashboard'
 import Toast from '@/components/common/Toast'
 import LoginPage from '@/components/auth/LoginPage'
@@ -61,10 +62,13 @@ function MainApp() {
   if (!dataLoaded) return <FullScreenLoader />
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-surface">
-      <Sidebar />
+    <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden bg-surface">
+      {/* Desktop sidebar — hidden on mobile */}
+      <div className="hidden md:flex">
+        <Sidebar />
+      </div>
 
-      <main className="flex-1 flex overflow-hidden relative">
+      <main className="flex-1 flex overflow-hidden relative pb-14 md:pb-0">
         {activeView === 'dashboard' && <RaceDashboard />}
         <Suspense fallback={<ViewLoader />}>
           {activeView === 'reading' && <ReadingTracker />}
@@ -73,6 +77,9 @@ function MainApp() {
           {activeView === 'share' && <SharePage />}
         </Suspense>
       </main>
+
+      {/* Mobile bottom nav */}
+      <BottomNav />
 
       <Toast />
     </div>

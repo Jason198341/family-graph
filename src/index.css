@@ -171,3 +171,20 @@ html[data-font-size="xlarge"] {
 .card-shadow {
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
 }
+
+/* ── Mobile safe areas (PWA standalone) ── */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent pull-to-refresh in standalone mode */
+@media (display-mode: standalone) {
+  body { overscroll-behavior-y: contain; }
+}
+
+/* Mobile touch targets — min 44px */
+@media (max-width: 767px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+}

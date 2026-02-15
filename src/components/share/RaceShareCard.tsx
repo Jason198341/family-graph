@@ -38,7 +38,7 @@ export default function RaceShareCard({ month }: Props) {
 
   return (
     <div className="space-y-4">
-      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff)', borderColor: '#bfdbfe' }}>
+      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff)', borderColor: '#bfdbfe' }}>
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-6">

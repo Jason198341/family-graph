@@ -22,7 +22,7 @@ export default function SharePage() {
   const [activeTab, setActiveTab] = useState<ShareTab>('tree')
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
@@ -34,22 +34,22 @@ export default function SharePage() {
       </div>
 
       {/* Tab selector */}
-      <div className="grid grid-cols-4 gap-2 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all cursor-pointer ${
+            className={`flex flex-col items-center gap-1 p-2.5 md:p-3 rounded-xl border transition-all cursor-pointer ${
               activeTab === tab.id
                 ? 'bg-amber-50 border-amber-300 shadow-sm'
                 : 'bg-surface-light border-surface-border hover:border-surface-hover'
             }`}
           >
-            <span className="text-2xl">{tab.emoji}</span>
+            <span className="text-xl md:text-2xl">{tab.emoji}</span>
             <span className={`text-xs font-bold ${activeTab === tab.id ? 'text-amber-700' : 'text-cream-100'}`}>
               {tab.label}
             </span>
-            <span className="text-xs text-espresso-400">{tab.desc}</span>
+            <span className="text-xs text-espresso-400 hidden md:block">{tab.desc}</span>
           </button>
         ))}
       </div>

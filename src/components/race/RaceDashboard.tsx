@@ -36,7 +36,7 @@ export default function RaceDashboard() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-6 p-6 max-w-5xl mx-auto">
+    <div className="flex-1 overflow-y-auto space-y-4 md:space-y-6 p-4 md:p-6 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in-up">
         <div>

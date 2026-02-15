@@ -202,7 +202,7 @@ export default function ReadingWrappedCard() {
   return (
     <div className="space-y-4">
       {/* Card */}
-      <div ref={ref} className="w-[540px] h-[680px] mx-auto rounded-3xl overflow-hidden shadow-2xl relative">
+      <div ref={ref} className="w-full max-w-[540px] aspect-[540/680] mx-auto rounded-3xl overflow-hidden shadow-2xl relative">
         <div className="absolute inset-0" style={{ background: currentSlide.bg }} />
         <div className="relative z-10 h-full flex flex-col">
           <div className="flex-1 flex flex-col">

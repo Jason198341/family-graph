@@ -124,7 +124,7 @@ export default function TipsPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
