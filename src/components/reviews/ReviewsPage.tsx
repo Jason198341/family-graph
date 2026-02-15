@@ -22,7 +22,6 @@ export default function ReviewsPage() {
   const recCount = useReadingStore((s) => s.recommendations.length)
   const loadCommunityFeed = useReadingStore((s) => s.loadCommunityFeed)
 
-  // Reload feed on mount and when reviews/recommendations change
   useEffect(() => {
     loadCommunityFeed()
   }, [loadCommunityFeed, reviewCount, recCount])
@@ -30,68 +29,64 @@ export default function ReviewsPage() {
   const sortedLetters = [...letters].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-2 pb-8 md:p-8 space-y-2 md:space-y-6">
+    <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-24 md:p-6 md:pb-8 space-y-4 max-w-2xl mx-auto w-full">
       {/* Header */}
       <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
-          <span>💬</span> 독서 나눔
+        <h1 className="text-xl font-bold text-stone-800" style={{ fontFamily: "'Gowun Batang', serif" }}>
+          💬 나눔
         </h1>
-        <p className="text-sm text-espresso-300 mt-1">모든 가족과 독서 후기와 추천을 나눠요</p>
+        <p className="text-xs text-stone-500 mt-0.5">독서 후기와 추천을 나눠요</p>
       </div>
 
-      {/* Sub-tab toggle — 2 tabs */}
-      <div className="flex items-center gap-1 bg-surface-light/80 border border-surface-border rounded-xl p-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+      {/* Sub-tab toggle */}
+      <div className="flex items-center gap-1 bg-white border border-stone-200/60 rounded-xl p-1 shadow-sm animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         <button
           onClick={() => setSubTab('feed')}
-          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-            subTab === 'feed' ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            subTab === 'feed' ? 'bg-stone-100 text-stone-800' : 'text-stone-400 hover:text-stone-600'
           }`}
         >
-          <span>📬</span> 게시판 ({communityFeed.length})
+          📬 게시판 ({communityFeed.length})
         </button>
         <button
           onClick={() => setSubTab('letters')}
-          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-            subTab === 'letters' ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            subTab === 'letters' ? 'bg-stone-100 text-stone-800' : 'text-stone-400 hover:text-stone-600'
           }`}
         >
-          <span>💌</span> 편지 ({letters.length})
+          💌 편지 ({letters.length})
         </button>
       </div>
 
       {/* Feed tab */}
       {subTab === 'feed' && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex justify-end gap-2">
             <button
               onClick={() => { setShowRecommendForm(!showRecommendForm); setShowReviewForm(false) }}
-              className="text-xs px-4 py-2 bg-olive-500 hover:bg-olive-600 text-white font-medium rounded-lg transition-colors cursor-pointer"
+              className="text-xs px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors cursor-pointer shadow-sm"
             >
               + 책 추천
             </button>
             <button
               onClick={() => { setShowReviewForm(!showReviewForm); setShowRecommendForm(false) }}
-              className="text-xs px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors cursor-pointer"
+              className="text-xs px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors cursor-pointer shadow-sm"
             >
               + 후기 작성
             </button>
           </div>
 
-          {showReviewForm && (
-            <ReviewForm onClose={() => setShowReviewForm(false)} />
-          )}
-          {showRecommendForm && (
-            <RecommendForm onClose={() => setShowRecommendForm(false)} />
-          )}
+          {showReviewForm && <ReviewForm onClose={() => setShowReviewForm(false)} />}
+          {showRecommendForm && <RecommendForm onClose={() => setShowRecommendForm(false)} />}
 
           {communityFeed.length === 0 ? (
-            <div className="text-center py-12 text-espresso-400">
+            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm text-center py-12">
               <span className="text-4xl block mb-3">📬</span>
-              <p>아직 게시글이 없습니다</p>
-              <p className="text-xs mt-1">첫 후기나 추천을 작성해보세요!</p>
+              <p className="text-stone-500">아직 게시글이 없습니다</p>
+              <p className="text-xs text-stone-400 mt-1">첫 후기나 추천을 작성해보세요!</p>
             </div>
           ) : (
-            <div className="space-y-4 stagger-fade">
+            <div className="space-y-3 stagger-fade">
               {communityFeed.map((post) => (
                 <UnifiedPostCard
                   key={post.postId}
@@ -106,34 +101,32 @@ export default function ReviewsPage() {
 
       {/* Letters tab */}
       {subTab === 'letters' && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex justify-end">
             <button
               onClick={() => setShowLetterForm(!showLetterForm)}
-              className="text-xs px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors cursor-pointer"
+              className="text-xs px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors cursor-pointer shadow-sm"
             >
               + 편지 쓰기
             </button>
           </div>
 
-          {showLetterForm && (
-            <LetterForm onClose={() => setShowLetterForm(false)} />
-          )}
+          {showLetterForm && <LetterForm onClose={() => setShowLetterForm(false)} />}
 
-          <div className="bg-surface-light/60 border border-surface-border rounded-xl p-2 md:p-4 animate-fade-in-up">
-            <p className="text-xs text-espresso-300">
+          <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-3 animate-fade-in-up">
+            <p className="text-xs text-stone-500">
               💌 가족에게 읽은 책에 대한 감상, 응원, 감사의 마음을 전해보세요. 편지는 가족만 볼 수 있어요.
             </p>
           </div>
 
           {sortedLetters.length === 0 ? (
-            <div className="text-center py-12 text-espresso-400">
+            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm text-center py-12">
               <span className="text-4xl block mb-3">💌</span>
-              <p>아직 편지가 없습니다</p>
-              <p className="text-xs mt-1">가족에게 첫 독서 편지를 보내보세요!</p>
+              <p className="text-stone-500">아직 편지가 없습니다</p>
+              <p className="text-xs text-stone-400 mt-1">가족에게 첫 독서 편지를 보내보세요!</p>
             </div>
           ) : (
-            <div className="space-y-4 stagger-fade">
+            <div className="space-y-3 stagger-fade">
               {sortedLetters.map((letter) => (
                 <LetterCard key={letter.id} letter={letter} />
               ))}
@@ -142,7 +135,6 @@ export default function ReviewsPage() {
         </div>
       )}
 
-      {/* Book detail modal */}
       {selectedBook && (
         <BookDetailModal
           bookTitle={selectedBook}

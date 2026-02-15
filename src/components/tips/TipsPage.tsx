@@ -4,9 +4,9 @@ import { readingTips, CATEGORIES, type ReadingTip } from '@/data/readingTips'
 
 const DIFFICULTY_LABEL: Record<number, string> = { 1: '쉬움', 2: '보통', 3: '고급' }
 const DIFFICULTY_COLOR: Record<number, string> = {
-  1: 'bg-olive-500/20 text-olive-300',
-  2: 'bg-amber-500/20 text-amber-600',
-  3: 'bg-rose-500/20 text-rose-300',
+  1: 'bg-green-100 text-green-700',
+  2: 'bg-amber-100 text-amber-700',
+  3: 'bg-rose-100 text-rose-700',
 }
 
 const FIREWORKS_KEY = import.meta.env.VITE_FIREWORKS_API_KEY
@@ -124,63 +124,61 @@ export default function TipsPage() {
   }
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-2 pb-8 md:p-8 space-y-2 md:space-y-6">
+    <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-24 md:p-6 md:pb-8 space-y-4 max-w-2xl mx-auto w-full">
       {/* Header */}
       <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
-          <span>📚</span> 독서 코치
+        <h1 className="text-xl font-bold text-stone-800" style={{ fontFamily: "'Gowun Batang', serif" }}>
+          📚 더보기
         </h1>
-        <p className="text-sm text-espresso-300 mt-1">
-          AI 독서 코치 "책벗"과 대화하고, 독서법을 익혀보세요
-        </p>
+        <p className="text-xs text-stone-500 mt-0.5">AI 코치 "책벗"과 독서법 가이드</p>
       </div>
 
-      {/* Tab toggle: Coach / Tips */}
-      <div className="flex items-center gap-1 bg-surface-light/80 border border-surface-border rounded-xl p-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+      {/* Tab toggle */}
+      <div className="flex items-center gap-1 bg-white border border-stone-200/60 rounded-xl p-1 shadow-sm animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         <button
           onClick={() => setShowCoach(true)}
-          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-            showCoach ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            showCoach ? 'bg-stone-100 text-stone-800' : 'text-stone-400 hover:text-stone-600'
           }`}
         >
-          <span>🤖</span> AI 코치
+          🤖 AI 코치
         </button>
         <button
           onClick={() => setShowCoach(false)}
-          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-            !showCoach ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            !showCoach ? 'bg-stone-100 text-stone-800' : 'text-stone-400 hover:text-stone-600'
           }`}
         >
-          <span>📖</span> 독서법
+          📖 독서법
         </button>
       </div>
 
       {/* AI Coach */}
       {showCoach && (
-        <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
+        <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
           {/* Daily limit notice */}
           {aiUsedToday && messages.length === 0 && (
-            <div className="border border-amber-500/30 rounded-xl md:rounded-2xl p-3 md:p-5 text-center">
+            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-6 text-center">
               <p className="text-2xl mb-2">🌙</p>
-              <p className="text-sm font-semibold text-cream-100">오늘의 AI 코치 상담을 이미 사용했어요</p>
-              <p className="text-xs text-espresso-300 mt-1">하루에 1회 사용할 수 있어요. 내일 다시 만나요!</p>
-              <p className="text-xs text-espresso-400 mt-3">독서법 가이드 탭에서 다양한 독서 팁을 확인해보세요</p>
+              <p className="text-sm font-semibold text-stone-700">오늘의 AI 코치 상담을 이미 사용했어요</p>
+              <p className="text-xs text-stone-400 mt-1">하루에 1회 사용할 수 있어요. 내일 다시 만나요!</p>
+              <p className="text-xs text-stone-400 mt-3">독서법 가이드 탭에서 다양한 독서 팁을 확인해보세요</p>
             </div>
           )}
 
           {/* Quick prompts */}
           {messages.length === 0 && !aiUsedToday && (
-            <div className="md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <p className="text-xs text-espresso-400">빠른 질문</p>
-                <p className="text-xs text-espresso-400">하루 1회</p>
+            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-medium text-stone-500">빠른 질문</p>
+                <p className="text-[10px] text-stone-400">하루 1회</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 {QUICK_PROMPTS.map((prompt) => (
                   <button
                     key={prompt}
                     onClick={() => sendMessage(prompt)}
-                    className="text-left text-xs p-3 bg-surface-lighter rounded-xl border border-surface-border text-cream-200 hover:border-amber-500/30 hover:bg-surface-hover transition-colors cursor-pointer"
+                    className="text-left text-xs p-3 bg-stone-50 rounded-xl border border-stone-100 text-stone-600 hover:border-amber-300 hover:bg-amber-50/50 transition-colors cursor-pointer"
                   >
                     {prompt}
                   </button>
@@ -191,7 +189,7 @@ export default function TipsPage() {
 
           {/* Chat messages */}
           {messages.length > 0 && (
-            <div className="md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 max-h-96 overflow-y-auto space-y-3 md:space-y-4">
+            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-4 max-h-96 overflow-y-auto space-y-3">
               {messages.map((msg, i) => (
                 <div
                   key={i}
@@ -200,8 +198,8 @@ export default function TipsPage() {
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                       msg.role === 'user'
-                        ? 'bg-amber-500/20 text-cream-100'
-                        : 'bg-surface-lighter text-cream-200 border border-surface-border'
+                        ? 'bg-amber-100 text-stone-800'
+                        : 'bg-stone-50 text-stone-700 border border-stone-100'
                     }`}
                   >
                     {msg.role === 'assistant' && (
@@ -213,7 +211,7 @@ export default function TipsPage() {
               ))}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-surface-lighter rounded-2xl px-4 py-2.5 border border-surface-border">
+                  <div className="bg-stone-50 rounded-2xl px-4 py-2.5 border border-stone-100">
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce" />
                       <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '100ms' }} />
@@ -228,9 +226,7 @@ export default function TipsPage() {
 
           {/* Input */}
           {aiUsedToday && messages.length > 0 && (
-            <div className="text-center py-2">
-              <p className="text-xs text-espresso-400">오늘의 상담이 완료되었습니다. 내일 다시 이용해주세요.</p>
-            </div>
+            <p className="text-center text-xs text-stone-400 py-1">오늘의 상담이 완료되었습니다</p>
           )}
           {!aiUsedToday && (
             <div className="flex gap-2">
@@ -239,12 +235,12 @@ export default function TipsPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
                 placeholder="독서 코치에게 질문해보세요..."
-                className="flex-1 text-sm p-3 bg-surface-light/80 rounded-xl border border-surface-border text-cream-100 placeholder:text-espresso-400"
+                className="flex-1 text-sm p-3 bg-white rounded-xl border border-stone-200 text-stone-800 placeholder:text-stone-400 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
               />
               <button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
-                className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm"
               >
                 전송
               </button>
@@ -257,18 +253,15 @@ export default function TipsPage() {
       {!showCoach && (
         <>
           {/* Category filter */}
-          <div
-            className="flex flex-wrap gap-2 animate-fade-in-up"
-            style={{ animationDelay: '80ms' }}
-          >
+          <div className="flex flex-wrap gap-2 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
             {CATEGORIES.map((c) => (
               <button
                 key={c.key}
                 onClick={() => setCategory(c.key)}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                   category === c.key
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-surface-light/80 text-espresso-300 hover:text-cream-100 border border-surface-border'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-white text-stone-500 hover:text-stone-700 border border-stone-200'
                 }`}
               >
                 <span>{c.emoji}</span> {c.key}
@@ -277,7 +270,7 @@ export default function TipsPage() {
           </div>
 
           {/* Tips grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 stagger-fade">
+          <div className="space-y-2 stagger-fade">
             {filtered.map((tip) => (
               <TipCard
                 key={tip.id}
@@ -304,43 +297,36 @@ function TipCard({
 }) {
   return (
     <div
-      className={`py-2 px-1 md:bg-surface-light/80 md:backdrop-blur-md border-b md:border md:rounded-2xl md:p-5 transition-all cursor-pointer ${
-        expanded ? 'border-amber-500/40' : 'border-surface-border md:hover:border-surface-hover'
+      className={`bg-white rounded-xl p-4 border shadow-sm transition-all cursor-pointer ${
+        expanded ? 'border-amber-300' : 'border-stone-200/60 hover:border-stone-300'
       }`}
       onClick={onToggle}
     >
-      {/* Header */}
       <div className="flex items-start gap-3">
-        <span className="text-3xl">{tip.emoji}</span>
+        <span className="text-2xl">{tip.emoji}</span>
         <div className="flex-1">
-          <p className="text-sm font-bold text-cream-100">{tip.title}</p>
+          <p className="text-sm font-bold text-stone-800">{tip.title}</p>
           <div className="flex items-center gap-2 mt-1">
-            <span className={`text-xs px-2 py-0.5 rounded-full ${DIFFICULTY_COLOR[tip.difficulty]}`}>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${DIFFICULTY_COLOR[tip.difficulty]}`}>
               {DIFFICULTY_LABEL[tip.difficulty]}
             </span>
-            <span className="text-xs text-espresso-400">{tip.category}</span>
+            <span className="text-[10px] text-stone-400">{tip.category}</span>
           </div>
         </div>
-        <span className={`text-espresso-400 text-xs transition-transform ${expanded ? 'rotate-180' : ''}`}>
-          ▼
-        </span>
+        <span className={`text-stone-400 text-xs transition-transform ${expanded ? 'rotate-180' : ''}`}>▼</span>
       </div>
 
-      {/* Summary */}
-      <p className="mt-3 text-sm text-cream-200 leading-relaxed">{tip.summary}</p>
+      <p className="mt-2 text-xs text-stone-600 leading-relaxed">{tip.summary}</p>
 
-      {/* Steps (expanded) */}
       {expanded && (
-        <div className="mt-4 pt-4 border-t border-surface-border space-y-2 animate-fade-in-up">
-          <p className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">
-            실천 단계
-          </p>
+        <div className="mt-3 pt-3 border-t border-stone-100 space-y-2 animate-fade-in-up">
+          <p className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">실천 단계</p>
           {tip.steps.map((step, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">
                 {i + 1}
               </span>
-              <p className="text-sm text-cream-200">{step}</p>
+              <p className="text-xs text-stone-600">{step}</p>
             </div>
           ))}
         </div>
