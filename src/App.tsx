@@ -18,6 +18,7 @@ if (savedFontSize) document.documentElement.dataset.fontSize = savedFontSize
 const ReadingTracker = lazy(() => import('@/components/reading/ReadingTracker'))
 const ReviewsPage = lazy(() => import('@/components/reviews/ReviewsPage'))
 const TipsPage = lazy(() => import('@/components/tips/TipsPage'))
+const SharePage = lazy(() => import('@/components/share/SharePage'))
 
 function ViewLoader() {
   return (
@@ -69,6 +70,7 @@ function MainApp() {
           {activeView === 'reading' && <ReadingTracker />}
           {activeView === 'reviews' && <ReviewsPage />}
           {activeView === 'tips' && <TipsPage />}
+          {activeView === 'share' && <SharePage />}
         </Suspense>
       </main>
 

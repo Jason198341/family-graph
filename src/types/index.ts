@@ -14,7 +14,7 @@ export interface FamilyPerson {
 
 // ─── View State ────────────────────────────
 
-export type AppView = 'dashboard' | 'reading' | 'reviews' | 'tips'
+export type AppView = 'dashboard' | 'reading' | 'reviews' | 'tips' | 'share'
 
 // ─── Family / Auth Types (Supabase) ────────
 
