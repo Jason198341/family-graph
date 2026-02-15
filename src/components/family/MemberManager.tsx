@@ -13,6 +13,8 @@ const ROLE_PRESETS = [
 ]
 
 const EXTRA_EMOJIS = ['👶', '🧒', '🧑', '👱', '🧔', '👩‍🦰', '👨‍🦳', '👩‍🦳']
+const ALL_EMOJIS = [...ROLE_PRESETS.map((p) => p.emoji), ...EXTRA_EMOJIS]
+const COLORS = ['#3b82f6', '#ec4899', '#22c55e', '#f59e0b', '#6366f1', '#a855f7', '#ef4444', '#14b8a6']
 
 export default function MemberManager() {
   const family = useFamilyStore((s) => s.family)
@@ -24,6 +26,7 @@ export default function MemberManager() {
 
   const persons = useGraphStore((s) => s.persons)
   const addPerson = useGraphStore((s) => s.addPerson)
+  const updatePerson = useGraphStore((s) => s.updatePerson)
   const addToast = useGraphStore((s) => s.addToast)
 
   const [showAddForm, setShowAddForm] = useState(false)
@@ -31,6 +34,13 @@ export default function MemberManager() {
   const [newRole, setNewRole] = useState('')
   const [newEmoji, setNewEmoji] = useState('🧑')
   const [newColor, setNewColor] = useState('#3b82f6')
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editRole, setEditRole] = useState('')
+  const [editEmoji, setEditEmoji] = useState('')
+  const [editColor, setEditColor] = useState('')
 
   if (!family) return null
 
@@ -59,6 +69,28 @@ export default function MemberManager() {
     setNewRole(preset.role)
     setNewEmoji(preset.emoji)
     setNewColor(preset.color)
+  }
+
+  const startEdit = (p: typeof persons[number]) => {
+    setEditingId(p.id)
+    setEditName(p.name)
+    setEditRole(p.role)
+    setEditEmoji(p.emoji)
+    setEditColor(p.color)
+  }
+
+  const cancelEdit = () => setEditingId(null)
+
+  const saveEdit = () => {
+    if (!editingId || !editName.trim()) return
+    updatePerson(editingId, {
+      name: editName.trim(),
+      role: editRole,
+      emoji: editEmoji,
+      color: editColor,
+    })
+    addToast(`${editEmoji} ${editName} 수정됨`, 'success')
+    setEditingId(null)
   }
 
   return (
@@ -127,7 +159,7 @@ export default function MemberManager() {
             <div>
               <label className="text-xs text-gray-500 mb-1 block">이모지</label>
               <div className="flex gap-1.5 flex-wrap">
-                {[...ROLE_PRESETS.map((p) => p.emoji), ...EXTRA_EMOJIS].map((emoji) => (
+                {ALL_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
                     type="button"
@@ -148,7 +180,7 @@ export default function MemberManager() {
             <div>
               <label className="text-xs text-gray-500 mb-1 block">색상</label>
               <div className="flex gap-1.5">
-                {['#3b82f6', '#ec4899', '#22c55e', '#f59e0b', '#6366f1', '#a855f7', '#ef4444', '#14b8a6'].map((c) => (
+                {COLORS.map((c) => (
                   <button
                     key={c}
                     type="button"
@@ -188,17 +220,116 @@ export default function MemberManager() {
         {/* Existing persons list */}
         <div className="space-y-1.5">
           {persons.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 border-2"
-                style={{ borderColor: p.color, backgroundColor: `${p.color}15` }}
-              >
-                {p.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-900 truncate">{p.name}</p>
-                <p className="text-xs text-gray-500">{p.role}</p>
-              </div>
+            <div key={p.id}>
+              {editingId === p.id ? (
+                /* ── Edit mode ── */
+                <div className="bg-surface border border-amber-500/30 rounded-xl p-4 space-y-3 animate-fade-in-up">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500 font-semibold">프로필 수정</p>
+                    <button onClick={cancelEdit} className="text-xs text-gray-400 hover:text-gray-700 cursor-pointer">취소</button>
+                  </div>
+
+                  {/* Name */}
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full px-3 py-2 bg-surface-lighter border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-500/40"
+                    onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                  />
+
+                  {/* Role presets */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {ROLE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.role}
+                        onClick={() => { setEditRole(preset.role); setEditEmoji(preset.emoji); setEditColor(preset.color) }}
+                        className={`px-2 py-0.5 rounded text-xs cursor-pointer ${
+                          editRole === preset.role
+                            ? 'bg-amber-100 border border-amber-300 text-amber-700'
+                            : 'bg-surface-lighter border border-surface-border text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        {preset.emoji} {preset.role}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Emoji picker */}
+                  <div className="flex gap-1.5 flex-wrap">
+                    {ALL_EMOJIS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => setEditEmoji(emoji)}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all cursor-pointer ${
+                          editEmoji === emoji
+                            ? 'bg-amber-100 border-2 border-amber-400 scale-110'
+                            : 'bg-surface-lighter border border-surface-border hover:border-gray-400'
+                        }`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Color picker */}
+                  <div className="flex gap-1.5">
+                    {COLORS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setEditColor(c)}
+                        className={`w-7 h-7 rounded-full transition-all cursor-pointer ${
+                          editColor === c ? 'scale-125 ring-2 ring-gray-300' : 'hover:scale-110'
+                        }`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Preview + save */}
+                  <div className="flex items-center gap-3 pt-1">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-xl border-2 shrink-0"
+                      style={{ borderColor: editColor, backgroundColor: `${editColor}15` }}
+                    >
+                      {editEmoji}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 font-medium">{editName}</p>
+                      <p className="text-xs text-gray-500">{editRole}</p>
+                    </div>
+                    <button
+                      onClick={saveEdit}
+                      disabled={!editName.trim()}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                    >
+                      저장
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* ── Display mode ── */
+                <div className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg group">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 border-2"
+                    style={{ borderColor: p.color, backgroundColor: `${p.color}15` }}
+                  >
+                    {p.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-900 truncate">{p.name}</p>
+                    <p className="text-xs text-gray-500">{p.role}</p>
+                  </div>
+                  <button
+                    onClick={() => startEdit(p)}
+                    className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-gray-700 px-2 py-1 rounded transition-all cursor-pointer"
+                  >
+                    수정
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           {persons.length === 0 && (

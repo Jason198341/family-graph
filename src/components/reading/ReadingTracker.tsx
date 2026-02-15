@@ -28,6 +28,8 @@ export default function ReadingTracker() {
   const readingLogs = useGraphStore((s) => s.readingLogs)
   const readingGoals = useGraphStore((s) => s.readingGoals)
   const addReadingLog = useGraphStore((s) => s.addReadingLog)
+  const removeReadingLog = useGraphStore((s) => s.removeReadingLog)
+  const updateReadingLog = useGraphStore((s) => s.updateReadingLog)
   const addReadingGoal = useGraphStore((s) => s.addReadingGoal)
   const updateReadingGoal = useGraphStore((s) => s.updateReadingGoal)
   const addBook = useGraphStore((s) => s.addBook)
@@ -42,6 +44,11 @@ export default function ReadingTracker() {
   const [pageMode, setPageMode] = useState<'delta' | 'absolute'>('delta')
   const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [showAddBook, setShowAddBook] = useState(false)
+
+  // Edit log state
+  const [editingLogId, setEditingLogId] = useState<string | null>(null)
+  const [editLogLines, setEditLogLines] = useState('')
+  const [editLogDate, setEditLogDate] = useState('')
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#d97706' })
 
   // ── Computed data ──
@@ -494,12 +501,66 @@ export default function ReadingTracker() {
           {[...readingLogs]
             .filter((l) => l.date.startsWith(selectedMonth))
             .sort((a, b) => b.date.localeCompare(a.date))
-            .slice(0, 10)
+            .slice(0, 15)
             .map((log) => {
               const person = persons.find((p) => p.id === log.personId)
               const book = books.find((b) => b.id === log.bookId)
+              const isEditing = editingLogId === log.id
+
+              if (isEditing) {
+                return (
+                  <div key={log.id} className="px-4 py-3 bg-amber-50/50 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{person?.emoji ?? '👤'}</span>
+                      <span className="text-xs text-cream-200 font-medium">{person?.name}</span>
+                      <span className="text-xs text-espresso-400">{book?.emoji} {book?.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <label className="text-xs text-espresso-400 block mb-0.5">줄 수</label>
+                        <input
+                          type="number"
+                          value={editLogLines}
+                          onChange={(e) => setEditLogLines(e.target.value)}
+                          className="w-full bg-surface border border-surface-border rounded-lg px-2 py-1.5 text-sm text-cream-100 outline-none focus:border-amber-500"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs text-espresso-400 block mb-0.5">날짜</label>
+                        <input
+                          type="date"
+                          value={editLogDate}
+                          onChange={(e) => setEditLogDate(e.target.value)}
+                          className="w-full bg-surface border border-surface-border rounded-lg px-2 py-1.5 text-sm text-cream-100 outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => setEditingLogId(null)}
+                        className="text-xs px-3 py-1 text-gray-500 hover:text-gray-700 cursor-pointer"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={() => {
+                          const lines = parseInt(editLogLines, 10)
+                          if (isNaN(lines) || lines < 0 || !editLogDate) return
+                          updateReadingLog(log.id, { linesRead: lines, date: editLogDate })
+                          addToast('기록 수정 완료', 'success')
+                          setEditingLogId(null)
+                        }}
+                        className="text-xs px-3 py-1 bg-amber-500 text-white rounded-lg hover:bg-amber-600 cursor-pointer"
+                      >
+                        저장
+                      </button>
+                    </div>
+                  </div>
+                )
+              }
+
               return (
-                <div key={log.id} className="flex items-center gap-3 px-4 py-3">
+                <div key={log.id} className="flex items-center gap-3 px-4 py-3 group">
                   <span className="text-base">{person?.emoji ?? '👤'}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-cream-200">
@@ -510,6 +571,31 @@ export default function ReadingTracker() {
                   </div>
                   <span className="text-xs font-bold text-amber-600">{log.linesRead.toLocaleString()}줄</span>
                   <span className="text-xs text-espresso-400">{log.date}</span>
+
+                  {/* Edit/Delete buttons */}
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button
+                      onClick={() => {
+                        setEditingLogId(log.id)
+                        setEditLogLines(String(log.linesRead))
+                        setEditLogDate(log.date)
+                      }}
+                      className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                      title="수정"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button
+                      onClick={() => {
+                        removeReadingLog(log.id)
+                        addToast('기록 삭제됨', 'info')
+                      }}
+                      className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                      title="삭제"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </div>
                 </div>
               )
             })}

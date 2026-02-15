@@ -142,12 +142,15 @@ interface GraphState {
   // person mutations
   addPerson: (data: Omit<FamilyPerson, 'id'>) => FamilyPerson
   removePerson: (id: string) => void
+  updatePerson: (id: string, updates: Partial<Omit<FamilyPerson, 'id'>>) => void
   updatePersonGoals: (personId: string, goals: { goalLines?: number }) => void
 
   // book / reading mutations
   addBook: (data: Omit<Book, 'id'>) => Book
   removeBook: (id: string) => void
   addReadingLog: (data: Omit<ReadingLog, 'id'>) => ReadingLog
+  removeReadingLog: (id: string) => void
+  updateReadingLog: (id: string, updates: Partial<Omit<ReadingLog, 'id'>>) => void
   addReadingGoal: (data: Omit<ReadingGoal, 'id'>) => ReadingGoal
   updateReadingGoal: (id: string, targetLines: number) => void
   updateBookProgress: (bookId: string, currentPage: number) => void
@@ -340,6 +343,25 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     }
   },
 
+  updatePerson: (id, updates) => {
+    set((s) => {
+      const next = {
+        persons: s.persons.map((p) => p.id === id ? { ...p, ...updates } : p),
+      }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      const snakeUpdates: Record<string, unknown> = {}
+      if (updates.name !== undefined) snakeUpdates.name = updates.name
+      if (updates.role !== undefined) snakeUpdates.role = updates.role
+      if (updates.emoji !== undefined) snakeUpdates.emoji = updates.emoji
+      if (updates.color !== undefined) snakeUpdates.color = updates.color
+      if (updates.bio !== undefined) snakeUpdates.bio = updates.bio
+      dbSync(supabase.from('persons').update(snakeUpdates).eq('id', id))
+    }
+  },
+
   updatePersonGoals: (personId, goals) => {
     set((s) => {
       const next = {
@@ -411,6 +433,35 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       )
     }
     return log
+  },
+
+  removeReadingLog: (id) => {
+    set((s) => {
+      const next = { readingLogs: s.readingLogs.filter((l) => l.id !== id) }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      dbSync(supabase.from('reading_logs').delete().eq('id', id))
+    }
+  },
+
+  updateReadingLog: (id, updates) => {
+    set((s) => {
+      const next = {
+        readingLogs: s.readingLogs.map((l) => l.id === id ? { ...l, ...updates } : l),
+      }
+      if (useLocalMode()) persistLocal({ ...s, ...next })
+      return next
+    })
+    if (!useLocalMode()) {
+      const snakeUpdates: Record<string, unknown> = {}
+      if (updates.linesRead !== undefined) snakeUpdates.lines_read = updates.linesRead
+      if (updates.date !== undefined) snakeUpdates.date = updates.date
+      if (updates.personId !== undefined) snakeUpdates.person_id = updates.personId
+      if (updates.bookId !== undefined) snakeUpdates.book_id = updates.bookId
+      dbSync(supabase.from('reading_logs').update(snakeUpdates).eq('id', id))
+    }
   },
 
   addReadingGoal: (data) => {
