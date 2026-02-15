@@ -1,7 +1,7 @@
-import { useRef, useState, useMemo } from 'react'
-import html2canvas from 'html2canvas'
+import { useState, useMemo } from 'react'
 import { useReadingStore } from '@/stores/readingStore'
 import { useFamilyStore } from '@/stores/familyStore'
+import { useShareImage } from '@/hooks/useShareImage'
 
 interface Props {
   month: string
@@ -9,13 +9,14 @@ interface Props {
 }
 
 export default function ShareCard({ month, onClose }: Props) {
-  const cardRef = useRef<HTMLDivElement>(null)
+  const { ref, download, share } = useShareImage()
   const [saving, setSaving] = useState(false)
 
   const persons = useReadingStore((s) => s.persons)
   const readingLogs = useReadingStore((s) => s.readingLogs)
   const getTotalLinesForMonth = useReadingStore((s) => s.getTotalLinesForMonth)
   const getFamilyStreak = useReadingStore((s) => s.getFamilyStreak)
+  const addToast = useReadingStore((s) => s.addToast)
   const family = useFamilyStore((s) => s.family)
 
   const [y, m] = month.split('-').map(Number)
@@ -35,43 +36,22 @@ export default function ShareCard({ month, onClose }: Props) {
   const booksRead = new Set(readingLogs.filter((l) => l.date.startsWith(month)).map((l) => l.bookId)).size
 
   const handleSave = async () => {
-    if (!cardRef.current) return
     setSaving(true)
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        backgroundColor: null,
-        useCORS: true,
-      })
-      const link = document.createElement('a')
-      link.download = `reading-${month}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
+      await download(`reading-${month}.png`)
+    } catch {
+      addToast('이미지 저장에 실패했습니다', 'error')
     } finally {
       setSaving(false)
     }
   }
 
   const handleShare = async () => {
-    if (!cardRef.current) return
-    if (!navigator.share) {
-      handleSave()
-      return
-    }
     setSaving(true)
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        backgroundColor: null,
-        useCORS: true,
-      })
-      const blob = await new Promise<Blob>((resolve) =>
-        canvas.toBlob((b) => resolve(b!), 'image/png'),
-      )
-      const file = new File([blob], `reading-${month}.png`, { type: 'image/png' })
-      await navigator.share({ files: [file], title: `${family?.name ?? '가족'} 독서 현황` })
+      await share(`${family?.name ?? '가족'} ${displayMonth} 독서 리포트`, `reading-${month}`)
     } catch {
-      // User cancelled share
+      addToast('공유에 실패했습니다', 'error')
     } finally {
       setSaving(false)
     }
@@ -86,59 +66,59 @@ export default function ShareCard({ month, onClose }: Props) {
         className="w-full max-w-sm space-y-3 animate-fade-in-up"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* The card to capture */}
+        {/* The card to capture — uses inline styles for html2canvas compatibility */}
         <div
-          ref={cardRef}
-          className="rounded-2xl overflow-hidden"
+          ref={ref}
           style={{
             background: 'linear-gradient(135deg, #fef3c7 0%, #fff7ed 30%, #fffbeb 60%, #fef9c3 100%)',
+            borderRadius: '16px',
+            overflow: 'hidden',
           }}
         >
-          <div className="p-6 space-y-5">
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Header */}
-            <div className="text-center">
-              <p className="text-xs text-amber-700/70 font-medium">{displayMonth} 독서 리포트</p>
-              <h2 className="text-xl font-bold text-stone-800 mt-1" style={{ fontFamily: "'Gowun Batang', serif" }}>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: '12px', color: '#b45309', fontWeight: 500 }}>{displayMonth} 독서 리포트</p>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1c1917', marginTop: '4px', fontFamily: "'Gowun Batang', serif" }}>
                 {family?.emoji ?? '📚'} {family?.name ?? '가족 독서'}
               </h2>
             </div>
 
             {/* Big stats */}
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-white/60 rounded-xl p-3">
-                <p className="text-2xl font-bold text-amber-700">{totalLines.toLocaleString()}</p>
-                <p className="text-[10px] text-stone-500 mt-0.5">읽은 줄</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', textAlign: 'center' }}>
+              <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '12px' }}>
+                <p style={{ fontSize: '22px', fontWeight: 700, color: '#b45309' }}>{totalLines.toLocaleString()}</p>
+                <p style={{ fontSize: '10px', color: '#78716c', marginTop: '2px' }}>읽은 줄</p>
               </div>
-              <div className="bg-white/60 rounded-xl p-3">
-                <p className="text-2xl font-bold text-amber-700">{booksRead}</p>
-                <p className="text-[10px] text-stone-500 mt-0.5">읽은 책</p>
+              <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '12px' }}>
+                <p style={{ fontSize: '22px', fontWeight: 700, color: '#b45309' }}>{booksRead}</p>
+                <p style={{ fontSize: '10px', color: '#78716c', marginTop: '2px' }}>읽은 책</p>
               </div>
-              <div className="bg-white/60 rounded-xl p-3">
-                <p className="text-2xl font-bold text-amber-700">{familyStreak}</p>
-                <p className="text-[10px] text-stone-500 mt-0.5">연속일</p>
+              <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '12px' }}>
+                <p style={{ fontSize: '22px', fontWeight: 700, color: '#b45309' }}>{familyStreak}</p>
+                <p style={{ fontSize: '10px', color: '#78716c', marginTop: '2px' }}>연속일</p>
               </div>
             </div>
 
             {/* Member ranking */}
-            <div className="bg-white/50 rounded-xl p-3 space-y-2">
-              {memberStats.map((m, i) => {
+            <div style={{ background: 'rgba(255,255,255,0.5)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {memberStats.map((member, i) => {
                 const maxLines = memberStats[0]?.lines || 1
-                const pct = Math.round((m.lines / maxLines) * 100)
+                const pct = Math.round((member.lines / maxLines) * 100)
                 return (
-                  <div key={m.id} className="flex items-center gap-2">
-                    <span className="text-sm w-5 text-center">
+                  <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px', width: '20px', textAlign: 'center' }}>
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
                     </span>
-                    <span className="text-xs">{m.emoji}</span>
-                    <span className="text-xs font-medium text-stone-700 w-12 truncate">{m.name}</span>
-                    <div className="flex-1 h-2 bg-white/60 rounded-full overflow-hidden">
+                    <span style={{ fontSize: '12px' }}>{member.emoji}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: '#44403c', width: '48px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</span>
+                    <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.6)', borderRadius: '999px', overflow: 'hidden' }}>
                       <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: m.color || '#f59e0b' }}
+                        style={{ height: '100%', borderRadius: '999px', width: `${pct}%`, backgroundColor: member.color || '#f59e0b' }}
                       />
                     </div>
-                    <span className="text-[10px] text-stone-500 tabular-nums w-14 text-right">
-                      {m.lines.toLocaleString()}줄
+                    <span style={{ fontSize: '10px', color: '#78716c', width: '56px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                      {member.lines.toLocaleString()}줄
                     </span>
                   </div>
                 )
@@ -146,7 +126,7 @@ export default function ShareCard({ month, onClose }: Props) {
             </div>
 
             {/* Footer */}
-            <p className="text-center text-[10px] text-amber-700/50">
+            <p style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(180, 83, 9, 0.5)' }}>
               Family Reading Race · {totalLogs}건 기록
             </p>
           </div>
