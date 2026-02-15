@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useGraphStore } from '@/stores/graphStore'
 import RaceTrack from './RaceTrack'
 import RaceStats from './RaceStats'
 import FamilyLeaderboard from './FamilyLeaderboard'
@@ -20,8 +21,15 @@ export default function RaceDashboard() {
   const [month, setMonth] = useState(() => getMonthStr(new Date()))
   const [activeTab, setActiveTab] = useState<StatsTab>('race')
 
+  const familyRank = useGraphStore((s) => s.familyRank)
+  const loadFamilyRank = useGraphStore((s) => s.loadFamilyRank)
+
   const [y, m] = month.split('-').map(Number)
   const displayMonth = `${y}년 ${m}월`
+
+  useEffect(() => {
+    loadFamilyRank(month)
+  }, [month, loadFamilyRank])
 
   const prevMonth = () => {
     const d = new Date(y, m - 2, 1)
@@ -62,6 +70,24 @@ export default function RaceDashboard() {
           </button>
         </div>
       </div>
+
+      {/* Rank Widget */}
+      {familyRank && familyRank.total > 0 && (
+        <button
+          onClick={() => setActiveTab('leaderboard')}
+          className="w-full bg-amber-500/8 hover:bg-amber-500/15 border border-amber-500/25 rounded-xl px-5 py-3 flex items-center gap-3 transition-colors cursor-pointer animate-fade-in-up"
+          style={{ animationDelay: '40ms' }}
+        >
+          <span className="text-xl">🏆</span>
+          <p className="text-sm font-semibold text-amber-300">
+            전체 {familyRank.total}가족 중 {familyRank.rank}위
+          </p>
+          <span className="text-xs text-amber-400/60 ml-auto">
+            이번 달 {familyRank.totalLines.toLocaleString()}줄
+          </span>
+          <svg className="w-4 h-4 text-amber-400/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      )}
 
       {/* Race Track */}
       <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up" style={{ animationDelay: '80ms' }}>

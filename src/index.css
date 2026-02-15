@@ -45,12 +45,12 @@
   --color-success-400: #4ade80;
   --color-success-500: #22c55e;
 
-  /* ── Surfaces (warm dark) ── */
-  --color-surface: #1a1612;
-  --color-surface-light: #241f19;
-  --color-surface-lighter: #302920;
-  --color-surface-border: #3d3428;
-  --color-surface-hover: #3a3125;
+  /* ── Surfaces (warm dark — brightened) ── */
+  --color-surface: #252019;
+  --color-surface-light: #302a21;
+  --color-surface-lighter: #3d3428;
+  --color-surface-border: #4a3f33;
+  --color-surface-hover: #463d30;
 
   /* ── Medal colors ── */
   --color-gold: #fbbf24;
@@ -61,8 +61,8 @@
 body {
   margin: 0;
   font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(180deg, var(--color-surface) 0%, #15120e 100%);
-  color: #e8e0d4;
+  background: linear-gradient(180deg, var(--color-surface) 0%, #1e1a14 100%);
+  color: #f0e8dc;
   min-height: 100vh;
   overflow: hidden;
 }
@@ -79,8 +79,8 @@ h1, h2, h3 {
 
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #3d3428; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #564a3a; }
+::-webkit-scrollbar-thumb { background: #4a3f33; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #5f5241; }
 
 /* ── Animations ── */
 @keyframes fadeInUp {
@@ -137,6 +137,6 @@ h1, h2, h3 {
 
 /* ── Star rating ── */
 .star-rating { cursor: pointer; }
-.star-rating .star { color: #3d3428; transition: color 0.15s; }
+.star-rating .star { color: #4a3f33; transition: color 0.15s; }
 .star-rating .star.active { color: #fbbf24; }
 .star-rating .star:hover { color: #f59e0b; }

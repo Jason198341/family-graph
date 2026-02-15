@@ -7,6 +7,8 @@ import type {
   ReadingGoal,
   BookReview,
   BookRecommendation,
+  CommunityReview,
+  BookReaderInfo,
 } from '@/types'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useFamilyStore } from './familyStore'
@@ -115,6 +117,10 @@ interface GraphState {
   reviews: BookReview[]
   recommendations: BookRecommendation[]
 
+  // community data (cross-family)
+  communityReviews: CommunityReview[]
+  familyRank: { rank: number; total: number; totalLines: number } | null
+
   // ui
   activeView: AppView
   toasts: Toast[]
@@ -147,6 +153,11 @@ interface GraphState {
   // recommendation mutations
   addRecommendation: (data: Omit<BookRecommendation, 'id' | 'createdAt'>) => BookRecommendation
   removeRecommendation: (id: string) => void
+
+  // community actions
+  loadCommunityReviews: () => Promise<void>
+  loadFamilyRank: (month: string) => Promise<void>
+  getBookReaders: (bookTitle: string) => Promise<BookReaderInfo[]>
 
   // reading queries
   getReadingLogsForMonth: (personId: string, month: string) => ReadingLog[]
@@ -191,6 +202,10 @@ const initial = getInitialData()
 export const useGraphStore = create<GraphState>()((set, get) => ({
   // ── data ──
   ...initial,
+
+  // ── community data ──
+  communityReviews: [],
+  familyRank: null,
 
   // ── UI state ──
   activeView: 'dashboard' as AppView,
@@ -511,6 +526,77 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     if (!useLocalMode()) {
       dbSync(supabase.from('book_recommendations').delete().eq('id', id))
     }
+  },
+
+  // ── community actions ──
+  loadCommunityReviews: async () => {
+    if (!isSupabaseConfigured) return
+    try {
+      const { data, error } = await supabase.rpc('get_community_reviews', { lim: 50 })
+      if (!error && data) {
+        set({
+          communityReviews: (data as Record<string, unknown>[]).map((r) => ({
+            reviewId: r.review_id as string,
+            personName: r.person_name as string,
+            personEmoji: r.person_emoji as string,
+            familyName: r.family_name as string,
+            familyEmoji: r.family_emoji as string,
+            bookTitle: r.book_title as string,
+            bookAuthor: r.book_author as string,
+            bookEmoji: r.book_emoji as string,
+            rating: r.rating as number,
+            content: r.content as string,
+            likes: (r.likes as string[]) ?? [],
+            createdAt: r.created_at as string,
+          })),
+        })
+      }
+    } catch (err) {
+      console.error('[loadCommunityReviews]', err)
+    }
+  },
+
+  loadFamilyRank: async (month) => {
+    if (!isSupabaseConfigured) return
+    try {
+      const { data, error } = await supabase.rpc('get_monthly_family_rankings', { target_month: month })
+      if (!error && data) {
+        const rankings = data as { family_id: string; total_lines: number }[]
+        const familyId = getFamilyId()
+        const ourIdx = rankings.findIndex((r) => r.family_id === familyId)
+        set({
+          familyRank: {
+            rank: ourIdx >= 0 ? ourIdx + 1 : rankings.length + 1,
+            total: rankings.length,
+            totalLines: ourIdx >= 0 ? Number(rankings[ourIdx].total_lines) : 0,
+          },
+        })
+      }
+    } catch (err) {
+      console.error('[loadFamilyRank]', err)
+    }
+  },
+
+  getBookReaders: async (bookTitle) => {
+    if (!isSupabaseConfigured) return []
+    try {
+      const { data, error } = await supabase.rpc('get_book_readers', { p_title: bookTitle })
+      if (!error && data) {
+        return (data as Record<string, unknown>[]).map((r) => ({
+          familyName: r.family_name as string,
+          familyEmoji: r.family_emoji as string,
+          personName: r.person_name as string,
+          personEmoji: r.person_emoji as string,
+          completed: r.completed as boolean,
+          currentPage: r.current_page as number,
+          totalPages: r.total_pages as number,
+          reviewCount: Number(r.review_count),
+        }))
+      }
+    } catch (err) {
+      console.error('[getBookReaders]', err)
+    }
+    return []
   },
 
   // ── reading queries ──

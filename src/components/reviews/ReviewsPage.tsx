@@ -1,18 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 import ReviewCard from './ReviewCard'
 import ReviewForm from './ReviewForm'
 import RecommendCard from './RecommendCard'
 import RecommendForm from './RecommendForm'
+import CommunityReviewCard from './CommunityReviewCard'
+import BookDetailModal from './BookDetailModal'
 
-type SubTab = 'reviews' | 'recommends'
+type SubTab = 'reviews' | 'recommends' | 'community'
 
 export default function ReviewsPage() {
   const [subTab, setSubTab] = useState<SubTab>('reviews')
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [showRecommendForm, setShowRecommendForm] = useState(false)
+  const [selectedBook, setSelectedBook] = useState<string | null>(null)
+
   const reviews = useGraphStore((s) => s.reviews)
   const recommendations = useGraphStore((s) => s.recommendations)
+  const communityReviews = useGraphStore((s) => s.communityReviews)
+  const loadCommunityReviews = useGraphStore((s) => s.loadCommunityReviews)
+
+  useEffect(() => {
+    if (subTab === 'community') {
+      loadCommunityReviews()
+    }
+  }, [subTab, loadCommunityReviews])
 
   const sortedReviews = [...reviews].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const sortedRecs = [...recommendations].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -27,7 +39,7 @@ export default function ReviewsPage() {
         <p className="text-sm text-espresso-300 mt-1">가족과 함께 독서 후기와 추천을 나눠요</p>
       </div>
 
-      {/* Sub-tab toggle */}
+      {/* Sub-tab toggle — 3 tabs */}
       <div className="flex items-center gap-1 bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-xl p-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         <button
           onClick={() => setSubTab('reviews')}
@@ -35,7 +47,7 @@ export default function ReviewsPage() {
             subTab === 'reviews' ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
           }`}
         >
-          <span>📝</span> 후기 ({reviews.length})
+          <span>📝</span> 우리 후기 ({reviews.length})
         </button>
         <button
           onClick={() => setSubTab('recommends')}
@@ -43,7 +55,15 @@ export default function ReviewsPage() {
             subTab === 'recommends' ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
           }`}
         >
-          <span>👍</span> 추천 ({recommendations.length})
+          <span>👍</span> 우리 추천 ({recommendations.length})
+        </button>
+        <button
+          onClick={() => setSubTab('community')}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            subTab === 'community' ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
+          }`}
+        >
+          <span>🌐</span> 전체 게시판
         </button>
       </div>
 
@@ -109,6 +129,43 @@ export default function ReviewsPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Community tab */}
+      {subTab === 'community' && (
+        <div className="space-y-4">
+          <div className="bg-surface-light/60 border border-surface-border rounded-xl p-4 animate-fade-in-up">
+            <p className="text-xs text-espresso-300">
+              🌐 모든 가족의 독서 후기를 볼 수 있습니다. 책 제목을 클릭하면 다른 독자 정보를 확인할 수 있어요!
+            </p>
+          </div>
+
+          {communityReviews.length === 0 ? (
+            <div className="text-center py-12 text-espresso-400">
+              <span className="text-4xl block mb-3">🌐</span>
+              <p>아직 전체 후기가 없습니다</p>
+              <p className="text-xs mt-1">첫 후기를 작성하면 모든 가족이 볼 수 있어요!</p>
+            </div>
+          ) : (
+            <div className="space-y-4 stagger-fade">
+              {communityReviews.map((review) => (
+                <CommunityReviewCard
+                  key={review.reviewId}
+                  review={review}
+                  onBookClick={(title) => setSelectedBook(title)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Book detail modal */}
+      {selectedBook && (
+        <BookDetailModal
+          bookTitle={selectedBook}
+          onClose={() => setSelectedBook(null)}
+        />
       )}
     </div>
   )

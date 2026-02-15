@@ -97,3 +97,31 @@ export interface BookRecommendation {
   emoji: string
   createdAt: string
 }
+
+// ─── Community Types (cross-family) ──────────
+
+export interface CommunityReview {
+  reviewId: string
+  personName: string
+  personEmoji: string
+  familyName: string
+  familyEmoji: string
+  bookTitle: string
+  bookAuthor: string
+  bookEmoji: string
+  rating: number
+  content: string
+  likes: string[]
+  createdAt: string
+}
+
+export interface BookReaderInfo {
+  familyName: string
+  familyEmoji: string
+  personName: string
+  personEmoji: string
+  completed: boolean
+  currentPage: number
+  totalPages: number
+  reviewCount: number
+}
