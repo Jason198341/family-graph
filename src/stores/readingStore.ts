@@ -471,15 +471,25 @@ export const useReadingStore = create<ReadingState>()((set, get) => ({
   },
 
   removeBook: (id) => {
+    const book = get().books.find((b) => b.id === id)
     set((s) => {
       const next = {
         books: s.books.filter((b) => b.id !== id),
         readingLogs: s.readingLogs.filter((l) => l.bookId !== id),
+        bookProgress: s.bookProgress.filter((bp) => bp.bookId !== id),
+        reviews: s.reviews.filter((r) => r.bookId !== id),
+        highlights: s.highlights.filter((h) => h.bookId !== id),
+        ...(book ? { recommendations: s.recommendations.filter((r) => r.bookTitle !== book.title) } : {}),
       }
       if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
     if (!useLocalMode()) {
+      dbSync(supabase.from('reading_logs').delete().eq('book_id', id))
+      dbSync(supabase.from('person_book_progress').delete().eq('book_id', id))
+      dbSync(supabase.from('book_reviews').delete().eq('book_id', id))
+      dbSync(supabase.from('daily_highlights').delete().eq('book_id', id))
+      if (book) dbSync(supabase.from('book_recommendations').delete().eq('book_title', book.title))
       dbSync(supabase.from('books').delete().eq('id', id))
     }
   },

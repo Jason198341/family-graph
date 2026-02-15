@@ -36,6 +36,7 @@ export default function ReadingTracker() {
   const updateReadingGoal = useReadingStore((s) => s.updateReadingGoal)
   const addBook = useReadingStore((s) => s.addBook)
   const updateBook = useReadingStore((s) => s.updateBook)
+  const removeBook = useReadingStore((s) => s.removeBook)
   const addToast = useReadingStore((s) => s.addToast)
   const updateBookProgress = useReadingStore((s) => s.updateBookProgress)
   const getBookProgress = useReadingStore((s) => s.getBookProgress)
@@ -60,6 +61,8 @@ export default function ReadingTracker() {
   const [coverSearchResults, setCoverSearchResults] = useState<{ cover: string; title: string }[]>([])
   const [searchingCovers, setSearchingCovers] = useState(false)
   const [manualCoverUrl, setManualCoverUrl] = useState('')
+  const [deletingBookId, setDeletingBookId] = useState<string | null>(null)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
 
   // ── Computed data ──
   const familyStats = useMemo(() => {
@@ -611,6 +614,53 @@ export default function ReadingTracker() {
                 )}
                 {readers.length === 0 && (
                   <p className="text-[10px] text-stone-400 mt-2">아직 읽은 사람이 없습니다</p>
+                )}
+
+                {/* Delete book */}
+                {deletingBookId === book.id ? (
+                  <div className="mt-2.5 p-2.5 bg-rose-50 rounded-lg border border-rose-200 space-y-2">
+                    <p className="text-[11px] text-rose-600 font-medium">
+                      이 책과 관련된 모든 독서 기록, 진행도, 후기가 삭제됩니다.
+                    </p>
+                    <p className="text-[10px] text-stone-500">
+                      확인하려면 <strong className="text-rose-600">{book.title}</strong> 을 입력하세요
+                    </p>
+                    <input
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      placeholder={book.title}
+                      className="w-full bg-white border border-rose-200 rounded-lg px-2.5 py-1.5 text-xs text-stone-700 outline-none focus:border-rose-400"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setDeletingBookId(null); setDeleteConfirmText('') }}
+                        className="flex-1 py-1.5 text-[11px] text-stone-500 hover:text-stone-700 cursor-pointer transition-colors"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={() => {
+                          removeBook(book.id)
+                          addToast(`"${book.title}" 및 관련 기록이 삭제되었습니다`, 'info')
+                          setDeletingBookId(null)
+                          setDeleteConfirmText('')
+                          if (formBookId === book.id) setFormBookId(books[0]?.id ?? '')
+                        }}
+                        disabled={deleteConfirmText !== book.title}
+                        className="flex-1 py-1.5 bg-rose-500 text-white text-[11px] font-bold rounded-lg hover:bg-rose-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setDeletingBookId(book.id); setDeleteConfirmText('') }}
+                    className="mt-2 w-full text-[10px] text-stone-300 hover:text-rose-400 cursor-pointer transition-colors text-right"
+                  >
+                    책 삭제
+                  </button>
                 )}
               </div>
             )
