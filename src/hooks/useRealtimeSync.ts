@@ -16,6 +16,7 @@ const TABLE_MAP = {
       color: r.color as string,
       birthYear: (r.birth_year as number) ?? undefined,
       goalLines: (r.goal_lines as number) ?? undefined,
+      avatarUrl: (r.avatar_url as string) ?? undefined,
     }),
   },
   books: {
@@ -28,6 +29,7 @@ const TABLE_MAP = {
       linesPerPage: r.lines_per_page as number,
       emoji: r.emoji as string,
       color: r.color as string,
+      coverUrl: (r.cover_url as string) ?? undefined,
     }),
   },
   reading_logs: {
