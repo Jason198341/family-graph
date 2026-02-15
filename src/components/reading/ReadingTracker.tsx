@@ -516,7 +516,7 @@ export default function ReadingTracker() {
                 <div className="flex items-start gap-3">
                   {book.coverUrl ? (
                     <button onClick={() => searchCoverForBook(book.id)} className="relative group cursor-pointer shrink-0">
-                      <img src={book.coverUrl} alt="" className="w-10 h-14 object-cover rounded shadow-sm" />
+                      <img key={book.coverUrl} src={book.coverUrl} alt="" className="w-10 h-14 object-cover rounded shadow-sm" />
                       <div className="absolute inset-0 bg-black/40 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-[8px]">변경</span>
                       </div>

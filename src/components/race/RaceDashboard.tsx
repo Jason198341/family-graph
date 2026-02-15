@@ -235,9 +235,9 @@ export default function RaceDashboard() {
               const totalLines = bookLogs.reduce((s, l) => s + l.linesRead, 0)
               const readerIds = [...new Set(bookLogs.map((l) => l.personId))]
               return (
-                <div key={book.id} className="shrink-0 w-28 bg-white rounded-xl border border-stone-200/60 shadow-sm overflow-hidden">
+                <div key={`${book.id}-${book.coverUrl ?? ''}`} className="shrink-0 w-28 bg-white rounded-xl border border-stone-200/60 shadow-sm overflow-hidden">
                   {book.coverUrl ? (
-                    <img src={book.coverUrl} alt="" className="w-full h-36 object-cover" />
+                    <img key={book.coverUrl} src={book.coverUrl} alt="" className="w-full h-36 object-cover" />
                   ) : (
                     <div className="w-full h-36 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center text-3xl">
                       {book.emoji}
@@ -278,7 +278,7 @@ export default function RaceDashboard() {
               return (
                 <div key={log.id} className="group flex items-center gap-2.5 bg-white rounded-xl px-3 py-2.5 border border-stone-100 transition-all">
                   {book.coverUrl ? (
-                    <img src={book.coverUrl} alt="" className="w-7 h-10 object-cover rounded shadow-sm shrink-0" />
+                    <img key={book.coverUrl} src={book.coverUrl} alt="" className="w-7 h-10 object-cover rounded shadow-sm shrink-0" />
                   ) : (
                     <span className="text-lg shrink-0">{book.emoji}</span>
                   )}
