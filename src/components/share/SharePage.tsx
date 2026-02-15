@@ -2,15 +2,13 @@ import { useState } from 'react'
 import TreeCelebrationCard from './TreeCelebrationCard'
 import RaceShareCard from './RaceShareCard'
 import BookShelfCard from './BookShelfCard'
-import ReadingWrappedCard from './ReadingWrappedCard'
 
-type ShareTab = 'tree' | 'race' | 'shelf' | 'wrapped'
+type ShareTab = 'tree' | 'race' | 'shelf'
 
 const tabs: { id: ShareTab; label: string; emoji: string; desc: string }[] = [
   { id: 'tree', label: '나무 성장', emoji: '🌳', desc: '가족 독서 나무 레벨' },
   { id: 'race', label: '레이스', emoji: '🏃', desc: '이번 달 독서 경주' },
   { id: 'shelf', label: '책장', emoji: '📚', desc: '우리 가족 서재' },
-  { id: 'wrapped', label: 'DNA', emoji: '🧬', desc: '연간 독서 리포트' },
 ]
 
 function getMonthStr() {
@@ -34,7 +32,7 @@ export default function SharePage() {
       </div>
 
       {/* Tab selector */}
-      <div className="flex gap-1.5 md:grid md:grid-cols-4 md:gap-2 animate-fade-in-up overflow-x-auto" style={{ animationDelay: '80ms' }}>
+      <div className="flex gap-1.5 md:grid md:grid-cols-3 md:gap-2 animate-fade-in-up overflow-x-auto" style={{ animationDelay: '80ms' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -59,7 +57,6 @@ export default function SharePage() {
         {activeTab === 'tree' && <TreeCelebrationCard />}
         {activeTab === 'race' && <RaceShareCard month={getMonthStr()} />}
         {activeTab === 'shelf' && <BookShelfCard />}
-        {activeTab === 'wrapped' && <ReadingWrappedCard />}
       </div>
 
       {/* Tips */}
@@ -68,7 +65,6 @@ export default function SharePage() {
         <ul className="space-y-0.5 list-disc list-inside">
           <li><strong>이미지 저장</strong>: 카드를 PNG로 다운로드합니다</li>
           <li><strong>공유하기</strong>: 모바일에서 카카오톡, 인스타그램 등으로 바로 공유됩니다</li>
-          <li><strong>DNA 리포트</strong>: 좌우 화살표로 슬라이드를 넘기며 각각 저장할 수 있습니다</li>
         </ul>
       </div>
     </div>
