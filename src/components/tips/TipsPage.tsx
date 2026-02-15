@@ -23,6 +23,11 @@ const QUICK_PROMPTS = [
   '읽은 책으로 가족 토론 질문을 만들어주세요',
 ]
 
+const AI_LIMIT_KEY = 'fg_ai_last_used'
+const getToday = () => new Date().toISOString().slice(0, 10)
+const isUsedToday = () => localStorage.getItem(AI_LIMIT_KEY) === getToday()
+const markUsedToday = () => localStorage.setItem(AI_LIMIT_KEY, getToday())
+
 export default function TipsPage() {
   const [category, setCategory] = useState('전체')
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -30,6 +35,7 @@ export default function TipsPage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showCoach, setShowCoach] = useState(true)
+  const [aiUsedToday, setAiUsedToday] = useState(isUsedToday)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const persons = useGraphStore((s) => s.persons)
@@ -75,6 +81,8 @@ export default function TipsPage() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return
+    if (aiUsedToday) return
+
     const userMsg: ChatMessage = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
@@ -102,6 +110,8 @@ export default function TipsPage() {
       const data = await res.json()
       const reply = data.choices?.[0]?.message?.content ?? '죄송합니다, 응답을 생성하지 못했어요.'
       setMessages([...newMessages, { role: 'assistant', content: reply }])
+      markUsedToday()
+      setAiUsedToday(true)
     } catch {
       setMessages([...newMessages, { role: 'assistant', content: '연결에 실패했어요. 잠시 후 다시 시도해주세요.' }])
     } finally {
@@ -144,10 +154,23 @@ export default function TipsPage() {
       {/* AI Coach */}
       {showCoach && (
         <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
+          {/* Daily limit notice */}
+          {aiUsedToday && messages.length === 0 && (
+            <div className="bg-surface-light/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-5 text-center">
+              <p className="text-2xl mb-2">🌙</p>
+              <p className="text-sm font-semibold text-cream-100">오늘의 AI 코치 상담을 이미 사용했어요</p>
+              <p className="text-xs text-espresso-300 mt-1">하루에 1회 사용할 수 있어요. 내일 다시 만나요!</p>
+              <p className="text-xs text-espresso-400 mt-3">독서법 가이드 탭에서 다양한 독서 팁을 확인해보세요</p>
+            </div>
+          )}
+
           {/* Quick prompts */}
-          {messages.length === 0 && (
+          {messages.length === 0 && !aiUsedToday && (
             <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-              <p className="text-xs text-espresso-400 mb-3">빠른 질문</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-espresso-400">빠른 질문</p>
+                <p className="text-xs text-espresso-400">하루 1회 사용 가능</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {QUICK_PROMPTS.map((prompt) => (
                   <button
@@ -200,22 +223,29 @@ export default function TipsPage() {
           )}
 
           {/* Input */}
-          <div className="flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
-              placeholder="독서 코치에게 질문해보세요..."
-              className="flex-1 text-sm p-3 bg-surface-light/80 rounded-xl border border-surface-border text-cream-100 placeholder:text-espresso-400"
-            />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || loading}
-              className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              전송
-            </button>
-          </div>
+          {aiUsedToday && messages.length > 0 && (
+            <div className="text-center py-2">
+              <p className="text-xs text-espresso-400">오늘의 상담이 완료되었습니다. 내일 다시 이용해주세요.</p>
+            </div>
+          )}
+          {!aiUsedToday && (
+            <div className="flex gap-2">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
+                placeholder="독서 코치에게 질문해보세요..."
+                className="flex-1 text-sm p-3 bg-surface-light/80 rounded-xl border border-surface-border text-cream-100 placeholder:text-espresso-400"
+              />
+              <button
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || loading}
+                className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                전송
+              </button>
+            </div>
+          )}
         </div>
       )}
 
