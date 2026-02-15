@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useGraphStore } from '@/stores/graphStore'
 import { resizeImage } from '@/lib/resizeImage'
@@ -18,7 +18,11 @@ const EXTRA_EMOJIS = ['👶', '🧒', '🧑', '👱', '🧔', '👩‍🦰', '�
 const ALL_EMOJIS = [...ROLE_PRESETS.map((p) => p.emoji), ...EXTRA_EMOJIS]
 const COLORS = ['#3b82f6', '#ec4899', '#22c55e', '#f59e0b', '#6366f1', '#a855f7', '#ef4444', '#14b8a6']
 
-export default function MemberManager() {
+interface MemberManagerProps {
+  initialEditId?: string | null
+}
+
+export default function MemberManager({ initialEditId }: MemberManagerProps) {
   const family = useFamilyStore((s) => s.family)
   const members = useFamilyStore((s) => s.members)
   const myMembership = useFamilyStore((s) => s.myMembership)
@@ -47,6 +51,14 @@ export default function MemberManager() {
   const [editColor, setEditColor] = useState('')
   const [editAvatarUrl, setEditAvatarUrl] = useState('')
   const editFileRef = useRef<HTMLInputElement>(null)
+
+  // Auto-open edit form when initialEditId is provided
+  useEffect(() => {
+    if (initialEditId) {
+      const p = persons.find((x) => x.id === initialEditId)
+      if (p) startEdit(p)
+    }
+  }, [initialEditId])
 
   if (!family) return null
 

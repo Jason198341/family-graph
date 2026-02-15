@@ -5,6 +5,7 @@ import { useFamilyStore } from '@/stores/familyStore'
 import { signOut, supabase } from '@/lib/supabase'
 import type { AppView } from '@/types'
 import MemberManager from '@/components/family/MemberManager'
+import PersonAvatar from '@/components/common/PersonAvatar'
 
 const navItems: { view: AppView; label: string; icon: ReactNode }[] = [
   {
@@ -59,6 +60,7 @@ export default function Sidebar() {
   const family = useFamilyStore((s) => s.family)
   const devMode = useAuthStore((s) => s.devMode)
   const [showSettings, setShowSettings] = useState(false)
+  const [initialEditId, setInitialEditId] = useState<string | null>(null)
 
   const handleLogout = async () => {
     await signOut()
@@ -112,27 +114,28 @@ export default function Sidebar() {
         {/* Divider */}
         <div className="mx-3 border-t border-surface-border" />
 
-        {/* Family member avatars */}
+        {/* Family member avatars — click to edit */}
         <div className="py-4 px-2 flex flex-col gap-2">
           <span className="text-xs text-espresso-400 uppercase tracking-wider px-3 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap">
             가족 구성원
           </span>
           {persons.map((person) => (
-            <div
+            <button
               key={person.id}
-              className="flex items-center gap-3 px-3 py-1.5 rounded-lg w-full"
+              onClick={() => { setInitialEditId(person.id); setShowSettings(true) }}
+              className="flex items-center gap-3 px-3 py-1.5 rounded-lg w-full hover:bg-surface-hover transition-colors cursor-pointer"
+              title={`${person.name} 프로필 수정`}
             >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 border-2"
-                style={{ borderColor: person.color, backgroundColor: `${person.color}15` }}
-              >
-                {person.emoji}
-              </div>
-              <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
+              <PersonAvatar person={person} size={32} />
+              <div className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap flex-1 text-left">
                 <p className="text-xs font-medium text-cream-200">{person.name}</p>
                 <p className="text-xs text-espresso-400">{person.role}</p>
               </div>
-            </div>
+              <svg className="w-3.5 h-3.5 text-espresso-400 shrink-0 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
           ))}
         </div>
 
@@ -179,7 +182,7 @@ export default function Sidebar() {
 
       {/* Settings modal */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { setShowSettings(false); setInitialEditId(null) }}>
           <div
             className="bg-surface-light border border-surface-border rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto animate-fade-in-up"
             onClick={(e) => e.stopPropagation()}
@@ -187,7 +190,7 @@ export default function Sidebar() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-cream-100">설정</h2>
               <button
-                onClick={() => setShowSettings(false)}
+                onClick={() => { setShowSettings(false); setInitialEditId(null) }}
                 className="text-espresso-300 hover:text-cream-100 transition-colors cursor-pointer"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -196,7 +199,7 @@ export default function Sidebar() {
               </button>
             </div>
 
-            <MemberManager />
+            <MemberManager initialEditId={initialEditId} />
 
             <div className="mt-6 pt-4 border-t border-surface-border space-y-2">
               <button
