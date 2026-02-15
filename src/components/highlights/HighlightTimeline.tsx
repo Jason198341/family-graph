@@ -39,8 +39,8 @@ export default function HighlightTimeline({ month }: HighlightTimelineProps) {
     : null
 
   return (
-    <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up">
-      <div className="flex items-center justify-between mb-4">
+    <div className="py-2 md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 animate-fade-in-up">
+      <div className="flex items-center justify-between mb-2 md:mb-4">
         <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">
           오늘의 한 줄
         </h2>
@@ -54,7 +54,7 @@ export default function HighlightTimeline({ month }: HighlightTimelineProps) {
 
       {/* Best highlight banner */}
       {bestHighlight && (
-        <div className="mb-4 p-3 bg-amber-500/8 border border-amber-500/20 rounded-xl">
+        <div className="mb-2 md:mb-4 p-2 md:p-3 bg-amber-500/8 border border-amber-500/20 rounded-xl">
           <p className="text-xs text-amber-600/70 mb-1">이 달의 명문장</p>
           <p className="text-sm text-cream-100 italic leading-relaxed">
             &ldquo;{bestHighlight.content}&rdquo;
@@ -124,14 +124,14 @@ export default function HighlightTimeline({ month }: HighlightTimelineProps) {
           <p className="text-xs mt-1">읽다가 마음에 드는 문장을 기록해보세요!</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          {monthHighlights.map((hl) => {
+        <div className="divide-y divide-surface-border md:divide-y-0 md:space-y-3 md:max-h-64 md:overflow-y-auto">
+          {monthHighlights.slice(0, 3).map((hl) => {
             const person = persons.find((p) => p.id === hl.personId)
             const book = books.find((b) => b.id === hl.bookId)
             return (
               <div
                 key={hl.id}
-                className="flex gap-3 p-3 bg-surface-lighter/60 rounded-xl border border-surface-border group"
+                className="flex gap-2 md:gap-3 py-2 px-1 md:p-3 md:bg-surface-lighter/60 md:rounded-xl md:border md:border-surface-border group"
               >
                 <span className="text-lg shrink-0 mt-0.5">{person?.emoji ?? '👤'}</span>
                 <div className="flex-1 min-w-0">

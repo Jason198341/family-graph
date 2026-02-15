@@ -36,7 +36,7 @@ export default function RaceDashboard() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-4 md:space-y-6 p-4 md:p-6 max-w-5xl mx-auto">
+    <div className="flex-1 overflow-y-auto space-y-2 md:space-y-6 px-3 pt-2 md:p-6 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in-up">
         <div>
@@ -70,8 +70,8 @@ export default function RaceDashboard() {
       <FamilyLeaderboard month={month} />
 
       {/* ── 2. 개인 독서 진행률 ── */}
-      <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-        <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">
+      <div className="py-2 md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+        <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-2 md:mb-4">
           개인 독서 여정
         </h2>
         <RaceTrack month={month} />
@@ -79,7 +79,7 @@ export default function RaceDashboard() {
 
       {/* ── 3. 독서 역량 레이더 차트 ── */}
       {persons.length > 0 && (
-        <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
+        <div className="hidden md:block md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
           <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">
             독서 역량 분석
           </h2>

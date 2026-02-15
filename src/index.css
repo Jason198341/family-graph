@@ -182,9 +182,7 @@ html[data-font-size="xlarge"] {
   body { overscroll-behavior-y: contain; }
 }
 
-/* Mobile touch targets — min 44px */
+/* Mobile touch targets — only primary action buttons */
 @media (max-width: 767px) {
-  button, a, [role="button"] {
-    min-height: 44px;
-  }
+  .touch-target { min-height: 44px; }
 }

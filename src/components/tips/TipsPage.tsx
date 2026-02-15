@@ -124,7 +124,7 @@ export default function TipsPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
+    <div className="flex-1 overflow-y-auto px-3 pt-2 md:p-8 space-y-2 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
@@ -136,22 +136,22 @@ export default function TipsPage() {
       </div>
 
       {/* Tab toggle: Coach / Tips */}
-      <div className="flex items-center gap-1 bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-xl p-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+      <div className="flex items-center gap-1 bg-surface-light/80 border border-surface-border rounded-xl p-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         <button
           onClick={() => setShowCoach(true)}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
             showCoach ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
           }`}
         >
-          <span>🤖</span> AI 독서 코치
+          <span>🤖</span> AI 코치
         </button>
         <button
           onClick={() => setShowCoach(false)}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
             !showCoach ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
           }`}
         >
-          <span>📖</span> 독서법 가이드
+          <span>📖</span> 독서법
         </button>
       </div>
 
@@ -160,7 +160,7 @@ export default function TipsPage() {
         <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
           {/* Daily limit notice */}
           {aiUsedToday && messages.length === 0 && (
-            <div className="bg-surface-light/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-5 text-center">
+            <div className="border border-amber-500/30 rounded-xl md:rounded-2xl p-3 md:p-5 text-center">
               <p className="text-2xl mb-2">🌙</p>
               <p className="text-sm font-semibold text-cream-100">오늘의 AI 코치 상담을 이미 사용했어요</p>
               <p className="text-xs text-espresso-300 mt-1">하루에 1회 사용할 수 있어요. 내일 다시 만나요!</p>
@@ -170,12 +170,12 @@ export default function TipsPage() {
 
           {/* Quick prompts */}
           {messages.length === 0 && !aiUsedToday && (
-            <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-3">
+            <div className="md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
                 <p className="text-xs text-espresso-400">빠른 질문</p>
-                <p className="text-xs text-espresso-400">하루 1회 사용 가능</p>
+                <p className="text-xs text-espresso-400">하루 1회</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
                 {QUICK_PROMPTS.map((prompt) => (
                   <button
                     key={prompt}
@@ -191,7 +191,7 @@ export default function TipsPage() {
 
           {/* Chat messages */}
           {messages.length > 0 && (
-            <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 max-h-96 overflow-y-auto space-y-4">
+            <div className="md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 max-h-96 overflow-y-auto space-y-3 md:space-y-4">
               {messages.map((msg, i) => (
                 <div
                   key={i}
@@ -277,7 +277,7 @@ export default function TipsPage() {
           </div>
 
           {/* Tips grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-fade">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 stagger-fade">
             {filtered.map((tip) => (
               <TipCard
                 key={tip.id}
@@ -304,8 +304,8 @@ function TipCard({
 }) {
   return (
     <div
-      className={`bg-surface-light/80 backdrop-blur-md border rounded-2xl p-5 transition-all cursor-pointer ${
-        expanded ? 'border-amber-500/40' : 'border-surface-border hover:border-surface-hover'
+      className={`py-2 px-1 md:bg-surface-light/80 md:backdrop-blur-md border-b md:border md:rounded-2xl md:p-5 transition-all cursor-pointer ${
+        expanded ? 'border-amber-500/40' : 'border-surface-border md:hover:border-surface-hover'
       }`}
       onClick={onToggle}
     >

@@ -22,7 +22,7 @@ export default function SharePage() {
   const [activeTab, setActiveTab] = useState<ShareTab>('tree')
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
+    <div className="flex-1 overflow-y-auto px-3 pt-2 md:p-8 space-y-2 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
@@ -34,18 +34,18 @@ export default function SharePage() {
       </div>
 
       {/* Tab selector */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+      <div className="flex gap-1.5 md:grid md:grid-cols-4 md:gap-2 animate-fade-in-up overflow-x-auto" style={{ animationDelay: '80ms' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center gap-1 p-2.5 md:p-3 rounded-xl border transition-all cursor-pointer ${
+            className={`flex items-center gap-1 md:flex-col px-3 py-1.5 md:p-3 rounded-lg md:rounded-xl border transition-all cursor-pointer shrink-0 ${
               activeTab === tab.id
-                ? 'bg-amber-50 border-amber-300 shadow-sm'
+                ? 'bg-amber-50 border-amber-300'
                 : 'bg-surface-light border-surface-border hover:border-surface-hover'
             }`}
           >
-            <span className="text-xl md:text-2xl">{tab.emoji}</span>
+            <span className="text-base md:text-2xl">{tab.emoji}</span>
             <span className={`text-xs font-bold ${activeTab === tab.id ? 'text-amber-700' : 'text-cream-100'}`}>
               {tab.label}
             </span>
@@ -63,7 +63,7 @@ export default function SharePage() {
       </div>
 
       {/* Tips */}
-      <div className="bg-surface-light border border-surface-border rounded-xl p-4 text-xs text-espresso-300 animate-fade-in-up" style={{ animationDelay: '240ms' }}>
+      <div className="hidden md:block bg-surface-light border border-surface-border rounded-xl p-4 text-xs text-espresso-300 animate-fade-in-up" style={{ animationDelay: '240ms' }}>
         <p className="font-semibold text-cream-100 mb-1">💡 공유 팁</p>
         <ul className="space-y-0.5 list-disc list-inside">
           <li><strong>이미지 저장</strong>: 카드를 PNG로 다운로드합니다</li>

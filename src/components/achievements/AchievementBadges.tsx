@@ -19,13 +19,13 @@ export default function AchievementBadges({ month }: AchievementBadgesProps) {
   const treeEmojis = ['🌰', '🌱', '🌿', '🪴', '🌳', '🌲']
 
   return (
-    <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up">
-      <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">
+    <div className="py-2 md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 animate-fade-in-up">
+      <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-2 md:mb-4">
         도전 과제
       </h2>
 
       {/* Family tree visualization */}
-      <div className="flex items-center gap-4 mb-5 p-4 bg-surface-lighter/60 rounded-xl border border-surface-border">
+      <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-5 p-2 md:p-4 bg-surface-lighter/60 rounded-xl border border-surface-border">
         <div className="text-center">
           <span className="text-4xl block">{treeEmojis[treeStage]}</span>
           <p className="text-xs text-espresso-400 mt-1">가족 나무</p>
@@ -70,7 +70,7 @@ export default function AchievementBadges({ month }: AchievementBadgesProps) {
       {locked.length > 0 && (
         <div>
           <p className="text-xs text-espresso-400 font-semibold mb-2">도전 중 ({locked.length})</p>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5 md:gap-2">
             {locked.map((a) => (
               <div
                 key={a.id}

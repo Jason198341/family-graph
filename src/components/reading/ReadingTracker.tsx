@@ -155,7 +155,7 @@ export default function ReadingTracker() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
+    <div className="flex-1 overflow-y-auto px-3 pt-2 md:p-8 space-y-2 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
@@ -189,11 +189,11 @@ export default function ReadingTracker() {
 
       {/* Goal editor (manual only) */}
       {showGoalEditor && (
-        <div className="bg-surface-light/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-5 space-y-3 animate-fade-in-up">
+        <div className="py-2 md:bg-surface-light/80 md:backdrop-blur-md border-b border-amber-500/30 md:border md:rounded-2xl md:p-5 space-y-2 md:space-y-3 animate-fade-in-up">
           <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">
             {formatMonth(selectedMonth)} 개인별 독서 목표
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
             {persons.map((person) => {
               const goal = readingGoals.find(
                 (g) => g.personId === person.id && g.month === selectedMonth,
@@ -235,65 +235,79 @@ export default function ReadingTracker() {
         </div>
       )}
 
-      {/* Family overview stats */}
-      <div className="grid grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-        <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
-          <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">가족 전체</p>
-          <p className="text-2xl font-bold text-cream-100">{familyTotalLines.toLocaleString()}<span className="text-xs text-espresso-400 ml-1">줄</span></p>
-          <div className="mt-2 h-1.5 bg-surface rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-700" style={{ width: `${familyProgress}%` }} />
+      {/* Family overview stats — inline on mobile, 3-col on desktop */}
+      <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+        {/* Mobile: compact inline row */}
+        <div className="flex items-center gap-3 py-2 md:hidden">
+          <div className="flex-1">
+            <p className="text-lg font-bold text-cream-100">{familyTotalLines.toLocaleString()}<span className="text-xs text-espresso-400 ml-0.5">줄</span></p>
+            <div className="h-1 bg-surface rounded-full overflow-hidden mt-1">
+              <div className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-700" style={{ width: `${familyProgress}%` }} />
+            </div>
           </div>
-          <p className="text-xs text-espresso-400 mt-1">{familyProgress}% 달성 {familyTotalTarget > 0 ? `(목표 ${familyTotalTarget.toLocaleString()}줄)` : ''}</p>
+          <span className="text-xs text-espresso-400">{books.length}권</span>
+          <span className="text-xs text-espresso-400">{readingLogs.filter((l) => l.date.startsWith(selectedMonth)).length}건</span>
         </div>
-        <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
-          <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">등록 도서</p>
-          <p className="text-2xl font-bold text-cream-100">{books.length}<span className="text-xs text-espresso-400 ml-1">권</span></p>
-        </div>
-        <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
-          <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">이번 달 기록</p>
-          <p className="text-2xl font-bold text-cream-100">{readingLogs.filter((l) => l.date.startsWith(selectedMonth)).length}<span className="text-xs text-espresso-400 ml-1">건</span></p>
+        {/* Desktop: 3-col cards */}
+        <div className="hidden md:grid grid-cols-3 gap-4">
+          <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
+            <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">가족 전체</p>
+            <p className="text-2xl font-bold text-cream-100">{familyTotalLines.toLocaleString()}<span className="text-xs text-espresso-400 ml-1">줄</span></p>
+            <div className="mt-2 h-1.5 bg-surface rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-700" style={{ width: `${familyProgress}%` }} />
+            </div>
+            <p className="text-xs text-espresso-400 mt-1">{familyProgress}% 달성 {familyTotalTarget > 0 ? `(목표 ${familyTotalTarget.toLocaleString()}줄)` : ''}</p>
+          </div>
+          <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
+            <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">등록 도서</p>
+            <p className="text-2xl font-bold text-cream-100">{books.length}<span className="text-xs text-espresso-400 ml-1">권</span></p>
+          </div>
+          <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4">
+            <p className="text-xs text-espresso-400 uppercase tracking-wider mb-1">이번 달 기록</p>
+            <p className="text-2xl font-bold text-cream-100">{readingLogs.filter((l) => l.date.startsWith(selectedMonth)).length}<span className="text-xs text-espresso-400 ml-1">건</span></p>
+          </div>
         </div>
       </div>
 
       {/* Family member cards */}
       <div className="space-y-3">
         <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">구성원별 진행</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="divide-y divide-surface-border md:divide-y-0 md:grid md:grid-cols-2 md:gap-4">
           {familyStats.map(({ person, totalLines, targetLines, progress, currentBook, readToday, streak }, idx) => (
             <div
               key={person.id}
-              className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 animate-fade-in-up hover:border-surface-hover transition-colors"
+              className="py-2 px-1 md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 animate-fade-in-up md:hover:border-surface-hover transition-colors"
               style={{ animationDelay: `${150 + idx * 60}ms` }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <PersonAvatar person={person} size={40} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-cream-100">{person.name}</p>
+              <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
+                <PersonAvatar person={person} size={32} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+                    <p className="text-xs md:text-sm font-bold text-cream-100">{person.name}</p>
                     <span className="text-xs text-espresso-400">{person.role}</span>
                     {readToday && (
-                      <span className="text-xs px-1.5 py-0.5 bg-success-500/15 text-success-400 border border-success-500/30 rounded-full">오늘 완료</span>
+                      <span className="text-xs px-1 py-0.5 bg-success-500/15 text-success-400 rounded-full">완료</span>
                     )}
+                    {streak > 0 && <span className="text-xs text-amber-600">🔥 {streak}일</span>}
                   </div>
                   <p className="text-xs text-espresso-400">
                     {totalLines.toLocaleString()} / {targetLines > 0 ? `${targetLines.toLocaleString()}줄` : '목표 미설정'}
-                    {streak > 0 && <span className="ml-2 text-amber-600">🔥 {streak}일 연속</span>}
                   </p>
                 </div>
-                <span className="text-lg font-bold" style={{ color: person.color }}>{progress}%</span>
+                <span className="text-sm md:text-lg font-bold shrink-0" style={{ color: person.color }}>{progress}%</span>
               </div>
 
-              <div className="h-2 bg-surface rounded-full overflow-hidden">
+              <div className="h-1 md:h-2 bg-surface rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${progress}%`, backgroundColor: person.color, boxShadow: `0 0 8px ${person.color}40` }}
+                  style={{ width: `${progress}%`, backgroundColor: person.color }}
                 />
               </div>
 
               {currentBook && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-espresso-400">
+                <div className="mt-1 md:mt-3 flex items-center gap-2 text-xs text-espresso-400">
                   <span>{currentBook.emoji}</span>
-                  <span>현재: {currentBook.title}</span>
+                  <span className="truncate">{currentBook.title}</span>
                 </div>
               )}
             </div>
@@ -302,9 +316,9 @@ export default function ReadingTracker() {
       </div>
 
       {/* Log entry form */}
-      <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5 space-y-4 animate-fade-in-up" style={{ animationDelay: '350ms' }}>
+      <div className="py-2 md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5 space-y-3 md:space-y-4 animate-fade-in-up" style={{ animationDelay: '350ms' }}>
         <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">독서 기록 입력</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
           <div>
             <label className="text-xs text-espresso-400 block mb-1">누가</label>
             <select
@@ -397,8 +411,8 @@ export default function ReadingTracker() {
         </div>
 
         {showAddBook && (
-          <div className="bg-surface-light/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-4 space-y-3">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="py-2 md:bg-surface-light/80 md:backdrop-blur-md border-b border-amber-500/30 md:border md:rounded-2xl md:p-4 space-y-2 md:space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
               <div>
                 <label className="text-xs text-espresso-400 block mb-1">제목</label>
                 <input
@@ -450,7 +464,7 @@ export default function ReadingTracker() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="divide-y divide-surface-border md:divide-y-0 md:grid md:grid-cols-3 md:gap-3">
           {books.map((book) => {
             // Per-person progress for this book
             const bookProgresses = bookProgressList.filter((bp) => bp.bookId === book.id)
@@ -467,7 +481,7 @@ export default function ReadingTracker() {
             return (
               <div
                 key={book.id}
-                className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-4 hover:border-surface-hover transition-colors"
+                className="py-2 px-1 md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-4 md:hover:border-surface-hover transition-colors"
               >
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{book.emoji}</span>
@@ -512,7 +526,7 @@ export default function ReadingTracker() {
       {/* Recent logs */}
       <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '450ms' }}>
         <h2 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold">최근 기록</h2>
-        <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl divide-y divide-surface-border overflow-hidden">
+        <div className="md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl divide-y divide-surface-border overflow-hidden">
           {[...readingLogs]
             .filter((l) => l.date.startsWith(selectedMonth))
             .sort((a, b) => b.date.localeCompare(a.date))

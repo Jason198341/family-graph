@@ -82,25 +82,25 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
     <div className="space-y-4">
       {/* Rank banner */}
       {ourRank && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-5 py-3 flex items-center gap-3 animate-fade-in-up">
-          <span className="text-2xl">🏠</span>
-          <p className="text-sm font-bold text-amber-700">
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2 md:px-5 md:py-3 flex items-center gap-2 md:gap-3 animate-fade-in-up">
+          <span className="text-lg md:text-2xl">🏠</span>
+          <p className="text-xs md:text-sm font-bold text-amber-700 flex-1 min-w-0">
             우리 가족은 {displayRankings.length}가족과 함께 읽고 있어요!
           </p>
           {ourRankIdx >= 0 && (
-            <span className="ml-auto text-xs text-amber-600/70">
-              이번 달 {(displayRankings[ourRankIdx]?.totalLines ?? 0).toLocaleString()}줄
+            <span className="text-xs text-amber-600/70 shrink-0">
+              {(displayRankings[ourRankIdx]?.totalLines ?? 0).toLocaleString()}줄
             </span>
           )}
         </div>
       )}
 
-      <div className="bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-2xl p-5">
-        <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-4">
+      <div className="md:bg-surface-light/80 md:backdrop-blur-md md:border md:border-surface-border md:rounded-2xl md:p-5">
+        <h3 className="text-xs text-espresso-400 uppercase tracking-wider font-semibold mb-2 md:mb-4">
           전체 가족 현황
         </h3>
 
-        <div className="space-y-3">
+        <div className="divide-y divide-surface-border md:divide-y-0 md:space-y-3">
           {displayRankings.map((family, idx) => {
             const rank = idx + 1
             const style = medalStyles[idx] ?? { bg: 'bg-surface-lighter', border: 'border-surface-border', text: 'text-espresso-300', icon: `${rank}` }
@@ -109,27 +109,27 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
             return (
               <div
                 key={family.familyId}
-                className={`flex items-center gap-4 p-4 rounded-xl border ${style.bg} ${style.border} ${rank <= 3 ? 'animate-medal-shine' : ''} ${isOurFamily ? 'ring-2 ring-amber-500/40' : ''}`}
+                className={`flex items-center gap-2 md:gap-4 px-2 py-2.5 md:p-4 md:rounded-xl md:border ${style.bg} md:${style.border} ${rank <= 3 ? 'animate-medal-shine' : ''} ${isOurFamily ? 'md:ring-2 md:ring-amber-500/40' : ''}`}
               >
-                <div className="text-2xl w-10 text-center">
+                <div className="text-lg md:text-2xl w-7 md:w-10 text-center shrink-0">
                   {style.icon}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{family.familyEmoji}</span>
-                    <span className={`text-sm font-bold ${style.text}`}>{family.familyName}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <span className="text-base md:text-lg">{family.familyEmoji}</span>
+                    <span className={`text-xs md:text-sm font-bold ${style.text} truncate`}>{family.familyName}</span>
                     {isOurFamily && (
-                      <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-600 rounded-full font-semibold">
-                        우리 가족
+                      <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-600 rounded-full font-semibold shrink-0">
+                        우리
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-espresso-400">
-                    {family.memberCount}명 · 1인당 평균 {(family.avgPerMember ?? 0).toLocaleString()}줄
+                    {family.memberCount}명 · 평균 {(family.avgPerMember ?? 0).toLocaleString()}줄
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className={`text-lg font-bold tabular-nums ${style.text}`}>
+                <div className="text-right shrink-0">
+                  <p className={`text-sm md:text-lg font-bold tabular-nums ${style.text}`}>
                     {(family.totalLines ?? 0).toLocaleString()}
                   </p>
                   <p className="text-xs text-espresso-400">줄</p>
@@ -138,7 +138,7 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
             )
           })}
           {!rpcDone && isSupabaseConfigured && (
-            <p className="text-xs text-espresso-400 text-center animate-pulse">다른 가족 불러오는 중...</p>
+            <p className="text-xs text-espresso-400 text-center animate-pulse py-2">다른 가족 불러오는 중...</p>
           )}
         </div>
       </div>

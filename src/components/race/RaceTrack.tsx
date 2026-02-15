@@ -27,14 +27,14 @@ export default function RaceTrack({ month }: RaceTrackProps) {
   const markers = [25, 50, 75]
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1.5 md:space-y-3">
       {runners.map((runner) => {
         const { person } = runner
         const isFinished = runner.percent >= 100
 
         return (
           <div key={person.id} className="relative">
-            <div className="relative h-14 bg-surface-lighter rounded-xl border border-surface-border overflow-hidden">
+            <div className="relative h-11 md:h-14 bg-surface-lighter rounded-xl border border-surface-border overflow-hidden">
               {/* Track gradient fill */}
               <div
                 className="absolute inset-y-0 left-0 rounded-xl transition-all duration-1000 ease-out"
@@ -68,7 +68,7 @@ export default function RaceTrack({ month }: RaceTrackProps) {
                 className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-all duration-1000 ease-out ${isFinished ? 'animate-finish-pulse' : 'animate-runner-bounce'}`}
                 style={{ left: `${Math.min(95, Math.max(2, runner.percent - 3))}%` }}
               >
-                <PersonAvatar person={person} size={40} className="shadow-lg" />
+                <PersonAvatar person={person} size={32} className="shadow-lg md:w-10 md:h-10" />
               </div>
 
               {/* Name label */}

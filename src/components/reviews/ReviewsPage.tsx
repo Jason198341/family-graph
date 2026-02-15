@@ -30,7 +30,7 @@ export default function ReviewsPage() {
   const sortedLetters = [...letters].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
+    <div className="flex-1 overflow-y-auto px-3 pt-2 md:p-8 space-y-2 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
@@ -40,10 +40,10 @@ export default function ReviewsPage() {
       </div>
 
       {/* Sub-tab toggle — 2 tabs */}
-      <div className="flex items-center gap-1 bg-surface-light/80 backdrop-blur-md border border-surface-border rounded-xl p-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+      <div className="flex items-center gap-1 bg-surface-light/80 border border-surface-border rounded-xl p-1 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         <button
           onClick={() => setSubTab('feed')}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
             subTab === 'feed' ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
           }`}
         >
@@ -51,11 +51,11 @@ export default function ReviewsPage() {
         </button>
         <button
           onClick={() => setSubTab('letters')}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
             subTab === 'letters' ? 'bg-surface-lighter text-cream-100' : 'text-espresso-400 hover:text-espresso-200'
           }`}
         >
-          <span>💌</span> 가족 편지 ({letters.length})
+          <span>💌</span> 편지 ({letters.length})
         </button>
       </div>
 
@@ -120,7 +120,7 @@ export default function ReviewsPage() {
             <LetterForm onClose={() => setShowLetterForm(false)} />
           )}
 
-          <div className="bg-surface-light/60 border border-surface-border rounded-xl p-4 animate-fade-in-up">
+          <div className="bg-surface-light/60 border border-surface-border rounded-xl p-2 md:p-4 animate-fade-in-up">
             <p className="text-xs text-espresso-300">
               💌 가족에게 읽은 책에 대한 감상, 응원, 감사의 마음을 전해보세요. 편지는 가족만 볼 수 있어요.
             </p>
