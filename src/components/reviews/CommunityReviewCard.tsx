@@ -1,11 +1,12 @@
-import type { CommunityReview } from '@/types'
+import type { CommunityFeedPost } from '@/types'
 import { useFamilyStore } from '@/stores/familyStore'
 
 interface CommunityReviewCardProps {
-  review: CommunityReview
+  review: CommunityFeedPost
   onBookClick?: (bookTitle: string) => void
 }
 
+/** @deprecated Use UnifiedPostCard instead */
 export default function CommunityReviewCard({ review, onBookClick }: CommunityReviewCardProps) {
   const family = useFamilyStore((s) => s.family)
   const isOurFamily = family?.name === review.familyName

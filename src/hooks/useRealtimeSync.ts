@@ -28,9 +28,6 @@ const TABLE_MAP = {
       linesPerPage: r.lines_per_page as number,
       emoji: r.emoji as string,
       color: r.color as string,
-      currentPage: (r.current_page as number) ?? undefined,
-      completed: (r.completed as boolean) ?? undefined,
-      completedDate: (r.completed_date as string) ?? undefined,
     }),
   },
   reading_logs: {
@@ -73,6 +70,7 @@ const TABLE_MAP = {
       author: r.author as string,
       reason: r.reason as string,
       emoji: r.emoji as string,
+      likes: (r.likes as string[]) ?? [],
       createdAt: r.created_at as string,
     }),
   },

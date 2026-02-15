@@ -3,11 +3,13 @@ import type {
   FamilyPerson,
   AppView,
   Book,
+  BookProgress,
   ReadingLog,
   ReadingGoal,
   BookReview,
   BookRecommendation,
-  CommunityReview,
+  CommunityFeedPost,
+  PostComment,
   BookReaderInfo,
   DailyHighlight,
   ReadingLetter,
@@ -35,10 +37,10 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null
 function persistLocal(state: GraphState) {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    const { persons, books, readingLogs, readingGoals, reviews, recommendations, highlights, letters } = state
+    const { persons, books, bookProgress, readingLogs, readingGoals, reviews, recommendations, highlights, letters } = state
     localStorage.setItem(
       FG_KEY,
-      JSON.stringify({ persons, books, readingLogs, readingGoals, reviews, recommendations, highlights, letters }),
+      JSON.stringify({ persons, books, bookProgress, readingLogs, readingGoals, reviews, recommendations, highlights, letters }),
     )
   }, 1_000)
 }
@@ -115,6 +117,7 @@ interface GraphState {
   // data
   persons: FamilyPerson[]
   books: Book[]
+  bookProgress: BookProgress[]
   readingLogs: ReadingLog[]
   readingGoals: ReadingGoal[]
   reviews: BookReview[]
@@ -123,7 +126,8 @@ interface GraphState {
   letters: ReadingLetter[]
 
   // community data (cross-family)
-  communityReviews: CommunityReview[]
+  communityFeed: CommunityFeedPost[]
+  feedComments: Record<string, PostComment[]>
   familyRank: { rank: number; total: number; totalLines: number } | null
 
   // ui
@@ -153,7 +157,8 @@ interface GraphState {
   updateReadingLog: (id: string, updates: Partial<Omit<ReadingLog, 'id'>>) => void
   addReadingGoal: (data: Omit<ReadingGoal, 'id'>) => ReadingGoal
   updateReadingGoal: (id: string, targetLines: number) => void
-  updateBookProgress: (bookId: string, currentPage: number) => void
+  updateBookProgress: (personId: string, bookId: string, currentPage: number) => void
+  getBookProgress: (personId: string, bookId: string) => BookProgress | undefined
 
   // review mutations
   addReview: (data: Omit<BookReview, 'id' | 'likes' | 'createdAt'>) => BookReview
@@ -161,7 +166,7 @@ interface GraphState {
   toggleLike: (reviewId: string, personId: string) => void
 
   // recommendation mutations
-  addRecommendation: (data: Omit<BookRecommendation, 'id' | 'createdAt'>) => BookRecommendation
+  addRecommendation: (data: Omit<BookRecommendation, 'id' | 'likes' | 'createdAt'>) => BookRecommendation
   removeRecommendation: (id: string) => void
 
   // highlight mutations
@@ -173,7 +178,11 @@ interface GraphState {
   removeLetter: (id: string) => void
 
   // community actions
-  loadCommunityReviews: () => Promise<void>
+  loadCommunityFeed: () => Promise<void>
+  loadPostComments: (postId: string, postType: string) => Promise<void>
+  addPostComment: (postId: string, postType: string, content: string) => Promise<void>
+  toggleFeedLike: (postId: string, postType: 'review' | 'recommend') => Promise<void>
+  getBookReaderStats: (bookTitle: string) => Promise<{ familyCount: number; readerCount: number; completedCount: number } | null>
   loadFamilyRank: (month: string) => Promise<void>
   getBookReaders: (bookTitle: string) => Promise<BookReaderInfo[]>
 
@@ -204,6 +213,7 @@ function getInitialData() {
     return {
       persons: persisted.persons ?? [],
       books: persisted.books ?? [],
+      bookProgress: (p?.bookProgress as BookProgress[]) ?? [],
       readingLogs: persisted.readingLogs ?? [],
       readingGoals: persisted.readingGoals ?? [],
       reviews: (p?.reviews as BookReview[]) ?? [],
@@ -215,6 +225,7 @@ function getInitialData() {
   return {
     persons: [] as FamilyPerson[],
     books: [] as Book[],
+    bookProgress: [] as BookProgress[],
     readingLogs: [] as ReadingLog[],
     readingGoals: [] as ReadingGoal[],
     reviews: [] as BookReview[],
@@ -233,7 +244,8 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   ...initial,
 
   // ── community data ──
-  communityReviews: [],
+  communityFeed: [],
+  feedComments: {},
   familyRank: null,
 
   // ── UI state ──
@@ -261,9 +273,10 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     loadingFamilyId = familyId
 
     try {
-      const [persons, books, readingLogs, readingGoals, reviewsRes, recommendationsRes, highlightsRes, lettersRes] = await Promise.all([
+      const [persons, books, bookProgressRes, readingLogs, readingGoals, reviewsRes, recommendationsRes, highlightsRes, lettersRes] = await Promise.all([
         supabase.from('persons').select('*').eq('family_id', familyId),
         supabase.from('books').select('*').eq('family_id', familyId),
+        supabase.from('person_book_progress').select('*').eq('family_id', familyId),
         supabase.from('reading_logs').select('*').eq('family_id', familyId),
         supabase.from('reading_goals').select('*').eq('family_id', familyId),
         supabase.from('book_reviews').select('*').eq('family_id', familyId),
@@ -282,9 +295,13 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         books: (books.data ?? []).map((r) => ({
           id: r.id, title: r.title, author: r.author, totalPages: r.total_pages,
           linesPerPage: r.lines_per_page, emoji: r.emoji, color: r.color,
-          currentPage: (r as Record<string, unknown>).current_page as number | undefined,
-          completed: (r as Record<string, unknown>).completed as boolean | undefined,
-          completedDate: (r as Record<string, unknown>).completed_date as string | undefined,
+        })),
+        bookProgress: (bookProgressRes.data ?? []).map((r: Record<string, unknown>) => ({
+          personId: r.person_id as string,
+          bookId: r.book_id as string,
+          currentPage: (r.current_page as number) ?? 0,
+          completed: (r.completed as boolean) ?? false,
+          completedDate: r.completed_date as string | undefined,
         })),
         readingLogs: (readingLogs.data ?? []).map((r) => ({
           id: r.id, personId: r.person_id, bookId: r.book_id, date: r.date, linesRead: r.lines_read,
@@ -301,6 +318,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
           id: r.id as string, personId: r.person_id as string,
           bookTitle: r.book_title as string, author: r.author as string,
           reason: r.reason as string, emoji: r.emoji as string,
+          likes: (r.likes as string[]) ?? [],
           createdAt: r.created_at as string,
         })),
         highlights: (highlightsRes.data ?? []).map((r: Record<string, unknown>) => ({
@@ -513,30 +531,40 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     }
   },
 
-  updateBookProgress: (bookId, currentPage) => {
+  updateBookProgress: (personId, bookId, currentPage) => {
+    const book = get().books.find((b) => b.id === bookId)
+    if (!book) return
+    const completed = currentPage >= book.totalPages
+    const completedDate = completed ? new Date().toISOString().slice(0, 10) : undefined
+
     set((s) => {
-      const book = s.books.find((b) => b.id === bookId)
-      if (!book) return {}
-      const completed = currentPage >= book.totalPages
+      const existing = s.bookProgress.find((bp) => bp.personId === personId && bp.bookId === bookId)
       const next = {
-        books: s.books.map((b) =>
-          b.id === bookId
-            ? { ...b, currentPage, completed, completedDate: completed ? new Date().toISOString().slice(0, 10) : b.completedDate }
-            : b,
-        ),
+        bookProgress: existing
+          ? s.bookProgress.map((bp) =>
+              bp.personId === personId && bp.bookId === bookId
+                ? { ...bp, currentPage, completed, completedDate: completedDate ?? bp.completedDate }
+                : bp,
+            )
+          : [...s.bookProgress, { personId, bookId, currentPage, completed, completedDate }],
       }
       if (useLocalMode()) persistLocal({ ...s, ...next })
       return next
     })
     if (!useLocalMode()) {
-      const book = get().books.find((b) => b.id === bookId)
-      const completed = book ? currentPage >= book.totalPages : false
-      dbSync(supabase.from('books').update({
+      dbSync(supabase.from('person_book_progress').upsert({
+        family_id: getFamilyId(),
+        person_id: personId,
+        book_id: bookId,
         current_page: currentPage,
         completed,
-        completed_date: completed ? new Date().toISOString().slice(0, 10) : null,
-      }).eq('id', bookId))
+        completed_date: completedDate ?? null,
+      }, { onConflict: 'person_id,book_id' }))
     }
+  },
+
+  getBookProgress: (personId, bookId) => {
+    return get().bookProgress.find((bp) => bp.personId === personId && bp.bookId === bookId)
   },
 
   // ── review mutations ──
@@ -595,7 +623,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   // ── recommendation mutations ──
   addRecommendation: (data) => {
     const id = genId('rec')
-    const rec: BookRecommendation = { ...data, id, createdAt: new Date().toISOString() }
+    const rec: BookRecommendation = { ...data, id, likes: [], createdAt: new Date().toISOString() }
     set((s) => {
       const next = { recommendations: [...s.recommendations, rec] }
       if (useLocalMode()) persistLocal({ ...s, ...next })
@@ -606,7 +634,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         supabase.from('book_recommendations').insert({
           id, family_id: getFamilyId(), person_id: data.personId,
           book_title: data.bookTitle, author: data.author,
-          reason: data.reason, emoji: data.emoji,
+          reason: data.reason, emoji: data.emoji, likes: [],
         }),
         () => set((s) => ({ recommendations: s.recommendations.filter((r) => r.id !== id) })),
         'addRecommendation',
@@ -627,31 +655,187 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   },
 
   // ── community actions ──
-  loadCommunityReviews: async () => {
-    if (!isSupabaseConfigured) return
+  loadCommunityFeed: async () => {
+    if (useLocalMode()) {
+      // Build feed from local data
+      const s = get()
+      const family = useFamilyStore.getState().family
+      const feed: CommunityFeedPost[] = [
+        ...s.reviews.map((r) => {
+          const person = s.persons.find((p) => p.id === r.personId)
+          const book = s.books.find((b) => b.id === r.bookId)
+          return {
+            postId: r.id, postType: 'review' as const,
+            personName: person?.name ?? '', personEmoji: person?.emoji ?? '',
+            familyName: family?.name ?? '', familyEmoji: family?.emoji ?? '', familyId: family?.id ?? '',
+            bookTitle: book?.title ?? '', bookAuthor: book?.author ?? '', bookEmoji: book?.emoji ?? '',
+            rating: r.rating, content: r.content, likes: r.likes, commentCount: 0, createdAt: r.createdAt,
+          }
+        }),
+        ...s.recommendations.map((r) => {
+          const person = s.persons.find((p) => p.id === r.personId)
+          return {
+            postId: r.id, postType: 'recommend' as const,
+            personName: person?.name ?? '', personEmoji: person?.emoji ?? '',
+            familyName: family?.name ?? '', familyEmoji: family?.emoji ?? '', familyId: family?.id ?? '',
+            bookTitle: r.bookTitle, bookAuthor: r.author, bookEmoji: r.emoji,
+            rating: 0, content: r.reason, likes: r.likes ?? [], commentCount: 0, createdAt: r.createdAt,
+          }
+        }),
+      ].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      set({ communityFeed: feed })
+      return
+    }
     try {
-      const { data, error } = await supabase.rpc('get_community_reviews', { lim: 50 })
+      const { data, error } = await supabase.rpc('get_community_feed', { lim: 50 })
       if (!error && data) {
         set({
-          communityReviews: (data as Record<string, unknown>[]).map((r) => ({
-            reviewId: r.review_id as string,
+          communityFeed: (data as Record<string, unknown>[]).map((r) => ({
+            postId: r.post_id as string,
+            postType: r.post_type as 'review' | 'recommend',
             personName: r.person_name as string,
             personEmoji: r.person_emoji as string,
             familyName: r.family_name as string,
             familyEmoji: r.family_emoji as string,
+            familyId: r.family_id as string,
             bookTitle: r.book_title as string,
             bookAuthor: r.book_author as string,
-            bookEmoji: r.book_emoji as string,
+            bookEmoji: (r.book_emoji as string) ?? '',
             rating: r.rating as number,
             content: r.content as string,
             likes: (r.likes as string[]) ?? [],
+            commentCount: Number(r.comment_count) ?? 0,
             createdAt: r.created_at as string,
           })),
         })
       }
     } catch (err) {
-      console.error('[loadCommunityReviews]', err)
+      console.error('[loadCommunityFeed]', err)
     }
+  },
+
+  loadPostComments: async (postId, postType) => {
+    if (!isSupabaseConfigured) return
+    try {
+      const { data, error } = await supabase.rpc('get_post_comments', {
+        p_post_id: postId, p_post_type: postType,
+      })
+      if (!error && data) {
+        set((s) => ({
+          feedComments: {
+            ...s.feedComments,
+            [postId]: (data as Record<string, unknown>[]).map((r) => ({
+              commentId: r.comment_id as string,
+              personName: r.person_name as string, personEmoji: r.person_emoji as string,
+              familyName: r.family_name as string, familyEmoji: r.family_emoji as string,
+              familyId: r.family_id as string,
+              content: r.content as string, createdAt: r.created_at as string,
+            })),
+          },
+        }))
+      }
+    } catch (err) {
+      console.error('[loadPostComments]', err)
+    }
+  },
+
+  addPostComment: async (postId, postType, content) => {
+    const family = useFamilyStore.getState().family
+    const familyId = family?.id ?? getFamilyId()
+    const familyName = family?.name ?? '우리 가족'
+    const familyEmoji = family?.emoji ?? '🏠'
+
+    const comment: PostComment = {
+      commentId: genId('comment'),
+      personName: familyName, personEmoji: familyEmoji,
+      familyName, familyEmoji, familyId,
+      content, createdAt: new Date().toISOString(),
+    }
+
+    // Optimistic update
+    set((s) => ({
+      feedComments: {
+        ...s.feedComments,
+        [postId]: [...(s.feedComments[postId] ?? []), comment],
+      },
+      communityFeed: s.communityFeed.map((p) =>
+        p.postId === postId ? { ...p, commentCount: p.commentCount + 1 } : p,
+      ),
+    }))
+
+    if (!useLocalMode()) {
+      dbSync(supabase.from('post_comments').insert({
+        id: comment.commentId,
+        family_id: familyId,
+        post_id: postId, post_type: postType,
+        person_id: familyId,
+        person_name: familyName, person_emoji: familyEmoji,
+        family_name: familyName, family_emoji: familyEmoji,
+        content,
+      }))
+    }
+  },
+
+  toggleFeedLike: async (postId, postType) => {
+    const familyId = getFamilyId() || 'local'
+
+    // Optimistic update on communityFeed
+    set((s) => ({
+      communityFeed: s.communityFeed.map((p) => {
+        if (p.postId !== postId) return p
+        const liked = p.likes.includes(familyId)
+        return { ...p, likes: liked ? p.likes.filter((id) => id !== familyId) : [...p.likes, familyId] }
+      }),
+    }))
+
+    if (useLocalMode()) {
+      // Also update underlying local data for persistence
+      if (postType === 'review') {
+        set((s) => ({
+          reviews: s.reviews.map((r) => {
+            if (r.id !== postId) return r
+            const liked = r.likes.includes(familyId)
+            return { ...r, likes: liked ? r.likes.filter((id) => id !== familyId) : [...r.likes, familyId] }
+          }),
+        }))
+      } else {
+        set((s) => ({
+          recommendations: s.recommendations.map((r) => {
+            if (r.id !== postId) return r
+            const liked = (r.likes ?? []).includes(familyId)
+            return { ...r, likes: liked ? r.likes.filter((id) => id !== familyId) : [...(r.likes ?? []), familyId] }
+          }),
+        }))
+      }
+      persistLocal(get())
+    } else {
+      try {
+        const { error } = await supabase.rpc('toggle_post_like', {
+          p_post_id: postId, p_post_type: postType, p_person_id: familyId,
+        })
+        if (error) console.error('[toggleFeedLike]', error)
+      } catch (err) {
+        console.error('[toggleFeedLike]', err)
+      }
+    }
+  },
+
+  getBookReaderStats: async (bookTitle) => {
+    if (!isSupabaseConfigured) return null
+    try {
+      const { data, error } = await supabase.rpc('get_book_reader_stats', { p_title: bookTitle })
+      if (!error && data && (data as unknown[]).length > 0) {
+        const r = (data as Record<string, unknown>[])[0]
+        return {
+          familyCount: Number(r.family_count),
+          readerCount: Number(r.reader_count),
+          completedCount: Number(r.completed_count),
+        }
+      }
+    } catch (err) {
+      console.error('[getBookReaderStats]', err)
+    }
+    return null
   },
 
   loadFamilyRank: async (month) => {
@@ -874,7 +1058,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     })
 
     // 5. 완독 마일스톤
-    const completedBooks = s.books.filter((b) => b.completed).length
+    const completedBooks = s.bookProgress.filter((bp) => bp.completed).length
     const bookSteps = [{ n: 1, l: '첫 완독' }, { n: 5, l: '5권 완독' }, { n: 10, l: '10권 완독' }]
     for (const bs of bookSteps) {
       achievements.push({

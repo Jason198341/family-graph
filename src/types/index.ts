@@ -58,8 +58,13 @@ export interface Book {
   linesPerPage: number
   emoji: string
   color: string
-  currentPage?: number
-  completed?: boolean
+}
+
+export interface BookProgress {
+  personId: string
+  bookId: string
+  currentPage: number
+  completed: boolean
   completedDate?: string
 }
 
@@ -97,23 +102,38 @@ export interface BookRecommendation {
   author: string
   reason: string
   emoji: string
+  likes: string[]       // person IDs who liked
   createdAt: string
 }
 
 // ─── Community Types (cross-family) ──────────
 
-export interface CommunityReview {
-  reviewId: string
+export interface CommunityFeedPost {
+  postId: string
+  postType: 'review' | 'recommend'
   personName: string
   personEmoji: string
   familyName: string
   familyEmoji: string
+  familyId: string
   bookTitle: string
   bookAuthor: string
   bookEmoji: string
-  rating: number
+  rating: number        // 0 for recommendations
   content: string
   likes: string[]
+  commentCount: number
+  createdAt: string
+}
+
+export interface PostComment {
+  commentId: string
+  personName: string
+  personEmoji: string
+  familyName: string
+  familyEmoji: string
+  familyId: string
+  content: string
   createdAt: string
 }
 

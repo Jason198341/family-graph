@@ -5,30 +5,29 @@ interface RecommendFormProps {
   onClose: () => void
 }
 
-const EMOJI_OPTIONS = ['📖', '📚', '📕', '📗', '📘', '📙', '🔥', '💎', '🌟', '🎯', '🧠', '💡']
-
 export default function RecommendForm({ onClose }: RecommendFormProps) {
   const persons = useGraphStore((s) => s.persons)
+  const books = useGraphStore((s) => s.books)
   const addRecommendation = useGraphStore((s) => s.addRecommendation)
   const addToast = useGraphStore((s) => s.addToast)
 
   const [personId, setPersonId] = useState(persons[0]?.id ?? '')
-  const [bookTitle, setBookTitle] = useState('')
-  const [author, setAuthor] = useState('')
+  const [bookId, setBookId] = useState(books[0]?.id ?? '')
   const [reason, setReason] = useState('')
-  const [emoji, setEmoji] = useState('📖')
+
+  const selectedBook = books.find((b) => b.id === bookId)
 
   const handleSubmit = () => {
-    if (!personId || !bookTitle.trim() || !reason.trim()) {
+    if (!personId || !bookId || !reason.trim()) {
       addToast('필수 항목을 입력해주세요', 'error')
       return
     }
     addRecommendation({
       personId,
-      bookTitle: bookTitle.trim(),
-      author: author.trim() || '미입력',
+      bookTitle: selectedBook?.title ?? '',
+      author: selectedBook?.author ?? '',
       reason: reason.trim(),
-      emoji,
+      emoji: selectedBook?.emoji ?? '📖',
     })
     addToast('추천이 등록되었습니다!', 'success')
     onClose()
@@ -52,43 +51,28 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
           </select>
         </div>
         <div>
-          <label className="text-xs text-espresso-400 block mb-1">이모지</label>
-          <div className="flex flex-wrap gap-1">
-            {EMOJI_OPTIONS.map((e) => (
-              <button
-                key={e}
-                onClick={() => setEmoji(e)}
-                className={`w-7 h-7 rounded text-base flex items-center justify-center cursor-pointer transition-all ${
-                  emoji === e ? 'bg-olive-500/30 ring-1 ring-olive-400' : 'hover:bg-surface-lighter'
-                }`}
-              >
-                {e}
-              </button>
+          <label className="text-xs text-espresso-400 block mb-1">책</label>
+          <select
+            value={bookId}
+            onChange={(e) => setBookId(e.target.value)}
+            className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-olive-500 cursor-pointer"
+          >
+            {books.map((b) => (
+              <option key={b.id} value={b.id}>{b.emoji} {b.title}</option>
             ))}
-          </div>
+          </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs text-espresso-400 block mb-1">책 제목 *</label>
-          <input
-            value={bookTitle}
-            onChange={(e) => setBookTitle(e.target.value)}
-            placeholder="추천할 책 제목"
-            className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-olive-500"
-          />
+      {selectedBook && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-surface-lighter/60 rounded-lg border border-surface-border text-xs text-espresso-300">
+          <span className="text-lg">{selectedBook.emoji}</span>
+          <div>
+            <p className="text-cream-100 font-medium">{selectedBook.title}</p>
+            <p>{selectedBook.author}</p>
+          </div>
         </div>
-        <div>
-          <label className="text-xs text-espresso-400 block mb-1">저자</label>
-          <input
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            placeholder="저자"
-            className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-olive-500"
-          />
-        </div>
-      </div>
+      )}
 
       <div>
         <label className="text-xs text-espresso-400 block mb-1">추천 이유 *</label>

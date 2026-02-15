@@ -11,10 +11,10 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
   const [readers, setReaders] = useState<BookReaderInfo[]>([])
   const [loading, setLoading] = useState(true)
   const getBookReaders = useGraphStore((s) => s.getBookReaders)
-  const communityReviews = useGraphStore((s) => s.communityReviews)
+  const communityFeed = useGraphStore((s) => s.communityFeed)
 
-  const bookReviews = communityReviews.filter(
-    (r) => r.bookTitle.toLowerCase() === bookTitle.toLowerCase(),
+  const bookReviews = communityFeed.filter(
+    (r) => r.bookTitle.toLowerCase() === bookTitle.toLowerCase() && r.postType === 'review',
   )
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
                 <div className="space-y-3">
                   {bookReviews.map((review) => (
                     <div
-                      key={review.reviewId}
+                      key={review.postId}
                       className="p-3 bg-surface-lighter/60 rounded-xl border border-surface-border"
                     >
                       <div className="flex items-center gap-2 mb-2">

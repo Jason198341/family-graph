@@ -40,6 +40,7 @@ export default function TipsPage() {
 
   const persons = useGraphStore((s) => s.persons)
   const books = useGraphStore((s) => s.books)
+  const bookProgress = useGraphStore((s) => s.bookProgress)
   const readingLogs = useGraphStore((s) => s.readingLogs)
 
   const filtered = category === '전체'
@@ -52,7 +53,10 @@ export default function TipsPage() {
 
   const buildSystemPrompt = () => {
     const memberInfo = persons.map((p) => `${p.emoji} ${p.name} (${p.role})`).join(', ')
-    const bookInfo = books.map((b) => `${b.emoji} ${b.title} by ${b.author}${b.completed ? ' [완독]' : ''}`).join(', ')
+    const bookInfo = books.map((b) => {
+      const completed = bookProgress.some((bp) => bp.bookId === b.id && bp.completed)
+      return `${b.emoji} ${b.title} by ${b.author}${completed ? ' [완독]' : ''}`
+    }).join(', ')
     const totalLogs = readingLogs.length
     const totalLines = readingLogs.reduce((s, l) => s + l.linesRead, 0)
 

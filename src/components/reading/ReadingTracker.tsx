@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 import PersonAvatar from '@/components/common/PersonAvatar'
+import type { BookProgress } from '@/types'
 
 function formatMonth(month: string) {
   const [y, m] = month.split('-')
@@ -36,6 +37,8 @@ export default function ReadingTracker() {
   const addBook = useGraphStore((s) => s.addBook)
   const addToast = useGraphStore((s) => s.addToast)
   const updateBookProgress = useGraphStore((s) => s.updateBookProgress)
+  const getBookProgress = useGraphStore((s) => s.getBookProgress)
+  const bookProgressList = useGraphStore((s) => s.bookProgress)
 
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const [formPersonId, setFormPersonId] = useState(persons[0]?.id ?? '')
@@ -91,16 +94,17 @@ export default function ReadingTracker() {
 
   const selectedBook = books.find((b) => b.id === formBookId)
   const linesPerPage = selectedBook?.linesPerPage ?? 25
+  const selectedProgress = getBookProgress(formPersonId, formBookId)
 
   const calculatedLines = useMemo(() => {
     const val = parseInt(formPages, 10) || 0
     if (pageMode === 'absolute' && selectedBook) {
-      const prevPage = selectedBook.currentPage ?? 0
+      const prevPage = selectedProgress?.currentPage ?? 0
       const delta = Math.max(0, val - prevPage)
       return Math.round(delta * linesPerPage)
     }
     return Math.round(val * linesPerPage)
-  }, [formPages, pageMode, selectedBook, linesPerPage])
+  }, [formPages, pageMode, selectedBook, selectedProgress, linesPerPage])
 
   const handleAddLog = () => {
     const val = parseInt(formPages, 10)
@@ -110,19 +114,18 @@ export default function ReadingTracker() {
     }
 
     let pages: number
+    const prevPage = selectedProgress?.currentPage ?? 0
     if (pageMode === 'absolute' && selectedBook) {
-      const prevPage = selectedBook.currentPage ?? 0
       pages = Math.max(0, val - prevPage)
       if (pages <= 0) {
         addToast('현재 페이지가 이전 기록보다 작습니다', 'error')
         return
       }
-      updateBookProgress(formBookId, val)
+      updateBookProgress(formPersonId, formBookId, val)
     } else {
       pages = val
       if (selectedBook) {
-        const newPage = (selectedBook.currentPage ?? 0) + pages
-        updateBookProgress(formBookId, newPage)
+        updateBookProgress(formPersonId, formBookId, prevPage + pages)
       }
     }
 
@@ -346,7 +349,7 @@ export default function ReadingTracker() {
               value={formPages}
               onChange={(e) => setFormPages(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddLog()}
-              placeholder={pageMode === 'absolute' ? `${(selectedBook?.currentPage ?? 0) + 1}` : '20'}
+              placeholder={pageMode === 'absolute' ? `${(selectedProgress?.currentPage ?? 0) + 1}` : '20'}
               className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-amber-500"
             />
             {calculatedLines > 0 && (
@@ -354,8 +357,8 @@ export default function ReadingTracker() {
             )}
             {selectedBook && (
               <p className="text-xs text-espresso-400 mt-0.5">
-                진행: {selectedBook.currentPage ?? 0}/{selectedBook.totalPages}p
-                {selectedBook.completed && ' ✅ 완독'}
+                진행: {selectedProgress?.currentPage ?? 0}/{selectedBook.totalPages}p
+                {selectedProgress?.completed && ' ✅ 완독'}
               </p>
             )}
           </div>
@@ -449,13 +452,17 @@ export default function ReadingTracker() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {books.map((book) => {
-            const currentPage = book.currentPage ?? 0
-            const bookProgress = book.totalPages > 0
-              ? Math.min(100, Math.round((currentPage / book.totalPages) * 100))
-              : 0
+            // Per-person progress for this book
+            const bookProgresses = bookProgressList.filter((bp) => bp.bookId === book.id)
             const readers = [...new Set(readingLogs.filter((l) => l.bookId === book.id).map((l) => l.personId))]
-              .map((pid) => persons.find((p) => p.id === pid))
-              .filter(Boolean)
+              .map((pid) => {
+                const person = persons.find((p) => p.id === pid)
+                const progress = bookProgresses.find((bp) => bp.personId === pid)
+                return person ? { person, progress } : null
+              })
+              .filter(Boolean) as { person: typeof persons[0]; progress: BookProgress | undefined }[]
+
+            const anyCompleted = bookProgresses.some((bp) => bp.completed)
 
             return (
               <div
@@ -468,21 +475,33 @@ export default function ReadingTracker() {
                     <p className="text-sm font-bold text-cream-100 truncate">{book.title}</p>
                     <p className="text-xs text-espresso-400">{book.author} · {book.totalPages}p</p>
                   </div>
-                  {book.completed && <span className="text-xs text-success-400 shrink-0">✅ 완독</span>}
+                  {anyCompleted && <span className="text-xs text-success-400 shrink-0">✅</span>}
                 </div>
-                <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${bookProgress}%`, backgroundColor: book.color }}
-                  />
-                </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-xs text-espresso-400">{currentPage} / {book.totalPages}p ({bookProgress}%)</span>
-                  <div className="flex -space-x-1">
-                    {readers.map((p) => (
-                      <span key={p!.id} className="text-xs" title={p!.name}>{p!.emoji}</span>
-                    ))}
-                  </div>
+                {/* Per-person progress bars */}
+                <div className="mt-3 space-y-1.5">
+                  {readers.map(({ person, progress }) => {
+                    const cp = progress?.currentPage ?? 0
+                    const pct = book.totalPages > 0 ? Math.min(100, Math.round((cp / book.totalPages) * 100)) : 0
+                    return (
+                      <div key={person.id}>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-xs">{person.emoji}</span>
+                          <span className="text-xs text-espresso-400 flex-1">{person.name}</span>
+                          <span className="text-xs text-espresso-400">{cp}/{book.totalPages}p</span>
+                          {progress?.completed && <span className="text-xs text-success-400">완독</span>}
+                        </div>
+                        <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${pct}%`, backgroundColor: person.color }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {readers.length === 0 && (
+                    <p className="text-xs text-espresso-400">아직 읽은 사람이 없습니다</p>
+                  )}
                 </div>
               </div>
             )
