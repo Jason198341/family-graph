@@ -406,7 +406,7 @@ export default function MemberManager() {
                 </div>
               ) : (
                 /* ── Display mode ── */
-                <div className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg group">
+                <div className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg">
                   <PersonAvatar person={p} size={32} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-900 truncate">{p.name}</p>
@@ -414,7 +414,7 @@ export default function MemberManager() {
                   </div>
                   <button
                     onClick={() => startEdit(p)}
-                    className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-gray-700 px-2 py-1 rounded transition-all cursor-pointer"
+                    className="text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
                   >
                     수정
                   </button>
