@@ -37,7 +37,7 @@ export default function TreeCelebrationCard() {
   return (
     <div className="space-y-4">
       {/* Shareable card */}
-      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-amber-50 border border-emerald-200 shadow-xl">
+      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #ecfdf5, #ffffff, #fffbeb)', borderColor: '#a7f3d0' }}>
         <div className="p-8 text-center">
           {/* Header */}
           <p className="text-sm text-emerald-600 font-bold tracking-wider uppercase mb-2">🎉 축하합니다!</p>
@@ -61,10 +61,10 @@ export default function TreeCelebrationCard() {
                 <span>{stage.emoji} {stage.name}</span>
                 <span>{nextStage.emoji} {nextStage.name}</span>
               </div>
-              <div className="h-3 bg-emerald-100 rounded-full overflow-hidden">
+              <div className="h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#d1fae5' }}>
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all"
-                  style={{ width: `${progress}%` }}
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #34d399, #10b981)' }}
                 />
               </div>
               <p className="text-xs text-slate-400 mt-1">다음 단계까지 {(nextStage.min - totalLines).toLocaleString()}줄</p>

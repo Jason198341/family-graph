@@ -51,7 +51,7 @@ export default function BookShelfCard() {
 
   return (
     <div className="space-y-4">
-      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50/30 to-stone-100 border border-amber-200 shadow-xl">
+      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(180deg, #fffbeb, #fff7ed, #f5f5f4)', borderColor: '#fde68a' }}>
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-6">
@@ -111,7 +111,7 @@ export default function BookShelfCard() {
                       })}
                     </div>
                     {/* Shelf */}
-                    <div className="h-2 bg-gradient-to-r from-amber-300 via-amber-200 to-amber-300 rounded-sm mt-0.5 shadow-sm" />
+                    <div className="h-2 rounded-sm mt-0.5 shadow-sm" style={{ background: 'linear-gradient(90deg, #fcd34d, #fde68a, #fcd34d)' }} />
                   </div>
                 )
               })}

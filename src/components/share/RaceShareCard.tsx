@@ -38,7 +38,7 @@ export default function RaceShareCard({ month }: Props) {
 
   return (
     <div className="space-y-4">
-      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 border border-blue-200 shadow-xl">
+      <div ref={ref} className="w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff)', borderColor: '#bfdbfe' }}>
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-6">
@@ -52,7 +52,7 @@ export default function RaceShareCard({ month }: Props) {
           </div>
 
           {/* Family total */}
-          <div className="text-center mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+          <div className="text-center mb-6 p-4 rounded-2xl border" style={{ backgroundColor: '#eff6ff', borderColor: '#dbeafe' }}>
             <p className="text-3xl font-black text-blue-600 tabular-nums">{familyTotal.toLocaleString()}</p>
             <p className="text-xs text-slate-500 mt-1">가족 합산 (줄)</p>
           </div>

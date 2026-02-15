@@ -7,8 +7,7 @@ import Watermark from './Watermark'
 
 // Slide content types
 interface SlideData {
-  bg: string
-  accent: string
+  bg: string  // CSS gradient value (inline style)
   render: () => React.ReactNode
 }
 
@@ -71,8 +70,7 @@ export default function ReadingWrappedCard() {
   const slides: SlideData[] = [
     // Slide 1: Cover
     {
-      bg: 'from-indigo-600 via-purple-600 to-pink-500',
-      accent: 'white',
+      bg: 'linear-gradient(135deg, #4f46e5, #9333ea, #ec4899)',
       render: () => (
         <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
           <p className="text-sm font-bold tracking-[0.3em] uppercase opacity-70 mb-4">Reading DNA</p>
@@ -93,8 +91,7 @@ export default function ReadingWrappedCard() {
     },
     // Slide 2: Big numbers
     {
-      bg: 'from-emerald-500 via-teal-500 to-cyan-500',
-      accent: 'white',
+      bg: 'linear-gradient(135deg, #10b981, #14b8a6, #06b6d4)',
       render: () => (
         <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
           <p className="text-sm font-bold tracking-widest uppercase opacity-70 mb-6">올해의 숫자</p>
@@ -105,7 +102,7 @@ export default function ReadingWrappedCard() {
               { label: '완독한 책', value: `${completedBooks}권`, emoji: '✅' },
               { label: '작성한 후기', value: `${totalReviews}편`, emoji: '✏️' },
             ].map((stat) => (
-              <div key={stat.label} className="bg-white/15 backdrop-blur-sm rounded-2xl p-4">
+              <div key={stat.label} className="bg-[rgba(255,255,255,0.15)] backdrop-blur-sm rounded-2xl p-4">
                 <span className="text-2xl">{stat.emoji}</span>
                 <p className="text-2xl font-black mt-1">{stat.value}</p>
                 <p className="text-xs opacity-70 mt-0.5">{stat.label}</p>
@@ -117,8 +114,7 @@ export default function ReadingWrappedCard() {
     },
     // Slide 3: MVP + Personalities
     {
-      bg: 'from-amber-500 via-orange-500 to-red-500',
-      accent: 'white',
+      bg: 'linear-gradient(135deg, #f59e0b, #f97316, #ef4444)',
       render: () => (
         <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
           <p className="text-sm font-bold tracking-widest uppercase opacity-70 mb-4">🏆 올해의 독서왕</p>
@@ -135,7 +131,7 @@ export default function ReadingWrappedCard() {
             {persons.map((p) => {
               const personality = getPersonality(p.id)
               return (
-                <div key={p.id} className="flex items-center gap-3 bg-white/15 rounded-xl px-3 py-2">
+                <div key={p.id} className="flex items-center gap-3 bg-[rgba(255,255,255,0.15)] rounded-xl px-3 py-2">
                   <span className="text-lg">{p.emoji}</span>
                   <div className="text-left flex-1">
                     <p className="text-xs font-bold">{p.name}</p>
@@ -150,8 +146,7 @@ export default function ReadingWrappedCard() {
     },
     // Slide 4: Top book + radar
     {
-      bg: 'from-violet-600 via-purple-600 to-fuchsia-500',
-      accent: 'white',
+      bg: 'linear-gradient(135deg, #7c3aed, #9333ea, #d946ef)',
       render: () => (
         <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
           <p className="text-sm font-bold tracking-widest uppercase opacity-70 mb-4">📕 가장 많이 읽은 책</p>
@@ -160,7 +155,7 @@ export default function ReadingWrappedCard() {
               <span className="text-5xl mb-3">{topBook.emoji}</span>
               <h2 className="text-xl font-black">{topBook.title}</h2>
               <p className="text-sm opacity-70 mt-1">{topBook.author}</p>
-              <p className="text-xs mt-2 bg-white/20 px-3 py-1 rounded-full">
+              <p className="text-xs mt-2 bg-[rgba(255,255,255,0.2)] px-3 py-1 rounded-full">
                 {bookLineMap.get(topBookId!)?.toLocaleString()}줄 읽음
               </p>
             </>
@@ -171,7 +166,7 @@ export default function ReadingWrappedCard() {
           {/* Mini radar for each person */}
           <div className="mt-6 grid grid-cols-2 gap-3 w-full max-w-xs">
             {personStats.slice(0, 4).map(({ person, lines }) => (
-              <div key={person.id} className="bg-white/15 rounded-xl p-3 text-center">
+              <div key={person.id} className="bg-[rgba(255,255,255,0.15)] rounded-xl p-3 text-center">
                 <span className="text-xl">{person.emoji}</span>
                 <p className="text-xs font-bold mt-1">{person.name}</p>
                 <p className="text-xs opacity-70">{lines.toLocaleString()}줄</p>
@@ -183,8 +178,7 @@ export default function ReadingWrappedCard() {
     },
     // Slide 5: CTA
     {
-      bg: 'from-slate-800 via-slate-900 to-black',
-      accent: 'white',
+      bg: 'linear-gradient(135deg, #1e293b, #0f172a, #000000)',
       render: () => (
         <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
           <span className="text-6xl mb-4">📚</span>
@@ -209,7 +203,7 @@ export default function ReadingWrappedCard() {
     <div className="space-y-4">
       {/* Card */}
       <div ref={ref} className="w-[540px] h-[680px] mx-auto rounded-3xl overflow-hidden shadow-2xl relative">
-        <div className={`absolute inset-0 bg-gradient-to-br ${currentSlide.bg}`} />
+        <div className="absolute inset-0" style={{ background: currentSlide.bg }} />
         <div className="relative z-10 h-full flex flex-col">
           <div className="flex-1 flex flex-col">
             {currentSlide.render()}
