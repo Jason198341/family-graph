@@ -128,17 +128,17 @@ as $$
     f.id as family_id,
     f.name as family_name,
     f.emoji as family_emoji,
-    coalesce(sum(rl.lines), 0)::bigint as total_lines,
+    coalesce(sum(rl.lines_read), 0)::bigint as total_lines,
     count(distinct p.id)::bigint as member_count,
     case
       when count(distinct p.id) = 0 then 0
-      else round(coalesce(sum(rl.lines), 0)::numeric / count(distinct p.id), 1)
+      else round(coalesce(sum(rl.lines_read), 0)::numeric / count(distinct p.id), 1)
     end as avg_lines_per_member
   from families f
   join persons p on p.family_id = f.id
   left join reading_logs rl
     on rl.person_id = p.id
-    and rl.date like target_month || '%'
+    and rl.date::text like target_month || '%'
   group by f.id, f.name, f.emoji
   order by total_lines desc;
 $$;
