@@ -8,6 +8,7 @@ import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import RaceDashboard from '@/components/race/RaceDashboard'
 import Toast from '@/components/common/Toast'
+import QuickLogFAB from '@/components/common/QuickLogFAB'
 import LoginPage from '@/components/auth/LoginPage'
 import FamilySetup from '@/components/family/FamilySetup'
 import PendingApproval from '@/components/family/PendingApproval'
@@ -75,6 +76,9 @@ function MainApp() {
           {activeView === 'more' && <TipsPage />}
         </Suspense>
       </main>
+
+      {/* QuickLog FAB — available on all views */}
+      <QuickLogFAB />
 
       {/* Mobile bottom nav */}
       <BottomNav />
