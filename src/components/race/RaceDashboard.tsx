@@ -7,6 +7,8 @@ import FamilyLeaderboard from './FamilyLeaderboard'
 import HighlightTimeline from '@/components/highlights/HighlightTimeline'
 import AchievementBadges from '@/components/achievements/AchievementBadges'
 import PersonAvatar from '@/components/common/PersonAvatar'
+import ReadingHeatmap from '@/components/common/ReadingHeatmap'
+import ShareCard from '@/components/common/ShareCard'
 
 function getMonthStr(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -48,6 +50,7 @@ function tempEmoji(temp: number): string {
 
 export default function RaceDashboard() {
   const [month, setMonth] = useState(() => getMonthStr(new Date()))
+  const [showShare, setShowShare] = useState(false)
 
   const loadFamilyRank = useReadingStore((s) => s.loadFamilyRank)
   const persons = useReadingStore((s) => s.persons)
@@ -139,6 +142,13 @@ export default function RaceDashboard() {
         <h2 className="text-sm font-bold text-stone-700">이번 달 현황</h2>
         <div className="flex items-center gap-1.5">
           <button
+            onClick={() => setShowShare(true)}
+            className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-amber-600 hover:bg-amber-50 transition-all cursor-pointer"
+            title="공유"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+          <button
             onClick={prevMonth}
             className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 transition-all cursor-pointer"
           >
@@ -196,6 +206,11 @@ export default function RaceDashboard() {
         </div>
       </div>
 
+      {/* ── Reading heatmap ── */}
+      <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
+        <ReadingHeatmap />
+      </div>
+
       {/* ── Recent activity ── */}
       {recentLogs.length > 0 && (
         <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '180ms' }}>
@@ -243,6 +258,9 @@ export default function RaceDashboard() {
 
       {/* ── Achievements ── */}
       <AchievementBadges month={month} />
+
+      {/* ── Share modal ── */}
+      {showShare && <ShareCard month={month} onClose={() => setShowShare(false)} />}
     </div>
   )
 }

@@ -439,7 +439,7 @@ export const useReadingStore = create<ReadingState>()((set, get) => ({
         supabase.from('books').insert({
           id, family_id: getFamilyId(), title: data.title, author: data.author,
           total_pages: data.totalPages, lines_per_page: data.linesPerPage,
-          emoji: data.emoji, color: data.color,
+          emoji: data.emoji, color: data.color, cover_url: data.coverUrl ?? null,
         }),
         () => set((s) => ({ books: s.books.filter((b) => b.id !== id) })),
         'addBook',

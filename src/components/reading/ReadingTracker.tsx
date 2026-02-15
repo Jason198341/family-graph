@@ -52,7 +52,9 @@ export default function ReadingTracker() {
   const [editingLogId, setEditingLogId] = useState<string | null>(null)
   const [editLogLines, setEditLogLines] = useState('')
   const [editLogDate, setEditLogDate] = useState('')
-  const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#d97706' })
+  const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#d97706', coverUrl: '' })
+  const [bookSearchResults, setBookSearchResults] = useState<{ title: string; author: string; pages: number; cover: string }[]>([])
+  const [searchingBooks, setSearchingBooks] = useState(false)
 
   // ── Computed data ──
   const familyStats = useMemo(() => {
@@ -116,6 +118,37 @@ export default function ReadingTracker() {
     setFormCurrentPage('')
   }
 
+  const searchGoogleBooks = async (query: string) => {
+    if (query.length < 2) { setBookSearchResults([]); return }
+    setSearchingBooks(true)
+    try {
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5&langRestrict=ko`)
+      const data = await res.json()
+      const results = (data.items ?? []).map((item: any) => ({
+        title: item.volumeInfo?.title ?? '',
+        author: (item.volumeInfo?.authors ?? []).join(', '),
+        pages: item.volumeInfo?.pageCount ?? 0,
+        cover: item.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:') ?? '',
+      }))
+      setBookSearchResults(results)
+    } catch {
+      setBookSearchResults([])
+    } finally {
+      setSearchingBooks(false)
+    }
+  }
+
+  const selectSearchResult = (result: typeof bookSearchResults[0]) => {
+    setNewBook((p) => ({
+      ...p,
+      title: result.title,
+      author: result.author,
+      totalPages: result.pages ? String(result.pages) : p.totalPages,
+      coverUrl: result.cover,
+    }))
+    setBookSearchResults([])
+  }
+
   const handleAddBook = () => {
     if (!newBook.title || !newBook.author) {
       addToast('제목과 저자를 입력하세요', 'error')
@@ -128,9 +161,11 @@ export default function ReadingTracker() {
       linesPerPage: parseInt(newBook.linesPerPage, 10) || 25,
       emoji: newBook.emoji,
       color: newBook.color,
+      coverUrl: newBook.coverUrl || undefined,
     })
     addToast(`"${book.title}" 추가 완료!`, 'success')
-    setNewBook({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#d97706' })
+    setNewBook({ title: '', author: '', totalPages: '', linesPerPage: '', emoji: '📚', color: '#d97706', coverUrl: '' })
+    setBookSearchResults([])
     setShowAddBook(false)
     setFormBookId(book.id)
   }
@@ -331,51 +366,88 @@ export default function ReadingTracker() {
         </div>
 
         {showAddBook && (
-          <div className="bg-white rounded-2xl p-4 border border-amber-200 shadow-sm space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-stone-500 block mb-1">제목</label>
-                <input
-                  value={newBook.title}
-                  onChange={(e) => setNewBook((p) => ({ ...p, title: e.target.value }))}
-                  placeholder="책 제목"
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-stone-500 block mb-1">저자</label>
-                <input
-                  value={newBook.author}
-                  onChange={(e) => setNewBook((p) => ({ ...p, author: e.target.value }))}
-                  placeholder="저자"
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-stone-500 block mb-1">전체 페이지</label>
-                <input
-                  type="number"
-                  value={newBook.totalPages}
-                  onChange={(e) => setNewBook((p) => ({ ...p, totalPages: e.target.value }))}
-                  placeholder="300"
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-stone-500 block mb-1">줄/페이지</label>
-                <input
-                  type="number"
-                  value={newBook.linesPerPage}
-                  onChange={(e) => setNewBook((p) => ({ ...p, linesPerPage: e.target.value }))}
-                  placeholder="25"
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400"
-                />
+          <div className="bg-white rounded-2xl p-4 border border-amber-200 shadow-sm space-y-3">
+            {/* Search input */}
+            <div className="relative">
+              <label className="text-xs text-stone-500 block mb-1">책 검색</label>
+              <input
+                value={newBook.title}
+                onChange={(e) => {
+                  setNewBook((p) => ({ ...p, title: e.target.value }))
+                  searchGoogleBooks(e.target.value)
+                }}
+                placeholder="책 제목을 입력하면 자동 검색..."
+                className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400"
+              />
+              {searchingBooks && <span className="absolute right-3 top-7 text-[10px] text-stone-400">검색 중...</span>}
+              {bookSearchResults.length > 0 && (
+                <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-stone-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                  {bookSearchResults.map((r, i) => (
+                    <button
+                      key={i}
+                      onClick={() => selectSearchResult(r)}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-amber-50 transition-colors cursor-pointer border-b border-stone-50 last:border-b-0"
+                    >
+                      {r.cover ? (
+                        <img src={r.cover} alt="" className="w-8 h-11 object-cover rounded shadow-sm shrink-0" />
+                      ) : (
+                        <div className="w-8 h-11 bg-stone-100 rounded flex items-center justify-center text-stone-400 text-xs shrink-0">📚</div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-stone-800 truncate">{r.title}</p>
+                        <p className="text-[10px] text-stone-400 truncate">{r.author}{r.pages ? ` · ${r.pages}p` : ''}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Cover preview + details */}
+            <div className="flex gap-3">
+              {newBook.coverUrl ? (
+                <img src={newBook.coverUrl} alt="" className="w-16 h-22 object-cover rounded-lg shadow-sm shrink-0" />
+              ) : (
+                <div className="w-16 h-22 bg-stone-100 rounded-lg flex items-center justify-center text-2xl shrink-0">{newBook.emoji}</div>
+              )}
+              <div className="flex-1 space-y-2">
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">저자</label>
+                  <input
+                    value={newBook.author}
+                    onChange={(e) => setNewBook((p) => ({ ...p, author: e.target.value }))}
+                    placeholder="저자"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-amber-400"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-stone-500 block mb-0.5">전체 페이지</label>
+                    <input
+                      type="number"
+                      value={newBook.totalPages}
+                      onChange={(e) => setNewBook((p) => ({ ...p, totalPages: e.target.value }))}
+                      placeholder="300"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 text-sm text-stone-800 outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-stone-500 block mb-0.5">줄/페이지</label>
+                    <input
+                      type="number"
+                      value={newBook.linesPerPage}
+                      onChange={(e) => setNewBook((p) => ({ ...p, linesPerPage: e.target.value }))}
+                      placeholder="25"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 text-sm text-stone-800 outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
             <p className="text-[10px] text-stone-400">아이들 책: 3~5줄/p, 일반 도서: 15~25줄/p</p>
             <button
               onClick={handleAddBook}
-              className="w-full py-2 bg-stone-700 hover:bg-stone-800 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer"
+              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer shadow-sm"
             >
               추가
             </button>
@@ -397,7 +469,11 @@ export default function ReadingTracker() {
             return (
               <div key={book.id} className="bg-white rounded-xl p-3 border border-stone-200/60 shadow-sm">
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">{book.emoji}</span>
+                  {book.coverUrl ? (
+                    <img src={book.coverUrl} alt="" className="w-10 h-14 object-cover rounded shadow-sm shrink-0" />
+                  ) : (
+                    <span className="text-2xl">{book.emoji}</span>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-stone-800 truncate">{book.title}</p>
                     <p className="text-xs text-stone-400">{book.author} · {book.totalPages}p</p>

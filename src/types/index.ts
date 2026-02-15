@@ -58,6 +58,7 @@ export interface Book {
   linesPerPage: number
   emoji: string
   color: string
+  coverUrl?: string
 }
 
 export interface BookProgress {
