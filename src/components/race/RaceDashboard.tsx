@@ -54,6 +54,7 @@ export default function RaceDashboard() {
 
   const loadFamilyRank = useReadingStore((s) => s.loadFamilyRank)
   const persons = useReadingStore((s) => s.persons)
+  const books = useReadingStore((s) => s.books)
   const readingLogs = useReadingStore((s) => s.readingLogs)
   const getFamilyStreak = useReadingStore((s) => s.getFamilyStreak)
   const getTotalLinesForMonth = useReadingStore((s) => s.getTotalLinesForMonth)
@@ -86,11 +87,17 @@ export default function RaceDashboard() {
 
   const temperature = calcTemperature(familyTotalLines, familyStreak, activeMembers)
 
-  // Recent activity (latest 5 logs)
+  // Recent activity (latest 10 logs)
   const recentLogs = useMemo(() => {
     const sorted = [...readingLogs].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
-    return sorted.slice(0, 5)
+    return sorted.slice(0, 10)
   }, [readingLogs])
+
+  // Books being read this month (with covers)
+  const monthBooks = useMemo(() => {
+    const bookIds = new Set(readingLogs.filter((l) => l.date.startsWith(month)).map((l) => l.bookId))
+    return books.filter((b) => bookIds.has(b.id))
+  }, [readingLogs, books, month])
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-24 md:p-6 md:pb-8 max-w-2xl mx-auto w-full">
@@ -211,29 +218,67 @@ export default function RaceDashboard() {
         <ReadingHeatmap />
       </div>
 
-      {/* ── Recent activity ── */}
+      {/* ── Bookshelf showcase ── */}
+      {monthBooks.length > 0 && (
+        <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '170ms' }}>
+          <h2 className="text-sm font-bold text-stone-700 mb-2">이번 달 서재</h2>
+          <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-1 px-1">
+            {monthBooks.map((book) => {
+              const bookLogs = readingLogs.filter((l) => l.bookId === book.id && l.date.startsWith(month))
+              const totalLines = bookLogs.reduce((s, l) => s + l.linesRead, 0)
+              const readerIds = [...new Set(bookLogs.map((l) => l.personId))]
+              return (
+                <div key={book.id} className="shrink-0 w-28 bg-white rounded-xl border border-stone-200/60 shadow-sm overflow-hidden">
+                  {book.coverUrl ? (
+                    <img src={book.coverUrl} alt="" className="w-full h-36 object-cover" />
+                  ) : (
+                    <div className="w-full h-36 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center text-3xl">
+                      {book.emoji}
+                    </div>
+                  )}
+                  <div className="p-2">
+                    <p className="text-[11px] font-bold text-stone-800 truncate">{book.title}</p>
+                    <p className="text-[9px] text-stone-400 truncate">{book.author}</p>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <div className="flex -space-x-1">
+                        {readerIds.slice(0, 3).map((pid) => {
+                          const p = persons.find((pr) => pr.id === pid)
+                          return p ? <span key={pid} className="text-xs" title={p.name}>{p.emoji}</span> : null
+                        })}
+                      </div>
+                      <span className="text-[9px] font-bold text-amber-600">{totalLines.toLocaleString()}줄</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Recent activity (10 logs) ── */}
       {recentLogs.length > 0 && (
-        <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '180ms' }}>
-          <h2 className="text-sm font-bold text-stone-700 mb-2">최근 활동</h2>
+        <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '190ms' }}>
+          <h2 className="text-sm font-bold text-stone-700 mb-2">최근 기록</h2>
           <div className="space-y-1.5">
             {recentLogs.map((log) => {
               const person = persons.find((p) => p.id === log.personId)
-              const book = useReadingStore.getState().books.find((b) => b.id === log.bookId)
+              const book = books.find((b) => b.id === log.bookId)
               if (!person || !book) return null
               return (
-                <div key={log.id} className="flex items-center gap-2.5 bg-white rounded-xl px-3 py-2 border border-stone-100">
-                  <PersonAvatar person={person} size={24} />
+                <div key={log.id} className="flex items-center gap-2.5 bg-white rounded-xl px-3 py-2.5 border border-stone-100">
+                  {book.coverUrl ? (
+                    <img src={book.coverUrl} alt="" className="w-7 h-10 object-cover rounded shadow-sm shrink-0" />
+                  ) : (
+                    <span className="text-lg shrink-0">{book.emoji}</span>
+                  )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-stone-600 truncate">
-                      <span className="font-medium">{person.name}</span>
-                      <span className="text-stone-400"> · </span>
-                      <span>{book.emoji} {book.title}</span>
+                    <p className="text-xs font-medium text-stone-700 truncate">{book.title}</p>
+                    <p className="text-[10px] text-stone-400 truncate">
+                      {person.emoji} {person.name} · {log.date.slice(5)}
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xs font-bold text-amber-600">{log.linesRead}줄</p>
-                    <p className="text-[10px] text-stone-400">{log.date.slice(5)}</p>
-                  </div>
+                  <p className="text-xs font-bold text-amber-600 shrink-0">{log.linesRead.toLocaleString()}줄</p>
                 </div>
               )
             })}
