@@ -62,7 +62,7 @@ function MainApp() {
   if (!dataLoaded) return <FullScreenLoader />
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden bg-surface">
+    <div className="flex flex-col md:flex-row app-shell w-screen overflow-hidden bg-surface">
       {/* Desktop sidebar — hidden on mobile */}
       <div className="hidden md:flex">
         <Sidebar />
