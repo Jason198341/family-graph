@@ -155,7 +155,7 @@ export default function ReadingTracker() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 pt-2 pb-8 md:p-8 space-y-2 md:space-y-6">
+    <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-2 pb-8 md:p-8 space-y-2 md:space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold text-cream-100 flex items-center gap-2">
