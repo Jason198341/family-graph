@@ -1,4 +1,5 @@
 import { useGraphStore } from '@/stores/graphStore'
+import PersonAvatar from '@/components/common/PersonAvatar'
 
 interface RaceStatsProps {
   month: string
@@ -42,12 +43,7 @@ export default function RaceStats({ month }: RaceStatsProps) {
               className={`bg-surface-light/80 backdrop-blur-md border rounded-2xl p-4 hover:border-surface-hover transition-colors ${isTop ? 'border-amber-500/40 ring-1 ring-amber-500/20' : 'border-surface-border'}`}
             >
               <div className="flex items-center gap-2 mb-3">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-lg border-2"
-                  style={{ borderColor: person.color, backgroundColor: `${person.color}15` }}
-                >
-                  {person.emoji}
-                </div>
+                <PersonAvatar person={person} size={36} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-cream-100 truncate">{person.name}</p>
                   <p className="text-xs text-espresso-400">{person.role}</p>

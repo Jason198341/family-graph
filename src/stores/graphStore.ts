@@ -275,6 +275,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
           id: r.id, name: r.name, role: r.role, emoji: r.emoji, bio: r.bio, color: r.color,
           birthYear: (r as Record<string, unknown>).birth_year as number | undefined,
           goalLines: (r as Record<string, unknown>).goal_lines as number | undefined,
+          avatarUrl: (r as Record<string, unknown>).avatar_url as string | undefined,
         })),
         books: (books.data ?? []).map((r) => ({
           id: r.id, title: r.title, author: r.author, totalPages: r.total_pages,
@@ -358,6 +359,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       if (updates.emoji !== undefined) snakeUpdates.emoji = updates.emoji
       if (updates.color !== undefined) snakeUpdates.color = updates.color
       if (updates.bio !== undefined) snakeUpdates.bio = updates.bio
+      if (updates.avatarUrl !== undefined) snakeUpdates.avatar_url = updates.avatarUrl
       dbSync(supabase.from('persons').update(snakeUpdates).eq('id', id))
     }
   },

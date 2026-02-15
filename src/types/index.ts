@@ -9,6 +9,7 @@ export interface FamilyPerson {
   color: string         // hex color
   birthYear?: number
   goalLines?: number    // 연간 독서 목표 줄 수
+  avatarUrl?: string    // base64 data URL or external URL
 }
 
 // ─── View State ────────────────────────────

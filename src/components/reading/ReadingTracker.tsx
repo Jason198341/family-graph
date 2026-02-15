@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
+import PersonAvatar from '@/components/common/PersonAvatar'
 
 function formatMonth(month: string) {
   const [y, m] = month.split('-')
@@ -262,12 +263,7 @@ export default function ReadingTracker() {
               style={{ animationDelay: `${150 + idx * 60}ms` }}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-xl border-2"
-                  style={{ borderColor: person.color, backgroundColor: `${person.color}15` }}
-                >
-                  {person.emoji}
-                </div>
+                <PersonAvatar person={person} size={40} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-cream-100">{person.name}</p>

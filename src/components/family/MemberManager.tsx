@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useGraphStore } from '@/stores/graphStore'
+import { resizeImage } from '@/lib/resizeImage'
+import PersonAvatar from '@/components/common/PersonAvatar'
 import InviteCode from './InviteCode'
 
 const ROLE_PRESETS = [
@@ -34,6 +36,8 @@ export default function MemberManager() {
   const [newRole, setNewRole] = useState('')
   const [newEmoji, setNewEmoji] = useState('🧑')
   const [newColor, setNewColor] = useState('#3b82f6')
+  const [newAvatarUrl, setNewAvatarUrl] = useState('')
+  const addFileRef = useRef<HTMLInputElement>(null)
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -41,6 +45,8 @@ export default function MemberManager() {
   const [editRole, setEditRole] = useState('')
   const [editEmoji, setEditEmoji] = useState('')
   const [editColor, setEditColor] = useState('')
+  const [editAvatarUrl, setEditAvatarUrl] = useState('')
+  const editFileRef = useRef<HTMLInputElement>(null)
 
   if (!family) return null
 
@@ -56,13 +62,26 @@ export default function MemberManager() {
       emoji: newEmoji,
       bio: '',
       color: newColor,
+      avatarUrl: newAvatarUrl || undefined,
     })
     addToast(`${newEmoji} ${newName} 추가됨`, 'success')
     setNewName('')
     setNewRole('')
     setNewEmoji('🧑')
     setNewColor('#3b82f6')
+    setNewAvatarUrl('')
     setShowAddForm(false)
+  }
+
+  const handleFileUpload = async (file: File, target: 'add' | 'edit') => {
+    try {
+      const dataUrl = await resizeImage(file)
+      if (target === 'add') setNewAvatarUrl(dataUrl)
+      else setEditAvatarUrl(dataUrl)
+      addToast('사진 업로드 완료', 'success')
+    } catch {
+      addToast('사진 처리 실패', 'error')
+    }
   }
 
   const applyPreset = (preset: typeof ROLE_PRESETS[number]) => {
@@ -77,6 +96,7 @@ export default function MemberManager() {
     setEditRole(p.role)
     setEditEmoji(p.emoji)
     setEditColor(p.color)
+    setEditAvatarUrl(p.avatarUrl ?? '')
   }
 
   const cancelEdit = () => setEditingId(null)
@@ -88,6 +108,7 @@ export default function MemberManager() {
       role: editRole,
       emoji: editEmoji,
       color: editColor,
+      avatarUrl: editAvatarUrl || undefined,
     })
     addToast(`${editEmoji} ${editName} 수정됨`, 'success')
     setEditingId(null)
@@ -155,9 +176,53 @@ export default function MemberManager() {
               />
             </div>
 
-            {/* Emoji picker */}
+            {/* Photo upload */}
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">이모지</label>
+              <label className="text-xs text-gray-500 mb-1 block">프로필 사진</label>
+              <div className="flex items-center gap-3">
+                {newAvatarUrl ? (
+                  <img src={newAvatarUrl} alt="preview" className="w-12 h-12 rounded-full object-cover border-2" style={{ borderColor: newColor }} />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-surface-lighter border-2 border-dashed border-surface-border flex items-center justify-center text-xl">
+                    {newEmoji}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => addFileRef.current?.click()}
+                    className="text-xs px-3 py-1.5 bg-surface-lighter border border-surface-border rounded-lg text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors cursor-pointer"
+                  >
+                    사진 선택
+                  </button>
+                  {newAvatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setNewAvatarUrl('')}
+                      className="text-xs px-2 py-1.5 text-red-400 hover:text-red-600 cursor-pointer"
+                    >
+                      삭제
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={addFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFileUpload(file, 'add')
+                    e.target.value = ''
+                  }}
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">사진이 없으면 아래 이모지가 사용됩니다</p>
+            </div>
+
+            {/* Emoji picker (fallback) */}
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">이모지 {newAvatarUrl ? '(사진 대체)' : ''}</label>
               <div className="flex gap-1.5 flex-wrap">
                 {ALL_EMOJIS.map((emoji) => (
                   <button
@@ -196,12 +261,7 @@ export default function MemberManager() {
 
             {/* Preview + submit */}
             <div className="flex items-center gap-3 pt-1">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-xl border-2 shrink-0"
-                style={{ borderColor: newColor, backgroundColor: `${newColor}15` }}
-              >
-                {newEmoji}
-              </div>
+              <PersonAvatar person={{ id: '', name: newName || '이름', role: newRole || '역할', emoji: newEmoji, bio: '', color: newColor, avatarUrl: newAvatarUrl || undefined }} size={40} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-900 font-medium">{newName || '이름'}</p>
                 <p className="text-xs text-gray-500">{newRole || '역할'}</p>
@@ -255,22 +315,62 @@ export default function MemberManager() {
                     ))}
                   </div>
 
+                  {/* Photo upload */}
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">프로필 사진</label>
+                    <div className="flex items-center gap-3">
+                      {editAvatarUrl ? (
+                        <img src={editAvatarUrl} alt="preview" className="w-12 h-12 rounded-full object-cover border-2" style={{ borderColor: editColor }} />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-surface-lighter border-2 border-dashed border-surface-border flex items-center justify-center text-xl">
+                          {editEmoji}
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => editFileRef.current?.click()}
+                          className="text-xs px-3 py-1.5 bg-surface-lighter border border-surface-border rounded-lg text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors cursor-pointer"
+                        >
+                          사진 변경
+                        </button>
+                        {editAvatarUrl && (
+                          <button type="button" onClick={() => setEditAvatarUrl('')} className="text-xs px-2 py-1.5 text-red-400 hover:text-red-600 cursor-pointer">삭제</button>
+                        )}
+                      </div>
+                      <input
+                        ref={editFileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleFileUpload(file, 'edit')
+                          e.target.value = ''
+                        }}
+                      />
+                    </div>
+                  </div>
+
                   {/* Emoji picker */}
-                  <div className="flex gap-1.5 flex-wrap">
-                    {ALL_EMOJIS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => setEditEmoji(emoji)}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all cursor-pointer ${
-                          editEmoji === emoji
-                            ? 'bg-amber-100 border-2 border-amber-400 scale-110'
-                            : 'bg-surface-lighter border border-surface-border hover:border-gray-400'
-                        }`}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">이모지 {editAvatarUrl ? '(사진 대체)' : ''}</label>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {ALL_EMOJIS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => setEditEmoji(emoji)}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all cursor-pointer ${
+                            editEmoji === emoji
+                              ? 'bg-amber-100 border-2 border-amber-400 scale-110'
+                              : 'bg-surface-lighter border border-surface-border hover:border-gray-400'
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Color picker */}
@@ -290,12 +390,7 @@ export default function MemberManager() {
 
                   {/* Preview + save */}
                   <div className="flex items-center gap-3 pt-1">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-xl border-2 shrink-0"
-                      style={{ borderColor: editColor, backgroundColor: `${editColor}15` }}
-                    >
-                      {editEmoji}
-                    </div>
+                    <PersonAvatar person={{ id: '', name: editName, role: editRole, emoji: editEmoji, bio: '', color: editColor, avatarUrl: editAvatarUrl || undefined }} size={40} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-900 font-medium">{editName}</p>
                       <p className="text-xs text-gray-500">{editRole}</p>
@@ -312,12 +407,7 @@ export default function MemberManager() {
               ) : (
                 /* ── Display mode ── */
                 <div className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg group">
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 border-2"
-                    style={{ borderColor: p.color, backgroundColor: `${p.color}15` }}
-                  >
-                    {p.emoji}
-                  </div>
+                  <PersonAvatar person={p} size={32} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-900 truncate">{p.name}</p>
                     <p className="text-xs text-gray-500">{p.role}</p>
