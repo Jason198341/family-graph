@@ -2,13 +2,14 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Clean white shadcn palette ── */
-  --color-cream-50: #fafafa;
-  --color-cream-100: #0f172a;
-  --color-cream-200: #334155;
-  --color-cream-300: #64748b;
-  --color-cream-400: #94a3b8;
+  /* ── Warm text palette (stone family) ── */
+  --color-cream-50: #fafaf9;
+  --color-cream-100: #1c1917;
+  --color-cream-200: #44403c;
+  --color-cream-300: #78716c;
+  --color-cream-400: #a8a29e;
 
+  /* ── Amber (warm primary) ── */
   --color-amber-50: #fffbeb;
   --color-amber-100: #fef3c7;
   --color-amber-200: #fde68a;
@@ -17,6 +18,7 @@
   --color-amber-500: #f59e0b;
   --color-amber-600: #d97706;
 
+  /* ── Olive (success / growth) ── */
   --color-olive-50: #f0fdf4;
   --color-olive-100: #dcfce7;
   --color-olive-200: #bbf7d0;
@@ -25,14 +27,15 @@
   --color-olive-500: #22c55e;
   --color-olive-600: #16a34a;
 
-  --color-espresso-50: #f8fafc;
-  --color-espresso-100: #f1f5f9;
-  --color-espresso-200: #e2e8f0;
-  --color-espresso-300: #475569;
-  --color-espresso-400: #64748b;
-  --color-espresso-500: #475569;
-  --color-espresso-600: #334155;
-  --color-espresso-700: #1e293b;
+  /* ── Espresso (warm neutral) ── */
+  --color-espresso-50: #fafaf9;
+  --color-espresso-100: #f5f5f4;
+  --color-espresso-200: #e7e5e4;
+  --color-espresso-300: #57534e;
+  --color-espresso-400: #78716c;
+  --color-espresso-500: #57534e;
+  --color-espresso-600: #44403c;
+  --color-espresso-700: #292524;
 
   --color-rose-400: #fb7185;
   --color-rose-500: #f43f5e;
@@ -49,24 +52,24 @@
   --color-success-400: #22c55e;
   --color-success-500: #16a34a;
 
-  /* ── Surfaces (clean white) ── */
-  --color-surface: #f8fafc;
+  /* ── Surfaces (warm white) ── */
+  --color-surface: #fafaf9;
   --color-surface-light: #ffffff;
-  --color-surface-lighter: #f1f5f9;
-  --color-surface-border: #e2e8f0;
-  --color-surface-hover: #f1f5f9;
+  --color-surface-lighter: #f5f5f4;
+  --color-surface-border: #e7e5e4;
+  --color-surface-hover: #f5f5f4;
 
   /* ── Medal colors ── */
   --color-gold: #fbbf24;
-  --color-silver: #94a3b8;
+  --color-silver: #a8a29e;
   --color-bronze: #d97756;
 }
 
 body {
   margin: 0;
   font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  background: #fafaf9;
+  color: #1c1917;
   min-height: 100vh;
   overflow: hidden;
 }
@@ -83,8 +86,8 @@ h1, h2, h3 {
 
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
 
 /* ── Animations ── */
 @keyframes fadeInUp {
@@ -141,7 +144,7 @@ h1, h2, h3 {
 
 /* ── Star rating ── */
 .star-rating { cursor: pointer; }
-.star-rating .star { color: #e2e8f0; transition: color 0.15s; }
+.star-rating .star { color: #e7e5e4; transition: color 0.15s; }
 .star-rating .star.active { color: #f59e0b; }
 .star-rating .star:hover { color: #d97706; }
 

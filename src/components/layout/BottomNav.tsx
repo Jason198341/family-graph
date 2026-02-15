@@ -58,11 +58,11 @@ export default function BottomNav() {
               key={view}
               onClick={() => setView(view)}
               className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors cursor-pointer ${
-                isActive ? 'text-amber-600' : 'text-slate-400'
+                isActive ? 'text-amber-600' : 'text-stone-400'
               }`}
             >
               {icon(isActive)}
-              <span className={`text-[10px] font-medium ${isActive ? 'text-amber-600' : 'text-slate-400'}`}>
+              <span className={`text-[10px] font-medium ${isActive ? 'text-amber-600' : 'text-stone-400'}`}>
                 {label}
               </span>
             </button>
