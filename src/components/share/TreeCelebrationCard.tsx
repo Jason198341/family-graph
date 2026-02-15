@@ -37,8 +37,8 @@ export default function TreeCelebrationCard() {
   return (
     <div className="space-y-4">
       {/* Shareable card */}
-      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #ecfdf5, #ffffff, #fffbeb)', borderColor: '#a7f3d0' }}>
-        <div className="p-8 text-center">
+      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-xl md:rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #ecfdf5, #ffffff, #fffbeb)', borderColor: '#a7f3d0' }}>
+        <div className="p-4 md:p-8 text-center">
           {/* Header */}
           <p className="text-sm text-emerald-600 font-bold tracking-wider uppercase mb-2">🎉 축하합니다!</p>
           <h2 className="text-lg font-bold text-slate-800" style={{ fontFamily: "'Gowun Batang', serif" }}>
@@ -46,8 +46,8 @@ export default function TreeCelebrationCard() {
           </h2>
 
           {/* Giant tree */}
-          <div className="my-8 relative">
-            <div className="text-8xl animate-tree-grow">{stage.emoji}</div>
+          <div className="my-4 md:my-8 relative">
+            <div className="text-6xl md:text-8xl animate-tree-grow">{stage.emoji}</div>
             <p className="text-2xl font-black text-slate-800 mt-3">{stage.name}</p>
             <p className="text-sm text-slate-500 mt-1">
               총 <span className="font-bold text-emerald-600">{totalLines.toLocaleString()}</span>줄 달성
@@ -56,7 +56,7 @@ export default function TreeCelebrationCard() {
 
           {/* Progress to next */}
           {stageIdx < 5 && (
-            <div className="mb-6 px-6">
+            <div className="mb-4 md:mb-6 px-2 md:px-6">
               <div className="flex justify-between text-xs text-slate-500 mb-1">
                 <span>{stage.emoji} {stage.name}</span>
                 <span>{nextStage.emoji} {nextStage.name}</span>
@@ -72,7 +72,7 @@ export default function TreeCelebrationCard() {
           )}
 
           {/* Member contributions */}
-          <div className="space-y-2 px-4">
+          <div className="space-y-2 px-1 md:px-4">
             <p className="text-xs text-slate-500 font-semibold mb-2">가족 기여도</p>
             {contributions.map(({ person, lines, pct }) => (
               <div key={person.id} className="flex items-center gap-2">

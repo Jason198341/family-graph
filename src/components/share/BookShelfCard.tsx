@@ -51,10 +51,10 @@ export default function BookShelfCard() {
 
   return (
     <div className="space-y-4">
-      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(180deg, #fffbeb, #fff7ed, #f5f5f4)', borderColor: '#fde68a' }}>
-        <div className="p-8">
+      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-xl md:rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(180deg, #fffbeb, #fff7ed, #f5f5f4)', borderColor: '#fde68a' }}>
+        <div className="p-4 md:p-8">
           {/* Header */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-4 md:mb-6">
             <p className="text-xs text-amber-600 font-bold tracking-widest uppercase">📚 가족 서재</p>
             <h2 className="text-lg font-bold text-slate-800 mt-1" style={{ fontFamily: "'Gowun Batang', serif" }}>
               {familyEmoji} {familyName}의 {year}년 책장
@@ -80,12 +80,12 @@ export default function BookShelfCard() {
                         const isCompleted = book.completers > 0
 
                         return (
-                          <div key={book.id} className="flex flex-col items-center group" style={{ width: 68 }}>
+                          <div key={book.id} className="flex flex-col items-center group" style={{ width: 56 }}>
                             {/* Book spine */}
                             <div
                               className="relative rounded-sm shadow-md flex flex-col items-center justify-center px-1 transition-transform hover:scale-105"
                               style={{
-                                width: 56,
+                                width: 44,
                                 height: spineH,
                                 backgroundColor: book.color,
                                 boxShadow: `2px 2px 8px ${book.color}40`,
@@ -124,7 +124,7 @@ export default function BookShelfCard() {
           )}
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-4 mt-6 text-xs text-slate-400">
+          <div className="flex items-center justify-center gap-4 mt-4 md:mt-6 text-xs text-slate-400">
             <span>⭐ = 완독</span>
             <span>이모지 = 읽는 중인 가족</span>
           </div>

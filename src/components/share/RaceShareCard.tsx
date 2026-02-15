@@ -38,12 +38,12 @@ export default function RaceShareCard({ month }: Props) {
 
   return (
     <div className="space-y-4">
-      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff)', borderColor: '#bfdbfe' }}>
-        <div className="p-8">
+      <div ref={ref} className="w-full max-w-[540px] mx-auto rounded-xl md:rounded-3xl overflow-hidden border shadow-xl" style={{ background: 'linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff)', borderColor: '#bfdbfe' }}>
+        <div className="p-4 md:p-8">
           {/* Header */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-4 md:mb-6">
             <p className="text-xs text-blue-500 font-bold tracking-widest uppercase">🏃 독서 레이스</p>
-            <h2 className="text-lg font-bold text-slate-800 mt-1" style={{ fontFamily: "'Gowun Batang', serif" }}>
+            <h2 className="text-base md:text-lg font-bold text-slate-800 mt-1" style={{ fontFamily: "'Gowun Batang', serif" }}>
               {familyEmoji} {familyName} · {displayMonth}
             </h2>
             {daysLeft > 0 && (
@@ -52,13 +52,13 @@ export default function RaceShareCard({ month }: Props) {
           </div>
 
           {/* Family total */}
-          <div className="text-center mb-6 p-4 rounded-2xl border" style={{ backgroundColor: '#eff6ff', borderColor: '#dbeafe' }}>
-            <p className="text-3xl font-black text-blue-600 tabular-nums">{familyTotal.toLocaleString()}</p>
+          <div className="text-center mb-4 md:mb-6 p-3 md:p-4 rounded-xl md:rounded-2xl border" style={{ backgroundColor: '#eff6ff', borderColor: '#dbeafe' }}>
+            <p className="text-2xl md:text-3xl font-black text-blue-600 tabular-nums">{familyTotal.toLocaleString()}</p>
             <p className="text-xs text-slate-500 mt-1">가족 합산 (줄)</p>
           </div>
 
           {/* Race tracks */}
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {runners.map((runner, idx) => {
               const { person } = runner
               const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : ''
@@ -66,17 +66,17 @@ export default function RaceShareCard({ month }: Props) {
 
               return (
                 <div key={person.id} className="relative">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-sm w-5 text-center">{medal || `${idx + 1}`}</span>
-                    <span className="text-lg">{person.emoji}</span>
-                    <span className="text-sm font-bold text-slate-700 flex-1">{person.name}</span>
-                    <span className="text-sm font-black tabular-nums" style={{ color: person.color }}>
+                  <div className="flex items-center gap-2 md:gap-3 mb-1">
+                    <span className="text-xs md:text-sm w-5 text-center">{medal || `${idx + 1}`}</span>
+                    <span className="text-base md:text-lg">{person.emoji}</span>
+                    <span className="text-xs md:text-sm font-bold text-slate-700 flex-1">{person.name}</span>
+                    <span className="text-xs md:text-sm font-black tabular-nums" style={{ color: person.color }}>
                       {runner.totalLines.toLocaleString()}줄
                     </span>
                   </div>
 
                   {/* Track bar */}
-                  <div className="ml-8 h-6 bg-slate-100 rounded-full overflow-hidden relative">
+                  <div className="ml-7 md:ml-8 h-5 md:h-6 bg-slate-100 rounded-full overflow-hidden relative">
                     <div
                       className="h-full rounded-full transition-all"
                       style={{
@@ -93,7 +93,7 @@ export default function RaceShareCard({ month }: Props) {
                   </div>
 
                   {/* Mini stats */}
-                  <div className="ml-8 flex items-center gap-3 mt-0.5">
+                  <div className="ml-7 md:ml-8 flex items-center gap-3 mt-0.5">
                     <span className="text-xs text-slate-400">{runner.logCount}회 기록</span>
                     {runner.streak > 0 && (
                       <span className="text-xs text-amber-500">🔥 {runner.streak}일 연속</span>

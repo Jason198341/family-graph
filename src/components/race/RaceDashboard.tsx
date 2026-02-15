@@ -38,30 +38,30 @@ export default function RaceDashboard() {
   return (
     <div className="flex-1 overflow-y-auto space-y-2 md:space-y-6 px-3 pt-2 pb-4 md:p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between animate-fade-in-up">
-        <div>
-          <h1 className="text-2xl font-bold text-cream-100">
+      <div className="flex items-center justify-between gap-2 animate-fade-in-up">
+        <div className="min-w-0">
+          <h1 className="text-lg md:text-2xl font-bold text-cream-100 truncate">
             가족 독서 여정
           </h1>
-          <p className="text-xs text-espresso-300 mt-1">
+          <p className="text-xs text-espresso-300 mt-0.5 hidden md:block">
             함께 읽고, 함께 성장하는 가족 독서 기록
           </p>
         </div>
 
         {/* Month selector */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
           <button
             onClick={prevMonth}
-            className="w-8 h-8 rounded-lg bg-surface-lighter border border-surface-border flex items-center justify-center text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
+            className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-surface-lighter border border-surface-border flex items-center justify-center text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6"/></svg>
+            <svg className="w-3.5 h-3.5 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <span className="text-sm font-bold text-cream-100 min-w-[100px] text-center">{displayMonth}</span>
+          <span className="text-xs md:text-sm font-bold text-cream-100 min-w-[80px] md:min-w-[100px] text-center">{displayMonth}</span>
           <button
             onClick={nextMonth}
-            className="w-8 h-8 rounded-lg bg-surface-lighter border border-surface-border flex items-center justify-center text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
+            className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-surface-lighter border border-surface-border flex items-center justify-center text-espresso-300 hover:text-cream-100 hover:border-amber-500/50 transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
+            <svg className="w-3.5 h-3.5 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>

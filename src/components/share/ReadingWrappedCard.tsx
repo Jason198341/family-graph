@@ -72,16 +72,16 @@ export default function ReadingWrappedCard() {
     {
       bg: 'linear-gradient(135deg, #4f46e5, #9333ea, #ec4899)',
       render: () => (
-        <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
-          <p className="text-sm font-bold tracking-[0.3em] uppercase opacity-70 mb-4">Reading DNA</p>
-          <h1 className="text-4xl font-black mb-2" style={{ fontFamily: "'Gowun Batang', serif" }}>
+        <div className="flex flex-col items-center justify-center h-full text-white text-center px-4 md:px-8">
+          <p className="text-xs md:text-sm font-bold tracking-[0.3em] uppercase opacity-70 mb-3 md:mb-4">Reading DNA</p>
+          <h1 className="text-2xl md:text-4xl font-black mb-2" style={{ fontFamily: "'Gowun Batang', serif" }}>
             {familyEmoji} {familyName}
           </h1>
-          <p className="text-lg opacity-80">{year}년 독서 리포트</p>
-          <div className="mt-8 flex items-center gap-6">
+          <p className="text-base md:text-lg opacity-80">{year}년 독서 리포트</p>
+          <div className="mt-6 md:mt-8 flex items-center gap-4 md:gap-6">
             {persons.slice(0, 5).map((p) => (
               <div key={p.id} className="text-center">
-                <span className="text-3xl">{p.emoji}</span>
+                <span className="text-2xl md:text-3xl">{p.emoji}</span>
                 <p className="text-xs mt-1 opacity-70">{p.name}</p>
               </div>
             ))}
@@ -93,18 +93,18 @@ export default function ReadingWrappedCard() {
     {
       bg: 'linear-gradient(135deg, #10b981, #14b8a6, #06b6d4)',
       render: () => (
-        <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
-          <p className="text-sm font-bold tracking-widest uppercase opacity-70 mb-6">올해의 숫자</p>
-          <div className="grid grid-cols-2 gap-6">
+        <div className="flex flex-col items-center justify-center h-full text-white text-center px-4 md:px-8">
+          <p className="text-xs md:text-sm font-bold tracking-widest uppercase opacity-70 mb-4 md:mb-6">올해의 숫자</p>
+          <div className="grid grid-cols-2 gap-3 md:gap-6">
             {[
               { label: '총 독서량', value: `${totalLines.toLocaleString()}줄`, emoji: '📖' },
               { label: '독서한 날', value: `${totalDays}일`, emoji: '📅' },
               { label: '완독한 책', value: `${completedBooks}권`, emoji: '✅' },
               { label: '작성한 후기', value: `${totalReviews}편`, emoji: '✏️' },
             ].map((stat) => (
-              <div key={stat.label} className="bg-[rgba(255,255,255,0.15)] backdrop-blur-sm rounded-2xl p-4">
-                <span className="text-2xl">{stat.emoji}</span>
-                <p className="text-2xl font-black mt-1">{stat.value}</p>
+              <div key={stat.label} className="bg-[rgba(255,255,255,0.15)] backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-4">
+                <span className="text-xl md:text-2xl">{stat.emoji}</span>
+                <p className="text-xl md:text-2xl font-black mt-1">{stat.value}</p>
                 <p className="text-xs opacity-70 mt-0.5">{stat.label}</p>
               </div>
             ))}
@@ -116,12 +116,12 @@ export default function ReadingWrappedCard() {
     {
       bg: 'linear-gradient(135deg, #f59e0b, #f97316, #ef4444)',
       render: () => (
-        <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
-          <p className="text-sm font-bold tracking-widest uppercase opacity-70 mb-4">🏆 올해의 독서왕</p>
+        <div className="flex flex-col items-center justify-center h-full text-white text-center px-4 md:px-8">
+          <p className="text-xs md:text-sm font-bold tracking-widest uppercase opacity-70 mb-3 md:mb-4">🏆 올해의 독서왕</p>
           {topReader && (
             <>
-              <span className="text-5xl mb-2">{topReader.person.emoji}</span>
-              <h2 className="text-2xl font-black">{topReader.person.name}</h2>
+              <span className="text-4xl md:text-5xl mb-2">{topReader.person.emoji}</span>
+              <h2 className="text-xl md:text-2xl font-black">{topReader.person.name}</h2>
               <p className="text-sm opacity-80 mt-1">{topReader.lines.toLocaleString()}줄 · {topReader.days}일</p>
             </>
           )}
@@ -148,11 +148,11 @@ export default function ReadingWrappedCard() {
     {
       bg: 'linear-gradient(135deg, #7c3aed, #9333ea, #d946ef)',
       render: () => (
-        <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
-          <p className="text-sm font-bold tracking-widest uppercase opacity-70 mb-4">📕 가장 많이 읽은 책</p>
+        <div className="flex flex-col items-center justify-center h-full text-white text-center px-4 md:px-8">
+          <p className="text-xs md:text-sm font-bold tracking-widest uppercase opacity-70 mb-3 md:mb-4">📕 가장 많이 읽은 책</p>
           {topBook ? (
             <>
-              <span className="text-5xl mb-3">{topBook.emoji}</span>
+              <span className="text-4xl md:text-5xl mb-2 md:mb-3">{topBook.emoji}</span>
               <h2 className="text-xl font-black">{topBook.title}</h2>
               <p className="text-sm opacity-70 mt-1">{topBook.author}</p>
               <p className="text-xs mt-2 bg-[rgba(255,255,255,0.2)] px-3 py-1 rounded-full">
@@ -180,14 +180,14 @@ export default function ReadingWrappedCard() {
     {
       bg: 'linear-gradient(135deg, #1e293b, #0f172a, #000000)',
       render: () => (
-        <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
-          <span className="text-6xl mb-4">📚</span>
-          <h2 className="text-2xl font-black" style={{ fontFamily: "'Gowun Batang', serif" }}>
+        <div className="flex flex-col items-center justify-center h-full text-white text-center px-4 md:px-8">
+          <span className="text-5xl md:text-6xl mb-3 md:mb-4">📚</span>
+          <h2 className="text-xl md:text-2xl font-black" style={{ fontFamily: "'Gowun Batang', serif" }}>
             {familyName}의<br />{year}년 독서 여정
           </h2>
-          <div className="mt-6 flex items-center gap-2">
+          <div className="mt-4 md:mt-6 flex items-center gap-2">
             {persons.map((p) => (
-              <span key={p.id} className="text-2xl">{p.emoji}</span>
+              <span key={p.id} className="text-xl md:text-2xl">{p.emoji}</span>
             ))}
           </div>
           <p className="text-sm opacity-50 mt-6">가족과 함께 읽고, 함께 성장하세요</p>
@@ -202,7 +202,7 @@ export default function ReadingWrappedCard() {
   return (
     <div className="space-y-4">
       {/* Card */}
-      <div ref={ref} className="w-full max-w-[540px] aspect-[540/680] mx-auto rounded-3xl overflow-hidden shadow-2xl relative">
+      <div ref={ref} className="w-full max-w-[540px] aspect-[540/680] mx-auto rounded-xl md:rounded-3xl overflow-hidden shadow-2xl relative">
         <div className="absolute inset-0" style={{ background: currentSlide.bg }} />
         <div className="relative z-10 h-full flex flex-col">
           <div className="flex-1 flex flex-col">
