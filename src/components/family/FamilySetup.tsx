@@ -105,7 +105,7 @@ export default function FamilySetup() {
         <div className="w-full max-w-md mx-4 animate-fade-in-up">
           <div className="text-center mb-6">
             <span className="text-4xl mb-2 inline-block">👨‍👩‍👧‍👦</span>
-            <h2 className="text-xl font-bold text-white">가족 구성원을 등록하세요</h2>
+            <h2 className="text-xl font-bold text-gray-900">가족 구성원을 등록하세요</h2>
             <p className="text-sm text-gray-400 mt-1">그래프에 표시될 가족 인물을 추가합니다</p>
           </div>
 
@@ -120,8 +120,8 @@ export default function FamilySetup() {
                     onClick={() => { applyPreset(preset); if (!newName) setNewName(preset.role === '아빠' || preset.role === '엄마' ? '' : '') }}
                     className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                       newRole === preset.role
-                        ? 'bg-primary-500/20 border border-primary-500/40 text-primary-300'
-                        : 'bg-surface border border-surface-border text-gray-400 hover:text-gray-200'
+                        ? 'bg-primary-500/20 border border-primary-500/40 text-amber-700'
+                        : 'bg-surface border border-surface-border text-gray-500 hover:text-gray-700'
                     }`}
                   >
                     {preset.emoji} {preset.role}
@@ -137,7 +137,7 @@ export default function FamilySetup() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="이름 입력 (예: 현규)"
-                className="flex-1 px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 transition-colors"
+                className="flex-1 px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors"
                 onKeyDown={(e) => e.key === 'Enter' && addMember()}
               />
               <button
@@ -159,7 +159,7 @@ export default function FamilySetup() {
                   {newEmoji}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-300">{newName || '이름'}</p>
+                  <p className="text-sm text-gray-600">{newName || '이름'}</p>
                   <p className="text-xs text-gray-500">{newRole || '역할'}</p>
                 </div>
               </div>
@@ -179,7 +179,7 @@ export default function FamilySetup() {
                         {p.emoji}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white">{p.name}</p>
+                        <p className="text-sm text-gray-900">{p.name}</p>
                         <p className="text-xs text-gray-500">{p.role}</p>
                       </div>
                       <button
@@ -210,7 +210,7 @@ export default function FamilySetup() {
             </button>
             <button
               onClick={() => { setStep('invite-or-start') }}
-              className="w-full py-2 text-xs text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+              className="w-full py-2 text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
             >
               나중에 추가할게요
             </button>
@@ -226,7 +226,7 @@ export default function FamilySetup() {
       <div className="flex items-center justify-center min-h-screen w-full bg-surface">
         <div className="w-full max-w-sm mx-4 text-center animate-fade-in-up">
           <span className="text-5xl mb-4 inline-block">🎉</span>
-          <h2 className="text-xl font-bold text-white mb-2">준비 완료!</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">준비 완료!</h2>
           <p className="text-sm text-gray-400 mb-8">
             {addedPersons.length > 0
               ? `${addedPersons.length}명의 가족이 등록되었습니다`
@@ -257,7 +257,7 @@ export default function FamilySetup() {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-surface">
         <div className="w-full max-w-sm mx-4 text-center animate-fade-in-up">
-          <h2 className="text-xl font-bold text-white mb-2">초대 코드</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">초대 코드</h2>
           <p className="text-sm text-gray-400 mb-6">아래 코드를 가족에게 공유하세요</p>
           <InviteCode code={familyInviteCode} />
           <button
@@ -279,7 +279,7 @@ export default function FamilySetup() {
           <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/20 mb-3">
             <span className="text-white font-bold text-lg">FG</span>
           </div>
-          <h1 className="text-xl font-bold text-white">안녕하세요, {profile?.displayName}님</h1>
+          <h1 className="text-xl font-bold text-gray-900">안녕하세요, {profile?.displayName}님</h1>
           <p className="text-sm text-gray-400 mt-1">가족 그룹을 만들거나 초대 코드로 참여하세요</p>
         </div>
 
@@ -287,7 +287,7 @@ export default function FamilySetup() {
           <button
             onClick={() => { setTab('create'); setError(null) }}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-              tab === 'create' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              tab === 'create' ? 'bg-primary-600 text-white' : 'text-gray-500 hover:text-gray-900'
             }`}
           >
             새 가족 만들기
@@ -295,7 +295,7 @@ export default function FamilySetup() {
           <button
             onClick={() => { setTab('join'); setError(null) }}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-              tab === 'join' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              tab === 'join' ? 'bg-primary-600 text-white' : 'text-gray-500 hover:text-gray-900'
             }`}
           >
             초대 코드 입력
@@ -311,7 +311,7 @@ export default function FamilySetup() {
                   type="text"
                   value={familyName}
                   onChange={(e) => setFamilyName(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors"
                   placeholder="문씨네 가족"
                   required
                 />
@@ -352,7 +352,7 @@ export default function FamilySetup() {
                   type="text"
                   value={inviteCodeInput}
                   onChange={(e) => setInviteCodeInput(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 transition-colors tracking-widest text-center font-mono"
+                  className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors tracking-widest text-center font-mono"
                   placeholder="abcd1234"
                   required
                   maxLength={8}
@@ -372,7 +372,7 @@ export default function FamilySetup() {
 
         <button
           onClick={handleLogout}
-          className="w-full mt-4 py-2 text-xs text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+          className="w-full mt-4 py-2 text-xs text-gray-500 hover:text-gray-600 transition-colors cursor-pointer"
         >
           로그아웃
         </button>

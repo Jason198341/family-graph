@@ -34,7 +34,7 @@ function FullScreenLoader() {
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-surface">
       <div className="flex flex-col items-center gap-3 animate-fade-in-up">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-espresso-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/20">
           <span className="text-2xl">📚</span>
         </div>
         <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />

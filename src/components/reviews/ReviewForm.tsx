@@ -70,7 +70,7 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
               onMouseLeave={() => setHoverRating(0)}
               className="text-2xl cursor-pointer transition-transform hover:scale-110"
             >
-              <span className={star <= (hoverRating || rating) ? 'text-amber-400' : 'text-surface-border'}>
+              <span className={star <= (hoverRating || rating) ? 'text-amber-600' : 'text-surface-border'}>
                 ★
               </span>
             </button>

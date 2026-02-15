@@ -70,7 +70,7 @@ export default function Sidebar() {
       <div className="group/sidebar h-full w-16 hover:w-64 transition-all duration-300 ease-in-out bg-surface-light border-r border-surface-border flex flex-col shrink-0 overflow-hidden z-40">
         {/* Logo + Family name */}
         <div className="flex items-center gap-3 px-3 py-5 border-b border-surface-border min-h-[72px]">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-espresso-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
             <span className="text-white font-bold text-sm tracking-tight">
               {family?.emoji ?? '📚'}
             </span>
@@ -92,7 +92,7 @@ export default function Sidebar() {
                 className={`
                   relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full cursor-pointer
                   ${isActive
-                    ? 'bg-surface-lighter text-amber-400'
+                    ? 'bg-surface-lighter text-amber-600'
                     : 'text-espresso-300 hover:text-cream-200 hover:bg-surface-hover'
                   }
                 `}

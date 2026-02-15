@@ -50,7 +50,7 @@ export default function AchievementBadges({ month }: AchievementBadgesProps) {
       {/* Unlocked badges */}
       {unlocked.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs text-olive-300 font-semibold mb-2">달성 ({unlocked.length})</p>
+          <p className="text-xs text-emerald-600 font-semibold mb-2">달성 ({unlocked.length})</p>
           <div className="flex flex-wrap gap-2">
             {unlocked.map((a) => (
               <div
@@ -59,7 +59,7 @@ export default function AchievementBadges({ month }: AchievementBadgesProps) {
                 title={a.description}
               >
                 <span className="text-sm">{a.emoji}</span>
-                <span className="text-xs text-olive-300 font-medium">{a.label}</span>
+                <span className="text-xs text-emerald-600 font-medium">{a.label}</span>
               </div>
             ))}
           </div>

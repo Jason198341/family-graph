@@ -43,7 +43,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/20 mb-4">
             <span className="text-white font-bold text-xl">FG</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Family Graph</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Family Graph</h1>
           <p className="text-sm text-gray-400 mt-1">가족 성장 지식그래프</p>
         </div>
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors"
                   placeholder="홍길동"
                 />
               </div>
@@ -68,7 +68,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 transition-colors"
+                className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors"
                 placeholder="email@example.com"
                 required
               />
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 transition-colors"
+                className="w-full px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -107,7 +107,7 @@ export default function LoginPage() {
 
           <button
             onClick={handleGoogle}
-            className="w-full py-2.5 bg-surface hover:bg-surface-hover border border-surface-border text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-2.5 bg-surface hover:bg-surface-hover border border-surface-border text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />

@@ -5,7 +5,7 @@ import { readingTips, CATEGORIES, type ReadingTip } from '@/data/readingTips'
 const DIFFICULTY_LABEL: Record<number, string> = { 1: '쉬움', 2: '보통', 3: '고급' }
 const DIFFICULTY_COLOR: Record<number, string> = {
   1: 'bg-olive-500/20 text-olive-300',
-  2: 'bg-amber-500/20 text-amber-300',
+  2: 'bg-amber-500/20 text-amber-600',
   3: 'bg-rose-500/20 text-rose-300',
 }
 
@@ -201,7 +201,7 @@ export default function TipsPage() {
                     }`}
                   >
                     {msg.role === 'assistant' && (
-                      <p className="text-xs text-amber-400 font-semibold mb-1">📚 책벗</p>
+                      <p className="text-xs text-amber-600 font-semibold mb-1">📚 책벗</p>
                     )}
                     {msg.content}
                   </div>
@@ -333,7 +333,7 @@ function TipCard({
           </p>
           {tip.steps.map((step, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                 {i + 1}
               </span>
               <p className="text-sm text-cream-200">{step}</p>

@@ -63,7 +63,7 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
                 <p className="text-xs text-espresso-400">완독</p>
               </div>
               <div className="bg-surface-lighter rounded-xl p-3 text-center">
-                <p className="text-lg font-bold text-amber-400">{readingCount}</p>
+                <p className="text-lg font-bold text-amber-600">{readingCount}</p>
                 <p className="text-xs text-espresso-400">읽는 중</p>
               </div>
             </div>
@@ -133,7 +133,7 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
                         </span>
                         <div className="flex gap-0.5 ml-auto">
                           {Array.from({ length: 5 }, (_, i) => (
-                            <span key={i} className={`text-xs ${i < review.rating ? 'text-amber-400' : 'text-surface-border'}`}>★</span>
+                            <span key={i} className={`text-xs ${i < review.rating ? 'text-amber-600' : 'text-surface-border'}`}>★</span>
                           ))}
                         </div>
                       </div>

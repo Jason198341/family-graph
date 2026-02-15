@@ -75,7 +75,7 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
   const ourRank = ourRankIdx >= 0 ? ourRankIdx + 1 : null
 
   const medalStyles = [
-    { bg: 'bg-amber-500/10', border: 'border-amber-500/40', text: 'text-amber-400', icon: '🏆' },
+    { bg: 'bg-amber-500/10', border: 'border-amber-500/40', text: 'text-amber-600', icon: '🏆' },
     { bg: 'bg-gray-400/10', border: 'border-gray-400/40', text: 'text-gray-300', icon: '🥈' },
     { bg: 'bg-orange-600/10', border: 'border-orange-600/40', text: 'text-orange-400', icon: '🥉' },
   ]
@@ -86,11 +86,11 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
       {ourRank && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-5 py-3 flex items-center gap-3 animate-fade-in-up">
           <span className="text-2xl">🏠</span>
-          <p className="text-sm font-bold text-amber-300">
+          <p className="text-sm font-bold text-amber-700">
             우리 가족은 {displayRankings.length}가족과 함께 읽고 있어요!
           </p>
           {ourRankIdx >= 0 && (
-            <span className="ml-auto text-xs text-amber-400/70">
+            <span className="ml-auto text-xs text-amber-600/70">
               이번 달 {(displayRankings[ourRankIdx]?.totalLines ?? 0).toLocaleString()}줄
             </span>
           )}
@@ -126,7 +126,7 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
                       <span className="text-lg">{family.familyEmoji}</span>
                       <span className={`text-sm font-bold ${style.text}`}>{family.familyName}</span>
                       {isOurFamily && (
-                        <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-semibold">
+                        <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-600 rounded-full font-semibold">
                           우리 가족
                         </span>
                       )}

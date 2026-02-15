@@ -271,7 +271,7 @@ export default function ReadingTracker() {
                   </div>
                   <p className="text-xs text-espresso-400">
                     {totalLines.toLocaleString()} / {targetLines > 0 ? `${targetLines.toLocaleString()}줄` : '목표 미설정'}
-                    {streak > 0 && <span className="ml-2 text-amber-400">🔥 {streak}일 연속</span>}
+                    {streak > 0 && <span className="ml-2 text-amber-600">🔥 {streak}일 연속</span>}
                   </p>
                 </div>
                 <span className="text-lg font-bold" style={{ color: person.color }}>{progress}%</span>
@@ -332,7 +332,7 @@ export default function ReadingTracker() {
               </label>
               <button
                 onClick={() => setPageMode(pageMode === 'delta' ? 'absolute' : 'delta')}
-                className="text-xs text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                className="text-xs text-amber-600 hover:text-amber-300 transition-colors cursor-pointer"
               >
                 {pageMode === 'delta' ? '→ 페이지 번호 입력' : '→ 읽은 수 입력'}
               </button>
@@ -347,7 +347,7 @@ export default function ReadingTracker() {
               className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-amber-500"
             />
             {calculatedLines > 0 && (
-              <p className="text-xs text-amber-400 mt-0.5">= {calculatedLines.toLocaleString()}줄 ({linesPerPage}줄/p)</p>
+              <p className="text-xs text-amber-600 mt-0.5">= {calculatedLines.toLocaleString()}줄 ({linesPerPage}줄/p)</p>
             )}
             {selectedBook && (
               <p className="text-xs text-espresso-400 mt-0.5">
@@ -508,7 +508,7 @@ export default function ReadingTracker() {
                       <span>{book?.emoji} {book?.title}</span>
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-amber-400">{log.linesRead.toLocaleString()}줄</span>
+                  <span className="text-xs font-bold text-amber-600">{log.linesRead.toLocaleString()}줄</span>
                   <span className="text-xs text-espresso-400">{log.date}</span>
                 </div>
               )

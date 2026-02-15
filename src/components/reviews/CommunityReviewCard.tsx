@@ -20,7 +20,7 @@ export default function CommunityReviewCard({ review, onBookClick }: CommunityRe
           <span className="text-sm">{review.familyEmoji}</span>
           <span className="text-xs font-semibold text-espresso-300">{review.familyName}</span>
           {isOurFamily && (
-            <span className="text-xs px-1 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">
+            <span className="text-xs px-1 py-0.5 bg-amber-500/20 text-amber-600 rounded font-bold">
               우리
             </span>
           )}
@@ -32,7 +32,7 @@ export default function CommunityReviewCard({ review, onBookClick }: CommunityRe
             <p className="text-sm font-bold text-cream-100 truncate">{review.personName}</p>
             <button
               onClick={() => onBookClick?.(review.bookTitle)}
-              className="text-xs text-espresso-400 hover:text-amber-400 transition-colors cursor-pointer truncate block"
+              className="text-xs text-espresso-400 hover:text-amber-600 transition-colors cursor-pointer truncate block"
             >
               {review.bookEmoji} {review.bookTitle} · {review.bookAuthor}
             </button>
@@ -47,7 +47,7 @@ export default function CommunityReviewCard({ review, onBookClick }: CommunityRe
       {/* Star rating */}
       <div className="flex items-center gap-0.5 mb-3">
         {stars.map((filled, i) => (
-          <span key={i} className={`text-base ${filled ? 'text-amber-400' : 'text-surface-border'}`}>
+          <span key={i} className={`text-base ${filled ? 'text-amber-600' : 'text-surface-border'}`}>
             ★
           </span>
         ))}

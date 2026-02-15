@@ -103,7 +103,7 @@ export default function ReadingStatsTab({ year }: ReadingStatsTabProps) {
                 <div key={d.date} className="flex items-center gap-3">
                   <span className="text-sm w-5 text-center text-espresso-400">{i + 1}</span>
                   <span className="text-xs text-cream-200 flex-1">{d.date}</span>
-                  <span className="text-xs font-bold text-amber-400">{d.lines.toLocaleString()}줄</span>
+                  <span className="text-xs font-bold text-amber-600">{d.lines.toLocaleString()}줄</span>
                 </div>
               ))}
             </div>

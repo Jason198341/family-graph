@@ -53,7 +53,7 @@ export default function RaceStats({ month }: RaceStatsProps) {
                   <p className="text-xs text-espresso-400">{person.role}</p>
                 </div>
                 {isTop && (
-                  <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-bold shrink-0">
+                  <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-600 rounded-full font-bold shrink-0">
                     독서왕
                   </span>
                 )}
@@ -83,7 +83,7 @@ export default function RaceStats({ month }: RaceStatsProps) {
                 </div>
 
                 {streak > 0 && (
-                  <p className="text-xs text-amber-400">🔥 {streak}일 연속 독서</p>
+                  <p className="text-xs text-amber-600">🔥 {streak}일 연속 독서</p>
                 )}
               </div>
             </div>

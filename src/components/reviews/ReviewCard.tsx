@@ -40,7 +40,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       {/* Star rating */}
       <div className="flex items-center gap-0.5 mb-3">
         {stars.map((filled, i) => (
-          <span key={i} className={`text-base ${filled ? 'text-amber-400' : 'text-surface-border'}`}>
+          <span key={i} className={`text-base ${filled ? 'text-amber-600' : 'text-surface-border'}`}>
             ★
           </span>
         ))}

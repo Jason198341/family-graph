@@ -65,7 +65,7 @@ export default function MemberManager() {
     <div className="space-y-6">
       {/* Family info + invite code */}
       <div>
-        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
           <span>{family.emoji}</span> {family.name}
         </h3>
         {isAdmin && (
@@ -100,8 +100,8 @@ export default function MemberManager() {
                     onClick={() => applyPreset(preset)}
                     className={`px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer ${
                       newRole === preset.role
-                        ? 'bg-primary-500/20 border border-primary-500/40 text-primary-300'
-                        : 'bg-surface-lighter border border-surface-border text-gray-400 hover:text-gray-200'
+                        ? 'bg-primary-500/20 border border-primary-500/40 text-amber-700'
+                        : 'bg-surface-lighter border border-surface-border text-gray-500 hover:text-gray-700'
                     }`}
                   >
                     {preset.emoji} {preset.role}
@@ -118,7 +118,7 @@ export default function MemberManager() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="예: 세연"
-                className="w-full px-3 py-2 bg-surface-lighter border border-surface-border rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary-500/40 transition-colors"
+                className="w-full px-3 py-2 bg-surface-lighter border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500/40 transition-colors"
                 onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
               />
             </div>
@@ -154,7 +154,7 @@ export default function MemberManager() {
                     type="button"
                     onClick={() => setNewColor(c)}
                     className={`w-7 h-7 rounded-full transition-all cursor-pointer ${
-                      newColor === c ? 'scale-125 ring-2 ring-white/30' : 'hover:scale-110'
+                      newColor === c ? 'scale-125 ring-2 ring-gray-300' : 'hover:scale-110'
                     }`}
                     style={{ backgroundColor: c }}
                   />
@@ -171,7 +171,7 @@ export default function MemberManager() {
                 {newEmoji}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white font-medium">{newName || '이름'}</p>
+                <p className="text-sm text-gray-900 font-medium">{newName || '이름'}</p>
                 <p className="text-xs text-gray-500">{newRole || '역할'}</p>
               </div>
               <button
@@ -196,7 +196,7 @@ export default function MemberManager() {
                 {p.emoji}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{p.name}</p>
+                <p className="text-sm text-gray-900 truncate">{p.name}</p>
                 <p className="text-xs text-gray-500">{p.role}</p>
               </div>
             </div>
@@ -219,14 +219,14 @@ export default function MemberManager() {
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{m.avatarEmoji ?? '👤'}</span>
                   <div>
-                    <p className="text-sm text-white">{m.displayName ?? m.email ?? '알 수 없음'}</p>
+                    <p className="text-sm text-gray-900">{m.displayName ?? m.email ?? '알 수 없음'}</p>
                     {m.email && <p className="text-xs text-gray-500">{m.email}</p>}
                   </div>
                 </div>
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => approveMember(m.id)}
-                    className="px-2.5 py-1 bg-growth-600/20 text-growth-400 border border-growth-500/30 rounded text-xs hover:bg-growth-600/30 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded text-xs hover:bg-emerald-100 transition-colors cursor-pointer"
                   >
                     승인
                   </button>
@@ -253,7 +253,7 @@ export default function MemberManager() {
             <div key={m.id} className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg">
               <span className="text-lg">{m.avatarEmoji ?? '👤'}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{m.displayName ?? m.email ?? '알 수 없음'}</p>
+                <p className="text-sm text-gray-900 truncate">{m.displayName ?? m.email ?? '알 수 없음'}</p>
               </div>
               {m.role === 'admin' && (
                 <span className="text-xs px-2 py-0.5 bg-primary-500/20 text-primary-400 rounded-full border border-primary-500/30">

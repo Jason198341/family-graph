@@ -28,7 +28,7 @@ function getDaysInYear(year: number) {
 export default function HeatmapCalendar({ year, data, colorScale }: HeatmapCalendarProps) {
   const [tooltip, setTooltip] = useState<{ date: string; value: number; x: number; y: number } | null>(null)
 
-  const colors = colorScale ?? ['#302920', '#5c4a28', '#d97706', '#f59e0b', '#fbbf24']
+  const colors = colorScale ?? ['#f1f5f9', '#fef3c7', '#fde68a', '#fbbf24', '#f59e0b']
 
   const { grid, maxVal } = useMemo(() => {
     const dataMap = new Map(data.map((d) => [d.date, d.value]))
@@ -82,7 +82,7 @@ export default function HeatmapCalendar({ year, data, colorScale }: HeatmapCalen
                       backgroundColor: getColor(cell.value),
                       borderRadius: 2,
                     }}
-                    className="cursor-pointer hover:ring-1 hover:ring-white/30 transition-all"
+                    className="cursor-pointer hover:ring-1 hover:ring-gray-400/50 transition-all"
                     onMouseEnter={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect()
                       setTooltip({ date: cell.date, value: cell.value, x: rect.left, y: rect.top - 30 })
@@ -112,7 +112,7 @@ export default function HeatmapCalendar({ year, data, colorScale }: HeatmapCalen
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="fixed z-50 px-2 py-1 bg-surface-light border border-surface-border rounded text-xs text-white pointer-events-none"
+          className="fixed z-50 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-white shadow-lg pointer-events-none"
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           {tooltip.date}: {tooltip.value.toLocaleString()}줄

@@ -26,7 +26,7 @@ export default function LetterCard({ letter }: LetterCardProps) {
           <span className="text-lg">{from?.emoji ?? '👤'}</span>
           <span className="text-xs font-semibold text-cream-100">{from?.name ?? '?'}</span>
         </div>
-        <span className="text-amber-400">→</span>
+        <span className="text-amber-600">→</span>
         <div className="flex items-center gap-1">
           <span className="text-lg">{to?.emoji ?? '👤'}</span>
           <span className="text-xs font-semibold text-cream-100">{to?.name ?? '?'}</span>

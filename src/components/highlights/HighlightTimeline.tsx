@@ -46,7 +46,7 @@ export default function HighlightTimeline({ month }: HighlightTimelineProps) {
         </h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="text-xs px-3 py-1.5 bg-amber-500/15 text-amber-400 rounded-lg hover:bg-amber-500/25 transition-colors cursor-pointer font-medium"
+          className="text-xs px-3 py-1.5 bg-amber-500/15 text-amber-600 rounded-lg hover:bg-amber-500/25 transition-colors cursor-pointer font-medium"
         >
           + 한 줄 남기기
         </button>
@@ -55,7 +55,7 @@ export default function HighlightTimeline({ month }: HighlightTimelineProps) {
       {/* Best highlight banner */}
       {bestHighlight && (
         <div className="mb-4 p-3 bg-amber-500/8 border border-amber-500/20 rounded-xl">
-          <p className="text-xs text-amber-400/70 mb-1">이 달의 명문장</p>
+          <p className="text-xs text-amber-600/70 mb-1">이 달의 명문장</p>
           <p className="text-sm text-cream-100 italic leading-relaxed">
             &ldquo;{bestHighlight.content}&rdquo;
           </p>
