@@ -251,7 +251,8 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl
 
     if (Object.keys(dbUpdates).length > 0) {
-      await supabase.from('families').update(dbUpdates).eq('id', family.id)
+      const { error } = await supabase.from('families').update(dbUpdates).eq('id', family.id)
+      if (error) console.error('[updateFamily] Supabase error:', error)
     }
   },
 }))

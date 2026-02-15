@@ -1,8 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useGraphStore } from '@/stores/graphStore'
 import { useFamilyStore } from '@/stores/familyStore'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
-import { useState, useEffect } from 'react'
 
 interface FamilyRanking {
   familyId: string
@@ -19,7 +18,7 @@ interface FamilyLeaderboardProps {
 
 export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
   const [rankings, setRankings] = useState<FamilyRanking[]>([])
-  const [loading, setLoading] = useState(false)
+  const [rpcDone, setRpcDone] = useState(false)
 
   const persons = useGraphStore((s) => s.persons)
   const readingLogs = useGraphStore((s) => s.readingLogs)
@@ -42,7 +41,6 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
     if (!isSupabaseConfigured) return
 
     async function fetchRankings() {
-      setLoading(true)
       try {
         const { data, error } = await supabase.rpc('get_monthly_family_rankings', { target_month: month })
         if (error) {
@@ -61,7 +59,7 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
       } catch (err) {
         console.error('[FamilyLeaderboard] fetch error:', err)
       } finally {
-        setLoading(false)
+        setRpcDone(true)
       }
     }
 
@@ -102,50 +100,47 @@ export default function FamilyLeaderboard({ month }: FamilyLeaderboardProps) {
           전체 가족 현황
         </h3>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {displayRankings.map((family, idx) => {
-              const rank = idx + 1
-              const style = medalStyles[idx] ?? { bg: 'bg-surface-lighter', border: 'border-surface-border', text: 'text-espresso-300', icon: `${rank}` }
-              const isOurFamily = family.familyId === activeFamilyId
+        <div className="space-y-3">
+          {displayRankings.map((family, idx) => {
+            const rank = idx + 1
+            const style = medalStyles[idx] ?? { bg: 'bg-surface-lighter', border: 'border-surface-border', text: 'text-espresso-300', icon: `${rank}` }
+            const isOurFamily = family.familyId === activeFamilyId
 
-              return (
-                <div
-                  key={idx}
-                  className={`flex items-center gap-4 p-4 rounded-xl border ${style.bg} ${style.border} ${rank <= 3 ? 'animate-medal-shine' : ''} ${isOurFamily ? 'ring-2 ring-amber-500/40' : ''}`}
-                >
-                  <div className="text-2xl w-10 text-center">
-                    {style.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{family.familyEmoji}</span>
-                      <span className={`text-sm font-bold ${style.text}`}>{family.familyName}</span>
-                      {isOurFamily && (
-                        <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-600 rounded-full font-semibold">
-                          우리 가족
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-espresso-400">
-                      {family.memberCount}명 · 1인당 평균 {(family.avgPerMember ?? 0).toLocaleString()}줄
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-lg font-bold tabular-nums ${style.text}`}>
-                      {(family.totalLines ?? 0).toLocaleString()}
-                    </p>
-                    <p className="text-xs text-espresso-400">줄</p>
-                  </div>
+            return (
+              <div
+                key={family.familyId}
+                className={`flex items-center gap-4 p-4 rounded-xl border ${style.bg} ${style.border} ${rank <= 3 ? 'animate-medal-shine' : ''} ${isOurFamily ? 'ring-2 ring-amber-500/40' : ''}`}
+              >
+                <div className="text-2xl w-10 text-center">
+                  {style.icon}
                 </div>
-              )
-            })}
-          </div>
-        )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{family.familyEmoji}</span>
+                    <span className={`text-sm font-bold ${style.text}`}>{family.familyName}</span>
+                    {isOurFamily && (
+                      <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-600 rounded-full font-semibold">
+                        우리 가족
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-espresso-400">
+                    {family.memberCount}명 · 1인당 평균 {(family.avgPerMember ?? 0).toLocaleString()}줄
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-lg font-bold tabular-nums ${style.text}`}>
+                    {(family.totalLines ?? 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-espresso-400">줄</p>
+                </div>
+              </div>
+            )
+          })}
+          {!rpcDone && isSupabaseConfigured && (
+            <p className="text-xs text-espresso-400 text-center animate-pulse">다른 가족 불러오는 중...</p>
+          )}
+        </div>
       </div>
     </div>
   )

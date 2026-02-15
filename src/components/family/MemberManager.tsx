@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useFamilyStore } from '@/stores/familyStore'
 import { useGraphStore } from '@/stores/graphStore'
 import { resizeImage } from '@/lib/resizeImage'
@@ -44,8 +44,6 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
   const [newEmoji, setNewEmoji] = useState('🧑')
   const [newColor, setNewColor] = useState('#3b82f6')
   const [newAvatarUrl, setNewAvatarUrl] = useState('')
-  const addFileRef = useRef<HTMLInputElement>(null)
-  const familyFileRef = useRef<HTMLInputElement>(null)
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -54,7 +52,6 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
   const [editEmoji, setEditEmoji] = useState('')
   const [editColor, setEditColor] = useState('')
   const [editAvatarUrl, setEditAvatarUrl] = useState('')
-  const editFileRef = useRef<HTMLInputElement>(null)
 
   // Auto-open edit form when initialEditId is provided
   useEffect(() => {
@@ -135,10 +132,9 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
       {/* Family info + photo + invite code */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          {/* Family avatar — clickable to upload photo */}
-          <button
-            type="button"
-            onClick={() => familyFileRef.current?.click()}
+          {/* Family avatar — label triggers file input reliably on mobile */}
+          <label
+            htmlFor="family-photo-input"
             className="relative group/fam-avatar shrink-0 cursor-pointer"
             title="가족 사진 변경"
           >
@@ -159,9 +155,9 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
                 <circle cx="12" cy="13" r="4" />
               </svg>
             </div>
-          </button>
+          </label>
           <input
-            ref={familyFileRef}
+            id="family-photo-input"
             type="file"
             accept="image/*"
             className="hidden"
@@ -279,13 +275,12 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
                   </div>
                 )}
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => addFileRef.current?.click()}
+                  <label
+                    htmlFor="add-person-photo-input"
                     className="text-xs px-3 py-1.5 bg-surface-lighter border border-surface-border rounded-lg text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     사진 선택
-                  </button>
+                  </label>
                   {newAvatarUrl && (
                     <button
                       type="button"
@@ -297,7 +292,7 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
                   )}
                 </div>
                 <input
-                  ref={addFileRef}
+                  id="add-person-photo-input"
                   type="file"
                   accept="image/*"
                   className="hidden"
@@ -418,19 +413,18 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
                         </div>
                       )}
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => editFileRef.current?.click()}
+                        <label
+                          htmlFor="edit-person-photo-input"
                           className="text-xs px-3 py-1.5 bg-surface-lighter border border-surface-border rounded-lg text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors cursor-pointer"
                         >
                           사진 변경
-                        </button>
+                        </label>
                         {editAvatarUrl && (
                           <button type="button" onClick={() => setEditAvatarUrl('')} className="text-xs px-2 py-1.5 text-red-400 hover:text-red-600 cursor-pointer">삭제</button>
                         )}
                       </div>
                       <input
-                        ref={editFileRef}
+                        id="edit-person-photo-input"
                         type="file"
                         accept="image/*"
                         className="hidden"

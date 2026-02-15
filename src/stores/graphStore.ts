@@ -337,6 +337,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         supabase.from('persons').insert({
           id, family_id: getFamilyId(), name: data.name, role: data.role,
           emoji: data.emoji, bio: data.bio, color: data.color,
+          avatar_url: data.avatarUrl ?? null,
         }),
         () => set((s) => ({ persons: s.persons.filter((p) => p.id !== id) })),
         'addPerson',
