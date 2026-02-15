@@ -310,6 +310,7 @@ export const useReadingStore = create<ReadingState>()((set, get) => ({
         books: (books.data ?? []).map((r) => ({
           id: r.id, title: r.title, author: r.author, totalPages: r.total_pages,
           linesPerPage: r.lines_per_page, emoji: r.emoji, color: r.color,
+          coverUrl: (r as Record<string, unknown>).cover_url as string | undefined,
         })),
         bookProgress: (bookProgressRes.data ?? []).map((r: Record<string, unknown>) => ({
           personId: r.person_id as string,
