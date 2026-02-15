@@ -43,9 +43,8 @@ export default function ReadingTracker() {
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const [formPersonId, setFormPersonId] = useState(persons[0]?.id ?? '')
   const [formBookId, setFormBookId] = useState(books[0]?.id ?? '')
-  const [formPages, setFormPages] = useState('')
+  const [formCurrentPage, setFormCurrentPage] = useState('')
   const [formDate, setFormDate] = useState(todayStr)
-  const [pageMode, setPageMode] = useState<'delta' | 'absolute'>('delta')
   const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [showAddBook, setShowAddBook] = useState(false)
 
@@ -95,44 +94,26 @@ export default function ReadingTracker() {
   const selectedBook = books.find((b) => b.id === formBookId)
   const linesPerPage = selectedBook?.linesPerPage ?? 25
   const selectedProgress = getBookProgress(formPersonId, formBookId)
+  const prevPage = selectedProgress?.currentPage ?? 0
 
-  const calculatedLines = useMemo(() => {
-    const val = parseInt(formPages, 10) || 0
-    if (pageMode === 'absolute' && selectedBook) {
-      const prevPage = selectedProgress?.currentPage ?? 0
-      const delta = Math.max(0, val - prevPage)
-      return Math.round(delta * linesPerPage)
-    }
-    return Math.round(val * linesPerPage)
-  }, [formPages, pageMode, selectedBook, selectedProgress, linesPerPage])
+  const pageVal = parseInt(formCurrentPage, 10) || 0
+  const pagesRead = Math.max(0, pageVal - prevPage)
+  const calculatedLines = pagesRead * linesPerPage
 
   const handleAddLog = () => {
-    const val = parseInt(formPages, 10)
-    if (!formPersonId || !formBookId || isNaN(val) || val <= 0) {
-      addToast('사람, 책, 페이지 수를 확인하세요', 'error')
+    if (!formPersonId || !formBookId || pageVal <= 0) {
+      addToast('사람, 책, 현재 페이지를 확인하세요', 'error')
+      return
+    }
+    if (pageVal <= prevPage) {
+      addToast(`현재 페이지(${pageVal})가 이전 기록(${prevPage})보다 작거나 같습니다`, 'error')
       return
     }
 
-    let pages: number
-    const prevPage = selectedProgress?.currentPage ?? 0
-    if (pageMode === 'absolute' && selectedBook) {
-      pages = Math.max(0, val - prevPage)
-      if (pages <= 0) {
-        addToast('현재 페이지가 이전 기록보다 작습니다', 'error')
-        return
-      }
-      updateBookProgress(formPersonId, formBookId, val)
-    } else {
-      pages = val
-      if (selectedBook) {
-        updateBookProgress(formPersonId, formBookId, prevPage + pages)
-      }
-    }
-
-    const lines = Math.round(pages * linesPerPage)
-    addReadingLog({ personId: formPersonId, bookId: formBookId, date: formDate, linesRead: lines })
-    addToast(`${pages}p × ${linesPerPage}줄 = ${lines.toLocaleString()}줄 기록!`, 'success')
-    setFormPages('')
+    updateBookProgress(formPersonId, formBookId, pageVal)
+    addReadingLog({ personId: formPersonId, bookId: formBookId, date: formDate, linesRead: calculatedLines })
+    addToast(`${pagesRead}p × ${linesPerPage}줄 = ${calculatedLines.toLocaleString()}줄 기록!`, 'success')
+    setFormCurrentPage('')
   }
 
   const handleAddBook = () => {
@@ -301,29 +282,23 @@ export default function ReadingTracker() {
             </select>
           </div>
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-stone-500">
-                {pageMode === 'absolute' ? '현재 페이지' : '읽은 페이지'}
-              </label>
-              <button
-                onClick={() => setPageMode(pageMode === 'delta' ? 'absolute' : 'delta')}
-                className="text-[10px] text-amber-600 hover:text-amber-700 transition-colors cursor-pointer"
-              >
-                {pageMode === 'delta' ? '→ 번호 입력' : '→ 수량 입력'}
-              </button>
-            </div>
+            <label className="text-xs text-stone-500 block mb-1">현재 페이지</label>
             <input
               type="number"
+              inputMode="numeric"
               min={1}
-              value={formPages}
-              onChange={(e) => setFormPages(e.target.value)}
+              value={formCurrentPage}
+              onChange={(e) => setFormCurrentPage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddLog()}
-              placeholder={pageMode === 'absolute' ? `${(selectedProgress?.currentPage ?? 0) + 1}` : '20'}
+              placeholder={`${prevPage + 1}`}
               className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400"
             />
-            {calculatedLines > 0 && (
-              <p className="text-[10px] text-amber-600 mt-0.5">= {calculatedLines.toLocaleString()}줄 ({linesPerPage}줄/p)</p>
-            )}
+            <p className="text-[10px] text-stone-400 mt-0.5">
+              이전: {prevPage}p{selectedBook ? ` / ${selectedBook.totalPages}p` : ''}
+              {calculatedLines > 0 && (
+                <span className="text-amber-600 font-medium"> → +{pagesRead}p = {calculatedLines.toLocaleString()}줄</span>
+              )}
+            </p>
           </div>
           <div>
             <label className="text-xs text-stone-500 block mb-1">날짜</label>

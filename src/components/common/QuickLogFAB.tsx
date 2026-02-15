@@ -8,34 +8,48 @@ export default function QuickLogFAB() {
   const persons = useReadingStore((s) => s.persons)
   const books = useReadingStore((s) => s.books)
   const addReadingLog = useReadingStore((s) => s.addReadingLog)
+  const updateBookProgress = useReadingStore((s) => s.updateBookProgress)
+  const getBookProgress = useReadingStore((s) => s.getBookProgress)
+  const addToast = useReadingStore((s) => s.addToast)
   const lastReaderId = useReadingStore((s) => s.lastReaderId)
   const lastBookId = useReadingStore((s) => s.lastBookId)
 
   const [personId, setPersonId] = useState('')
   const [bookId, setBookId] = useState('')
-  const [lines, setLines] = useState('')
-  const linesRef = useRef<HTMLInputElement>(null)
+  const [currentPage, setCurrentPage] = useState('')
+  const pageRef = useRef<HTMLInputElement>(null)
 
   // Pre-fill smart defaults when opening
   useEffect(() => {
     if (open) {
       setPersonId(lastReaderId && persons.some((p) => p.id === lastReaderId) ? lastReaderId : persons[0]?.id ?? '')
       setBookId(lastBookId && books.some((b) => b.id === lastBookId) ? lastBookId : books[0]?.id ?? '')
-      setLines('')
-      // Focus the lines input after a tick (let the sheet animate in)
-      setTimeout(() => linesRef.current?.focus(), 300)
+      setCurrentPage('')
+      setTimeout(() => pageRef.current?.focus(), 300)
     }
   }, [open, lastReaderId, lastBookId, persons, books])
 
+  const selectedBook = books.find((b) => b.id === bookId)
+  const prevPage = (personId && bookId) ? (getBookProgress(personId, bookId)?.currentPage ?? 0) : 0
+  const linesPerPage = selectedBook?.linesPerPage ?? 25
+  const pageVal = parseInt(currentPage, 10) || 0
+  const pagesRead = Math.max(0, pageVal - prevPage)
+  const calculatedLines = pagesRead * linesPerPage
+
   const handleSubmit = () => {
-    const n = parseInt(lines, 10)
-    if (!personId || !bookId || !n || n <= 0) return
-    addReadingLog({ personId, bookId, date: today(), linesRead: n })
+    if (!personId || !bookId || pageVal <= 0 || pageVal <= prevPage) {
+      if (pageVal > 0 && pageVal <= prevPage) {
+        addToast(`현재 페이지(${pageVal})가 이전 기록(${prevPage})보다 작거나 같습니다`, 'error')
+      }
+      return
+    }
+    updateBookProgress(personId, bookId, pageVal)
+    addReadingLog({ personId, bookId, date: today(), linesRead: calculatedLines })
+    addToast(`${pagesRead}p × ${linesPerPage}줄 = ${calculatedLines.toLocaleString()}줄 기록!`, 'success')
     setOpen(false)
   }
 
   const selectedPerson = persons.find((p) => p.id === personId)
-  const selectedBook = books.find((b) => b.id === bookId)
 
   return (
     <>
@@ -112,35 +126,43 @@ export default function QuickLogFAB() {
                 </div>
               </div>
 
-              {/* Lines input + submit */}
+              {/* Current page input + submit */}
               <div className="flex gap-3 items-end">
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">몇 줄 읽었나요?</label>
+                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">현재 페이지</label>
                   <input
-                    ref={linesRef}
+                    ref={pageRef}
                     type="number"
                     inputMode="numeric"
-                    value={lines}
-                    onChange={(e) => setLines(e.target.value)}
+                    value={currentPage}
+                    onChange={(e) => setCurrentPage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                    placeholder="0"
+                    placeholder={`${prevPage + 1}`}
                     className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-lg font-bold text-stone-800 text-center focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all"
                   />
                 </div>
                 <button
                   onClick={handleSubmit}
-                  disabled={!personId || !bookId || !lines || parseInt(lines) <= 0}
+                  disabled={!personId || !bookId || pageVal <= prevPage}
                   className="px-6 py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm"
                 >
                   기록
                 </button>
               </div>
 
-              {/* Smart default hint */}
+              {/* Progress info */}
               {selectedPerson && selectedBook && (
-                <p className="text-xs text-stone-400 mt-3 text-center">
-                  {selectedPerson.emoji} {selectedPerson.name}이(가) &laquo;{selectedBook.title}&raquo; 읽는 중
-                </p>
+                <div className="mt-3 text-center space-y-0.5">
+                  <p className="text-xs text-stone-400">
+                    {selectedPerson.emoji} {selectedPerson.name} · {selectedBook.emoji} {selectedBook.title}
+                  </p>
+                  <p className="text-xs text-stone-400">
+                    이전: {prevPage}p / {selectedBook.totalPages}p
+                    {calculatedLines > 0 && (
+                      <span className="text-amber-600 font-medium"> → +{pagesRead}p = {calculatedLines.toLocaleString()}줄</span>
+                    )}
+                  </p>
+                </div>
               )}
             </div>
           </div>
