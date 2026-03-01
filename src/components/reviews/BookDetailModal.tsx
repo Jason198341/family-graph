@@ -29,7 +29,13 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
   const readingCount = readers.filter((r) => !r.completed).length
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${bookTitle} 상세 정보`}
+    >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         className="relative bg-surface-light border border-surface-border rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto"
@@ -40,6 +46,7 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
           <h2 className="text-lg font-bold text-cream-100">📖 {bookTitle}</h2>
           <button
             onClick={onClose}
+            aria-label="모달 닫기"
             className="w-8 h-8 rounded-lg bg-surface-lighter border border-surface-border flex items-center justify-center text-espresso-300 hover:text-cream-100 transition-colors cursor-pointer"
           >
             ✕
@@ -131,9 +138,13 @@ export default function BookDetailModal({ bookTitle, onClose }: BookDetailModalP
                         <span className="text-xs text-espresso-400">
                           {review.familyEmoji} {review.familyName}
                         </span>
-                        <div className="flex gap-0.5 ml-auto">
+                        <div
+                          className="flex gap-0.5 ml-auto"
+                          aria-label={`별점 ${review.rating}점`}
+                          role="img"
+                        >
                           {Array.from({ length: 5 }, (_, i) => (
-                            <span key={i} className={`text-xs ${i < review.rating ? 'text-amber-600' : 'text-surface-border'}`}>★</span>
+                            <span key={i} aria-hidden="true" className={`text-xs ${i < review.rating ? 'text-amber-600' : 'text-surface-border'}`}>★</span>
                           ))}
                         </div>
                       </div>

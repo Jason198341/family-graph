@@ -33,8 +33,9 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-espresso-400 block mb-1">작성자</label>
+          <label htmlFor="review-person" className="text-xs text-espresso-400 block mb-1">작성자</label>
           <select
+            id="review-person"
             value={personId}
             onChange={(e) => setPersonId(e.target.value)}
             className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-amber-500 cursor-pointer"
@@ -45,8 +46,9 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
           </select>
         </div>
         <div>
-          <label className="text-xs text-espresso-400 block mb-1">책</label>
+          <label htmlFor="review-book" className="text-xs text-espresso-400 block mb-1">책</label>
           <select
+            id="review-book"
             value={bookId}
             onChange={(e) => setBookId(e.target.value)}
             className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-amber-500 cursor-pointer"
@@ -60,31 +62,34 @@ export default function ReviewForm({ onClose }: ReviewFormProps) {
 
       {/* Star rating selector */}
       <div>
-        <label className="text-xs text-espresso-400 block mb-1">별점</label>
-        <div className="flex items-center gap-1">
+        <p className="text-xs text-espresso-400 block mb-1" id="review-rating-label">별점</p>
+        <div className="flex items-center gap-1" role="group" aria-labelledby="review-rating-label">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               onClick={() => setRating(star)}
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
-              className="text-2xl cursor-pointer transition-transform hover:scale-110"
+              aria-label={`별점 ${star}점`}
+              aria-pressed={rating === star}
+              className="text-2xl cursor-pointer transition-transform hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-              <span className={star <= (hoverRating || rating) ? 'text-amber-600' : 'text-surface-border'}>
+              <span aria-hidden="true" className={star <= (hoverRating || rating) ? 'text-amber-600' : 'text-surface-border'}>
                 ★
               </span>
             </button>
           ))}
           {rating > 0 && (
-            <span className="text-xs text-espresso-400 ml-2">{rating}점</span>
+            <span className="text-xs text-espresso-400 ml-2" aria-live="polite">{rating}점</span>
           )}
         </div>
       </div>
 
       {/* Content */}
       <div>
-        <label className="text-xs text-espresso-400 block mb-1">후기</label>
+        <label htmlFor="review-content" className="text-xs text-espresso-400 block mb-1">후기</label>
         <textarea
+          id="review-content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="이 책을 읽고 느낀 점을 자유롭게 적어주세요..."

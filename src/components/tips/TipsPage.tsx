@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useReadingStore } from '@/stores/readingStore'
 import { readingTips, CATEGORIES, type ReadingTip } from '@/data/readingTips'
+import { checkDailyLimit, incrementDailyCount } from '@/lib/rate-limiter'
 
 const DIFFICULTY_LABEL: Record<number, string> = { 1: '쉬움', 2: '보통', 3: '고급' }
 const DIFFICULTY_COLOR: Record<number, string> = {
@@ -23,10 +24,7 @@ const QUICK_PROMPTS = [
   '읽은 책으로 가족 토론 질문을 만들어주세요',
 ]
 
-const AI_LIMIT_KEY = 'fg_ai_last_used'
-const getToday = () => new Date().toISOString().slice(0, 10)
-const isUsedToday = () => localStorage.getItem(AI_LIMIT_KEY) === getToday()
-const markUsedToday = () => localStorage.setItem(AI_LIMIT_KEY, getToday())
+const AI_FEATURE_KEY = 'ai_coach'
 
 export default function TipsPage() {
   const [category, setCategory] = useState('전체')
@@ -35,7 +33,7 @@ export default function TipsPage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showCoach, setShowCoach] = useState(true)
-  const [aiUsedToday, setAiUsedToday] = useState(isUsedToday)
+  const [aiUsedToday, setAiUsedToday] = useState(() => !checkDailyLimit(AI_FEATURE_KEY).allowed)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const persons = useReadingStore((s) => s.persons)
@@ -85,7 +83,16 @@ export default function TipsPage() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return
-    if (aiUsedToday) return
+
+    const { allowed } = checkDailyLimit(AI_FEATURE_KEY)
+    if (!allowed) {
+      setAiUsedToday(true)
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: '일일 AI 사용 한도(1회)를 초과했습니다. 내일 다시 시도해주세요.' },
+      ])
+      return
+    }
 
     const userMsg: ChatMessage = { role: 'user', content: text.trim() }
     const newMessages = [...messages, userMsg]
@@ -114,7 +121,7 @@ export default function TipsPage() {
       const data = await res.json()
       const reply = data.choices?.[0]?.message?.content ?? '죄송합니다, 응답을 생성하지 못했어요.'
       setMessages([...newMessages, { role: 'assistant', content: reply }])
-      markUsedToday()
+      incrementDailyCount(AI_FEATURE_KEY)
       setAiUsedToday(true)
     } catch {
       setMessages([...newMessages, { role: 'assistant', content: '연결에 실패했어요. 잠시 후 다시 시도해주세요.' }])

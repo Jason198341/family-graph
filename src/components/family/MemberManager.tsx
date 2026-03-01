@@ -178,19 +178,21 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
 
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-gray-900">{family.name}</h3>
-            <div className="flex flex-wrap gap-1 mt-1">
+            <div className="flex flex-wrap gap-1 mt-1" role="group" aria-label="가족 이모지 선택">
               {FAMILY_EMOJIS.map((em) => (
                 <button
                   key={em}
                   type="button"
                   onClick={() => updateFamily({ emoji: em })}
+                  aria-label={`가족 이모지 ${em} 선택`}
+                  aria-pressed={family.emoji === em}
                   className={`w-6 h-6 rounded flex items-center justify-center text-sm transition-all cursor-pointer ${
                     family.emoji === em
                       ? 'bg-amber-100 border border-amber-300 scale-110'
                       : 'hover:bg-gray-100'
                   }`}
                 >
-                  {em}
+                  <span aria-hidden="true">{em}</span>
                 </button>
               ))}
             </div>
@@ -308,20 +310,22 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
 
             {/* Emoji picker (fallback) */}
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">이모지 {newAvatarUrl ? '(사진 대체)' : ''}</label>
-              <div className="flex gap-1.5 flex-wrap">
+              <p className="text-xs text-gray-500 mb-1 block" id="add-person-emoji-label">이모지 {newAvatarUrl ? '(사진 대체)' : ''}</p>
+              <div className="flex gap-1.5 flex-wrap" role="group" aria-labelledby="add-person-emoji-label">
                 {ALL_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
                     type="button"
                     onClick={() => setNewEmoji(emoji)}
+                    aria-label={`이모지 ${emoji} 선택`}
+                    aria-pressed={newEmoji === emoji}
                     className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all cursor-pointer ${
                       newEmoji === emoji
                         ? 'bg-primary-500/25 border-2 border-primary-500 scale-110'
                         : 'bg-surface-lighter border border-surface-border hover:border-gray-500'
                     }`}
                   >
-                    {emoji}
+                    <span aria-hidden="true">{emoji}</span>
                   </button>
                 ))}
               </div>
@@ -329,13 +333,15 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
 
             {/* Color picker */}
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">색상</label>
-              <div className="flex gap-1.5">
+              <p className="text-xs text-gray-500 mb-1 block" id="add-person-color-label">색상</p>
+              <div className="flex gap-1.5" role="group" aria-labelledby="add-person-color-label">
                 {COLORS.map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setNewColor(c)}
+                    aria-label={`색상 ${c} 선택`}
+                    aria-pressed={newColor === c}
                     className={`w-7 h-7 rounded-full transition-all cursor-pointer ${
                       newColor === c ? 'scale-125 ring-2 ring-gray-300' : 'hover:scale-110'
                     }`}
@@ -439,38 +445,45 @@ export default function MemberManager({ initialEditId }: MemberManagerProps) {
 
                   {/* Emoji picker */}
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">이모지 {editAvatarUrl ? '(사진 대체)' : ''}</label>
-                    <div className="flex gap-1.5 flex-wrap">
+                    <p className="text-xs text-gray-500 mb-1 block" id="edit-person-emoji-label">이모지 {editAvatarUrl ? '(사진 대체)' : ''}</p>
+                    <div className="flex gap-1.5 flex-wrap" role="group" aria-labelledby="edit-person-emoji-label">
                       {ALL_EMOJIS.map((emoji) => (
                         <button
                           key={emoji}
                           type="button"
                           onClick={() => setEditEmoji(emoji)}
+                          aria-label={`이모지 ${emoji} 선택`}
+                          aria-pressed={editEmoji === emoji}
                           className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all cursor-pointer ${
                             editEmoji === emoji
                               ? 'bg-amber-100 border-2 border-amber-400 scale-110'
                               : 'bg-surface-lighter border border-surface-border hover:border-gray-400'
                           }`}
                         >
-                          {emoji}
+                          <span aria-hidden="true">{emoji}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {/* Color picker */}
-                  <div className="flex gap-1.5">
-                    {COLORS.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setEditColor(c)}
-                        className={`w-7 h-7 rounded-full transition-all cursor-pointer ${
-                          editColor === c ? 'scale-125 ring-2 ring-gray-300' : 'hover:scale-110'
-                        }`}
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1 block sr-only" id="edit-person-color-label">색상</p>
+                    <div className="flex gap-1.5" role="group" aria-labelledby="edit-person-color-label">
+                      {COLORS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setEditColor(c)}
+                          aria-label={`색상 ${c} 선택`}
+                          aria-pressed={editColor === c}
+                          className={`w-7 h-7 rounded-full transition-all cursor-pointer ${
+                            editColor === c ? 'scale-125 ring-2 ring-gray-300' : 'hover:scale-110'
+                          }`}
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
+                    </div>
                   </div>
 
                   {/* Preview + save */}

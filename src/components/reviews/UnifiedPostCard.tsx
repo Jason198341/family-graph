@@ -88,9 +88,13 @@ export default function UnifiedPostCard({ post, onBookClick }: Props) {
 
       {/* Rating (reviews only) */}
       {post.postType === 'review' && post.rating > 0 && (
-        <div className="flex items-center gap-0.5 mb-3">
+        <div
+          className="flex items-center gap-0.5 mb-3"
+          role="img"
+          aria-label={`별점 ${post.rating}점`}
+        >
           {[1, 2, 3, 4, 5].map((i) => (
-            <span key={i} className={`text-base ${i <= post.rating ? 'text-amber-600' : 'text-surface-border'}`}>
+            <span key={i} aria-hidden="true" className={`text-base ${i <= post.rating ? 'text-amber-600' : 'text-surface-border'}`}>
               ★
             </span>
           ))}
@@ -120,22 +124,26 @@ export default function UnifiedPostCard({ post, onBookClick }: Props) {
           {/* Single family-level like button */}
           <button
             onClick={() => toggleFeedLike(post.postId, post.postType)}
-            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
+            aria-label={isLiked ? `좋아요 취소 (${post.likes.length}개)` : `좋아요 (${post.likes.length}개)`}
+            aria-pressed={isLiked}
+            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer min-h-[44px] ${
               isLiked
                 ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
                 : 'bg-surface-lighter text-espresso-400 border-surface-border hover:text-cream-200'
             }`}
           >
-            <span>{isLiked ? '❤️' : '🤍'}</span>
+            <span aria-hidden="true">{isLiked ? '❤️' : '🤍'}</span>
             <span>좋아요{post.likes.length > 0 ? ` ${post.likes.length}` : ''}</span>
           </button>
 
           {/* Comment toggle */}
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-1.5 text-xs text-espresso-400 hover:text-cream-200 transition-colors cursor-pointer"
+            aria-label={`댓글 ${showComments ? '닫기' : '보기'}${post.commentCount > 0 ? ` (${post.commentCount}개)` : ''}`}
+            aria-expanded={showComments}
+            className="flex items-center gap-1.5 text-xs text-espresso-400 hover:text-cream-200 transition-colors cursor-pointer min-h-[44px]"
           >
-            <span>💬</span>
+            <span aria-hidden="true">💬</span>
             <span>댓글{post.commentCount > 0 ? ` ${post.commentCount}` : ''}</span>
           </button>
         </div>
@@ -173,11 +181,13 @@ export default function UnifiedPostCard({ post, onBookClick }: Props) {
                 onChange={(e) => setCommentText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleComment()}
                 placeholder="댓글 입력..."
+                aria-label="댓글 입력"
                 className="flex-1 text-xs p-2 bg-surface border border-surface-border rounded-lg text-cream-100 placeholder:text-espresso-400 outline-none focus:border-amber-500"
               />
               <button
                 onClick={handleComment}
                 disabled={!commentText.trim()}
+                aria-label="댓글 전송"
                 className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-medium hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 전송

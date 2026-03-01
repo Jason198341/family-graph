@@ -92,7 +92,11 @@ export default function ReadingHeatmap() {
         <p className="text-[10px] text-stone-400">최근 12주 · {totalDays}일 독서</p>
       </div>
 
-      <div className="overflow-x-auto">
+      <div
+        className="overflow-x-auto"
+        aria-label={`12주 독서 활동 히트맵 — 최근 ${totalDays}일 독서`}
+        role="img"
+      >
         <div className="inline-flex flex-col gap-0.5 min-w-0">
           {/* Month labels */}
           <div className="flex gap-0.5 ml-6 mb-1">

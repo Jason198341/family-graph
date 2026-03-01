@@ -39,8 +39,9 @@ export default function LetterForm({ onClose }: LetterFormProps) {
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-espresso-400 mb-1 block">보내는 사람</label>
+            <label htmlFor="letter-from" className="text-xs text-espresso-400 mb-1 block">보내는 사람</label>
             <select
+              id="letter-from"
               value={fromId}
               onChange={(e) => setFromId(e.target.value)}
               className="w-full text-xs p-2 bg-surface rounded-lg border border-surface-border text-cream-100"
@@ -52,8 +53,9 @@ export default function LetterForm({ onClose }: LetterFormProps) {
             </select>
           </div>
           <div>
-            <label className="text-xs text-espresso-400 mb-1 block">받는 사람</label>
+            <label htmlFor="letter-to" className="text-xs text-espresso-400 mb-1 block">받는 사람</label>
             <select
+              id="letter-to"
               value={toId}
               onChange={(e) => setToId(e.target.value)}
               className="w-full text-xs p-2 bg-surface rounded-lg border border-surface-border text-cream-100"
@@ -67,8 +69,9 @@ export default function LetterForm({ onClose }: LetterFormProps) {
         </div>
 
         <div>
-          <label className="text-xs text-espresso-400 mb-1 block">관련 책 (선택)</label>
+          <label htmlFor="letter-book" className="text-xs text-espresso-400 mb-1 block">관련 책 (선택)</label>
           <select
+            id="letter-book"
             value={bookId}
             onChange={(e) => setBookId(e.target.value)}
             className="w-full text-xs p-2 bg-surface rounded-lg border border-surface-border text-cream-100"
@@ -81,8 +84,9 @@ export default function LetterForm({ onClose }: LetterFormProps) {
         </div>
 
         <div>
-          <label className="text-xs text-espresso-400 mb-1 block">편지 내용</label>
+          <label htmlFor="letter-content" className="text-xs text-espresso-400 mb-1 block">편지 내용</label>
           <textarea
+            id="letter-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="읽은 책에 대한 감상, 응원, 감사의 마음을 전해보세요..."

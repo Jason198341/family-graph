@@ -3,6 +3,14 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from './authStore'
 import type { Family, FamilyMember } from '@/types'
 
+// Lazy reference to avoid circular imports: familyStore → readingStore → familyStore
+function addToast(message: string, type: 'success' | 'error' | 'info') {
+  // Dynamically imported to break the circular dependency at module load time
+  import('./readingStore').then(({ useReadingStore }) => {
+    useReadingStore.getState().addToast(message, type)
+  })
+}
+
 const DEV_FAMILY: Family = {
   id: 'dev-family',
   name: '우리 가족',
@@ -174,6 +182,7 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
     if (error) {
       console.error('[createFamily] rpc error:', error)
+      addToast('가족 생성에 실패했습니다: ' + error.message, 'error')
       return null
     }
 
@@ -205,13 +214,23 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
   approveMember: async (memberId) => {
     if (!isSupabaseConfigured) return
-    await supabase.rpc('approve_member', { member_id: memberId })
+    const { error } = await supabase.rpc('approve_member', { member_id: memberId })
+    if (error) {
+      console.error('[approveMember]', error)
+      addToast('승인에 실패했습니다: ' + error.message, 'error')
+      return
+    }
     await get().loadFamily()
   },
 
   rejectMember: async (memberId) => {
     if (!isSupabaseConfigured) return
-    await supabase.rpc('reject_member', { member_id: memberId })
+    const { error } = await supabase.rpc('reject_member', { member_id: memberId })
+    if (error) {
+      console.error('[rejectMember]', error)
+      addToast('거절에 실패했습니다: ' + error.message, 'error')
+      return
+    }
     await get().loadFamily()
   },
 
@@ -219,7 +238,12 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     const { activeFamilyId } = get()
     if (!isSupabaseConfigured || !activeFamilyId) return null
 
-    const { data } = await supabase.rpc('regenerate_invite_code', { fid: activeFamilyId })
+    const { data, error } = await supabase.rpc('regenerate_invite_code', { fid: activeFamilyId })
+    if (error) {
+      console.error('[regenerateInviteCode]', error)
+      addToast('초대 코드 재생성에 실패했습니다: ' + error.message, 'error')
+      return null
+    }
     const result = data as { invite_code?: string; error?: string } | null
     if (result?.invite_code) {
       set((s) => s.family ? { family: { ...s.family, inviteCode: result.invite_code! } } : {})
@@ -232,7 +256,12 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     const { myMembership } = get()
     if (!isSupabaseConfigured || !myMembership) return
 
-    await supabase.from('family_members').delete().eq('id', myMembership.id)
+    const { error } = await supabase.from('family_members').delete().eq('id', myMembership.id)
+    if (error) {
+      console.error('[leaveFamily]', error)
+      addToast('가족 탈퇴에 실패했습니다: ' + error.message, 'error')
+      return
+    }
     set({ family: null, members: [], myMembership: null, activeFamilyId: null, status: 'no-family' })
   },
 
@@ -252,7 +281,10 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
     if (Object.keys(dbUpdates).length > 0) {
       const { error } = await supabase.from('families').update(dbUpdates).eq('id', family.id)
-      if (error) console.error('[updateFamily] Supabase error:', error)
+      if (error) {
+        console.error('[updateFamily] Supabase error:', error)
+        addToast('가족 정보 업데이트에 실패했습니다: ' + error.message, 'error')
+      }
     }
   },
 }))

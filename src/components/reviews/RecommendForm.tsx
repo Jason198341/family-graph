@@ -39,8 +39,9 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-espresso-400 block mb-1">추천인</label>
+          <label htmlFor="recommend-person" className="text-xs text-espresso-400 block mb-1">추천인</label>
           <select
+            id="recommend-person"
             value={personId}
             onChange={(e) => setPersonId(e.target.value)}
             className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-olive-500 cursor-pointer"
@@ -51,8 +52,9 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
           </select>
         </div>
         <div>
-          <label className="text-xs text-espresso-400 block mb-1">책</label>
+          <label htmlFor="recommend-book" className="text-xs text-espresso-400 block mb-1">책</label>
           <select
+            id="recommend-book"
             value={bookId}
             onChange={(e) => setBookId(e.target.value)}
             className="w-full bg-surface border border-surface-border rounded-lg px-3 py-2 text-sm text-cream-100 outline-none focus:border-olive-500 cursor-pointer"
@@ -75,8 +77,9 @@ export default function RecommendForm({ onClose }: RecommendFormProps) {
       )}
 
       <div>
-        <label className="text-xs text-espresso-400 block mb-1">추천 이유 *</label>
+        <label htmlFor="recommend-reason" className="text-xs text-espresso-400 block mb-1">추천 이유 *</label>
         <textarea
+          id="recommend-reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="이 책을 왜 추천하나요?"

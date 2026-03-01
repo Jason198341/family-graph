@@ -7,7 +7,12 @@ export default function Toast() {
   if (toasts.length === 0) return null
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
+    <div
+      role="alert"
+      aria-live="polite"
+      aria-atomic="false"
+      className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"
+    >
       {toasts.map((toast) => {
         const colorMap = {
           success: 'border-emerald-500 bg-emerald-50 text-emerald-700',
@@ -44,6 +49,7 @@ export default function Toast() {
             <span className="text-sm font-medium flex-1">{toast.message}</span>
             <button
               onClick={() => removeToast(toast.id)}
+              aria-label="알림 닫기"
               className="shrink-0 p-1 rounded-md hover:bg-black/5 transition-colors cursor-pointer"
             >
               <svg className="w-4 h-4 opacity-60" viewBox="0 0 20 20" fill="currentColor">

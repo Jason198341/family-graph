@@ -71,6 +71,9 @@ export default function QuickLogFAB() {
           onClick={() => setOpen(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="오늘의 독서 기록"
             className="w-full max-w-lg bg-white rounded-t-2xl shadow-xl animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >

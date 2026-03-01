@@ -60,6 +60,9 @@ export default function ShareCard({ month, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="독서 리포트 공유"
       onClick={onClose}
     >
       <div

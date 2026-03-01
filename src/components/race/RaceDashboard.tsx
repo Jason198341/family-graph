@@ -145,19 +145,22 @@ export default function RaceDashboard() {
           <button
             onClick={() => setShowShare(true)}
             className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-amber-600 hover:bg-amber-50 transition-all cursor-pointer"
+            aria-label="독서 리포트 공유"
             title="공유"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
           </button>
           <button
             onClick={prevMonth}
+            aria-label="이전 달"
             className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 transition-all cursor-pointer"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <span className="text-xs font-bold text-stone-600 min-w-[72px] text-center">{displayMonth}</span>
+          <span className="text-xs font-bold text-stone-600 min-w-[72px] text-center" aria-live="polite">{displayMonth}</span>
           <button
             onClick={nextMonth}
+            aria-label="다음 달"
             className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 transition-all cursor-pointer"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="9 18 15 12 9 6"/></svg>

@@ -142,6 +142,7 @@ export default function FamilySetup() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="이름 입력 (예: 현규)"
+                aria-label="가족 구성원 이름"
                 className="flex-1 px-3 py-2.5 bg-surface border border-surface-border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors"
                 onKeyDown={(e) => e.key === 'Enter' && addMember()}
               />
@@ -189,7 +190,8 @@ export default function FamilySetup() {
                       </div>
                       <button
                         onClick={() => removeMember(i)}
-                        className="text-gray-600 hover:text-red-400 transition-colors cursor-pointer p-1"
+                        aria-label={`${p.name} 삭제`}
+                        className="text-gray-600 hover:text-red-400 transition-colors cursor-pointer p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                           <path d="M18 6L6 18M6 6l12 12" />
@@ -311,8 +313,9 @@ export default function FamilySetup() {
           {tab === 'create' ? (
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">가족 이름</label>
+                <label htmlFor="family-name" className="block text-xs text-gray-400 mb-1.5">가족 이름</label>
                 <input
+                  id="family-name"
                   type="text"
                   value={familyName}
                   onChange={(e) => setFamilyName(e.target.value)}
@@ -322,20 +325,22 @@ export default function FamilySetup() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">이모지</label>
-                <div className="flex gap-2 flex-wrap">
+                <p className="block text-xs text-gray-400 mb-1.5" id="family-emoji-label">이모지</p>
+                <div className="flex gap-2 flex-wrap" role="group" aria-labelledby="family-emoji-label">
                   {emojiOptions.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => setFamilyEmoji(emoji)}
+                      aria-label={`가족 이모지 ${emoji} 선택`}
+                      aria-pressed={familyEmoji === emoji}
                       className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all cursor-pointer ${
                         familyEmoji === emoji
                           ? 'bg-primary-600/30 border-2 border-primary-500 scale-110'
                           : 'bg-surface border border-surface-border hover:border-gray-500'
                       }`}
                     >
-                      {emoji}
+                      <span aria-hidden="true">{emoji}</span>
                     </button>
                   ))}
                 </div>
@@ -352,8 +357,9 @@ export default function FamilySetup() {
           ) : (
             <form onSubmit={handleJoin} className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">초대 코드</label>
+                <label htmlFor="invite-code" className="block text-xs text-gray-400 mb-1.5">초대 코드</label>
                 <input
+                  id="invite-code"
                   type="text"
                   value={inviteCodeInput}
                   onChange={(e) => setInviteCodeInput(e.target.value)}

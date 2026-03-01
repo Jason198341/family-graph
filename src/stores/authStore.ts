@@ -72,7 +72,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const dbUpdates: Record<string, unknown> = {}
       if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName
       if (updates.avatarEmoji !== undefined) dbUpdates.avatar_emoji = updates.avatarEmoji
-      await supabase.from('profiles').update(dbUpdates).eq('id', user.id)
+      const { error } = await supabase.from('profiles').update(dbUpdates).eq('id', user.id)
+      if (error) {
+        console.error('[updateProfile]', error)
+        // Lazy import to avoid circular dependency
+        import('./readingStore').then(({ useReadingStore }) => {
+          useReadingStore.getState().addToast('프로필 업데이트에 실패했습니다: ' + error.message, 'error')
+        })
+        return
+      }
     }
     set({ profile: { ...profile, ...updates } })
   },

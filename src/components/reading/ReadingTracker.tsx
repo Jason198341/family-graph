@@ -207,13 +207,15 @@ export default function ReadingTracker() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setSelectedMonth(prevMonth(selectedMonth))}
+            aria-label="이전 달"
             className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 transition-all cursor-pointer"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <span className="text-sm font-bold text-stone-600 min-w-[80px] text-center">{formatMonth(selectedMonth)}</span>
+          <span className="text-sm font-bold text-stone-600 min-w-[80px] text-center" aria-live="polite">{formatMonth(selectedMonth)}</span>
           <button
             onClick={() => setSelectedMonth(nextMonth(selectedMonth))}
+            aria-label="다음 달"
             className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 transition-all cursor-pointer"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><polyline points="9 18 15 12 9 6"/></svg>
@@ -313,8 +315,9 @@ export default function ReadingTracker() {
         <h2 className="text-sm font-bold text-stone-700">독서 기록 입력</h2>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs text-stone-500 block mb-1">누가</label>
+            <label htmlFor="log-person" className="text-xs text-stone-500 block mb-1">누가</label>
             <select
+              id="log-person"
               value={formPersonId}
               onChange={(e) => setFormPersonId(e.target.value)}
               className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400 cursor-pointer"
@@ -325,8 +328,9 @@ export default function ReadingTracker() {
             </select>
           </div>
           <div>
-            <label className="text-xs text-stone-500 block mb-1">어떤 책</label>
+            <label htmlFor="log-book" className="text-xs text-stone-500 block mb-1">어떤 책</label>
             <select
+              id="log-book"
               value={formBookId}
               onChange={(e) => setFormBookId(e.target.value)}
               className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 outline-none focus:border-amber-400 cursor-pointer"
@@ -337,8 +341,9 @@ export default function ReadingTracker() {
             </select>
           </div>
           <div>
-            <label className="text-xs text-stone-500 block mb-1">현재 페이지</label>
+            <label htmlFor="log-page" className="text-xs text-stone-500 block mb-1">현재 페이지</label>
             <input
+              id="log-page"
               type="number"
               inputMode="numeric"
               min={1}
@@ -356,8 +361,9 @@ export default function ReadingTracker() {
             </p>
           </div>
           <div>
-            <label className="text-xs text-stone-500 block mb-1">날짜</label>
+            <label htmlFor="log-date" className="text-xs text-stone-500 block mb-1">날짜</label>
             <input
+              id="log-date"
               type="date"
               value={formDate}
               onChange={(e) => setFormDate(e.target.value)}
@@ -498,15 +504,24 @@ export default function ReadingTracker() {
               <div key={book.id} className="bg-white rounded-xl p-3 border border-stone-200/60 shadow-sm">
                 <div className="flex items-start gap-3">
                   {book.coverUrl ? (
-                    <button onClick={() => searchCoverForBook(book.id)} className="relative group cursor-pointer shrink-0">
-                      <img key={book.coverUrl} src={book.coverUrl} alt="" className="w-10 h-14 object-cover rounded shadow-sm" />
+                    <button
+                      onClick={() => searchCoverForBook(book.id)}
+                      aria-label={`${book.title} 표지 변경`}
+                      className="relative group cursor-pointer shrink-0"
+                    >
+                      <img key={book.coverUrl} src={book.coverUrl} alt={book.title} className="w-10 h-14 object-cover rounded shadow-sm" />
                       <div className="absolute inset-0 bg-black/40 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-[8px]">변경</span>
+                        <span className="text-white text-[8px]" aria-hidden="true">변경</span>
                       </div>
                     </button>
                   ) : (
-                    <button onClick={() => searchCoverForBook(book.id)} className="text-2xl cursor-pointer hover:scale-110 transition-transform shrink-0" title="표지 추가">
-                      {book.emoji}
+                    <button
+                      onClick={() => searchCoverForBook(book.id)}
+                      aria-label={`${book.title} 표지 추가`}
+                      className="text-2xl cursor-pointer hover:scale-110 transition-transform shrink-0"
+                      title="표지 추가"
+                    >
+                      <span aria-hidden="true">{book.emoji}</span>
                     </button>
                   )}
                   <div className="flex-1 min-w-0">
@@ -721,6 +736,7 @@ export default function ReadingTracker() {
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <button
                       onClick={() => { setEditingLogId(log.id); setEditLogLines(String(log.linesRead)); setEditLogDate(log.date) }}
+                      aria-label={`${person?.name ?? ''}의 ${log.date} 기록 수정`}
                       className="w-6 h-6 rounded flex items-center justify-center text-stone-300 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                       title="수정"
                     >
@@ -728,6 +744,7 @@ export default function ReadingTracker() {
                     </button>
                     <button
                       onClick={() => { removeReadingLog(log.id); addToast('기록 삭제됨', 'info') }}
+                      aria-label={`${person?.name ?? ''}의 ${log.date} 기록 삭제`}
                       className="w-6 h-6 rounded flex items-center justify-center text-stone-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                       title="삭제"
                     >
